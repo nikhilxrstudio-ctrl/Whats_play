@@ -58,178 +58,181 @@ class MusicCatalogueScreen extends GetView<MusicController> {
         }
         SystemNavigator.pop();
       },
-      child: Obx(() {
-        final isViewingCustom = controller.activeCustomPlaylist.value != null;
-        final isViewingLiked = controller.isViewingLikedSongs.value;
-        final isDetail = controller.currentTabIndex.value == 2 &&
-            (isViewingLiked || isViewingCustom);
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+          systemNavigationBarColor: AppColors.bottomBar,
+          systemNavigationBarDividerColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.light,
+        ),
+        child: Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(56.h),
+            child: Obx(() {
+              final isViewingCustom = controller.activeCustomPlaylist.value != null;
+              final isViewingLiked = controller.isViewingLikedSongs.value;
+              final isDetail = controller.currentTabIndex.value == 2 &&
+                  (isViewingLiked || isViewingCustom);
 
-        return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
-            statusBarBrightness: Brightness.dark,
-            systemNavigationBarColor:
-                isDetail ? AppColors.background : AppColors.bottomBar,
-            systemNavigationBarDividerColor: Colors.transparent,
-            systemNavigationBarIconBrightness: Brightness.light,
+              if (controller.currentTabIndex.value == 0) {
+                return AppBar(
+                  backgroundColor: AppColors.background,
+                  elevation: 0,
+                  centerTitle: false,
+                  titleSpacing: 16.w,
+                  toolbarHeight: 56.h,
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6.r),
+                        child: Image.asset(
+                          'assets/icons/app_logo.png',
+                          width: 24.w,
+                          height: 24.w,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            Icons.play_circle_fill_rounded,
+                            color: AppColors.primary,
+                            size: 24.sp,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Flexible(
+                        child: Text(
+                          AppConstants.appTitle,
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else if (controller.currentTabIndex.value == 1) {
+                return AppBar(
+                  backgroundColor: AppColors.background,
+                  elevation: 0,
+                  centerTitle: false,
+                  titleSpacing: 16.w,
+                  toolbarHeight: 56.h,
+                  title: Text(
+                    'Search',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                );
+              } else {
+                return AppBar(
+                  backgroundColor: AppColors.background,
+                  elevation: 0,
+                  centerTitle: false,
+                  titleSpacing: 16.w,
+                  toolbarHeight: 56.h,
+                  leading: isDetail
+                      ? SpotifyBackButton(
+                          onPressed: () {
+                            if (controller.isViewingLikedSongs.value) {
+                              controller.closeLikedSongs();
+                            } else {
+                              controller.closeCustomPlaylist();
+                            }
+                          },
+                        )
+                      : null,
+                  title: Text(
+                    controller.isViewingLikedSongs.value
+                        ? 'Liked Songs'
+                        : controller.activeCustomPlaylist.value != null
+                            ? controller.activeCustomPlaylist.value!.name
+                            : 'Your Library',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  actions: [
+                    if (!isDetail) ...[
+                      IconButton(
+                        icon: Icon(
+                          CupertinoIcons.search,
+                          color: AppColors.textPrimary,
+                          size: 20.sp,
+                        ),
+                        onPressed: () => controller.changeTab(1),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          CupertinoIcons.plus,
+                          color: AppColors.textPrimary,
+                          size: 22.sp,
+                        ),
+                        onPressed: () => _showCreateOptionsBottomSheet(context),
+                      ),
+                    ],
+                  ],
+                );
+              }
+            }),
           ),
-          child: Scaffold(
-            backgroundColor: AppColors.background,
-            appBar: PreferredSize(
-              preferredSize: Size.fromHeight(56.h),
-              child: Obx(() {
-          if (controller.currentTabIndex.value == 0) {
-            return AppBar(
-              backgroundColor: AppColors.background,
-              elevation: 0,
-              centerTitle: false,
-              titleSpacing: 16.w,
-              toolbarHeight: 56.h,
-              title: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6.r),
-                    child: Image.asset(
-                      'assets/icons/app_logo.png',
-                      width: 24.w,
-                      height: 24.w,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Icon(
-                        Icons.play_circle_fill_rounded,
-                        color: AppColors.primary,
-                        size: 24.sp,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  Flexible(
-                    child: Text(
-                      AppConstants.appTitle,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (controller.currentTabIndex.value == 1) {
-            return AppBar(
-              backgroundColor: AppColors.background,
-              elevation: 0,
-              centerTitle: false,
-              titleSpacing: 16.w,
-              toolbarHeight: 56.h,
-              title: Text(
-                'Search',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
-                ),
-              ),
-            );
-          } else {
-            return AppBar(
-              backgroundColor: AppColors.background,
-              elevation: 0,
-              centerTitle: false,
-              titleSpacing: 16.w,
-              toolbarHeight: 56.h,
-              leading: isDetail
-                  ? SpotifyBackButton(
-                      onPressed: () {
-                        if (controller.isViewingLikedSongs.value) {
-                          controller.closeLikedSongs();
-                        } else {
-                          controller.closeCustomPlaylist();
-                        }
-                      },
-                    )
-                  : null,
-              title: Text(
-                controller.isViewingLikedSongs.value
-                    ? 'Liked Songs'
-                    : controller.activeCustomPlaylist.value != null
-                        ? controller.activeCustomPlaylist.value!.name
-                        : 'Your Library',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              actions: [
-                if (!isDetail) ...[
-                  IconButton(
-                    icon: Icon(
-                      CupertinoIcons.search,
-                      color: AppColors.textPrimary,
-                      size: 20.sp,
-                    ),
-                    onPressed: () => controller.changeTab(1),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      CupertinoIcons.plus,
-                      color: AppColors.textPrimary,
-                      size: 22.sp,
-                    ),
-                    onPressed: () => _showCreateOptionsBottomSheet(context),
-                  ),
-                ],
+          body: PageView(
+            controller: controller.pageController,
+            onPageChanged: (index) {
+              controller.currentTabIndex.value = index;
+            },
+            physics: const BouncingScrollPhysics(),
+            children: [
+              _KeepAliveHomeTab(parent: this),
+              _KeepAliveSearchTab(parent: this),
+              _KeepAliveLibraryTab(parent: this),
+            ],
+          ),
+          bottomNavigationBar: SafeArea(
+            top: false,
+            bottom: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Docked Mini Player Bar directly above bottom navigation bar
+                if (Get.isRegistered<PlayerController>())
+                  const MiniPlayerBar(),
+                // Spotify-Style Cupertino Bottom Navigation Bar with isolated Obx
+                Obx(() {
+                  final isViewingCustom = controller.activeCustomPlaylist.value != null;
+                  final isViewingLiked = controller.isViewingLikedSongs.value;
+                  final isDetail = controller.currentTabIndex.value == 2 &&
+                      (isViewingLiked || isViewingCustom);
+                  return SpotifyBottomNavigationBar(
+                    currentIndex: controller.currentTabIndex.value,
+                    onTabSelected: (index) {
+                      if (isDetail) {
+                        controller.closeLikedSongs();
+                        controller.closeCustomPlaylist();
+                      }
+                      controller.changeTab(index);
+                    },
+                  );
+                }),
               ],
-            );
-          }
-        }),
-      ),
-      body: PageView(
-        controller: controller.pageController,
-        onPageChanged: (index) {
-          controller.currentTabIndex.value = index;
-        },
-        physics: const BouncingScrollPhysics(),
-        children: [
-          _KeepAliveTab(child: _buildHomeView()),
-          _KeepAliveTab(child: _buildSearchView()),
-          _KeepAliveTab(child: _buildLibraryView()),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        bottom: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Docked Mini Player Bar directly above bottom navigation bar
-            if (Get.isRegistered<PlayerController>())
-              const MiniPlayerBar(),
-            // Spotify-Style Cupertino Bottom Navigation Bar
-            SpotifyBottomNavigationBar(
-              currentIndex: controller.currentTabIndex.value,
-              onTabSelected: (index) {
-                if (isDetail) {
-                  controller.closeLikedSongs();
-                  controller.closeCustomPlaylist();
-                }
-                controller.changeTab(index);
-              },
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  );
-      }),
     );
   }
 
@@ -3455,15 +3458,15 @@ class _StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
   }
 }
 
-class _KeepAliveTab extends StatefulWidget {
-  final Widget child;
-  const _KeepAliveTab({required this.child});
+class _KeepAliveHomeTab extends StatefulWidget {
+  final MusicCatalogueScreen parent;
+  const _KeepAliveHomeTab({required this.parent});
 
   @override
-  State<_KeepAliveTab> createState() => _KeepAliveTabState();
+  State<_KeepAliveHomeTab> createState() => _KeepAliveHomeTabState();
 }
 
-class _KeepAliveTabState extends State<_KeepAliveTab>
+class _KeepAliveHomeTabState extends State<_KeepAliveHomeTab>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -3471,7 +3474,47 @@ class _KeepAliveTabState extends State<_KeepAliveTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return widget.child;
+    return widget.parent._buildHomeView();
+  }
+}
+
+class _KeepAliveSearchTab extends StatefulWidget {
+  final MusicCatalogueScreen parent;
+  const _KeepAliveSearchTab({required this.parent});
+
+  @override
+  State<_KeepAliveSearchTab> createState() => _KeepAliveSearchTabState();
+}
+
+class _KeepAliveSearchTabState extends State<_KeepAliveSearchTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.parent._buildSearchView();
+  }
+}
+
+class _KeepAliveLibraryTab extends StatefulWidget {
+  final MusicCatalogueScreen parent;
+  const _KeepAliveLibraryTab({required this.parent});
+
+  @override
+  State<_KeepAliveLibraryTab> createState() => _KeepAliveLibraryTabState();
+}
+
+class _KeepAliveLibraryTabState extends State<_KeepAliveLibraryTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.parent._buildLibraryView();
   }
 }
 

@@ -329,7 +329,7 @@ class MusicController extends GetxController {
     if (pageController.hasClients && pageController.page?.round() != index) {
       pageController.animateToPage(
         index,
-        duration: const Duration(milliseconds: 280),
+        duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
       );
     }
