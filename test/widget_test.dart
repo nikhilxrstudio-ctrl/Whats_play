@@ -358,8 +358,8 @@ void main() {
     await tester.pump();
 
     // Initially displays track 1 info
-    expect(find.text('First Song'), findsOneWidget);
-    expect(find.text('First Artist'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_title'))).data, 'First Song');
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_artist'))).data, 'First Artist');
 
     // Tap Next button
     await tester.tap(find.byIcon(Icons.skip_next_rounded));
@@ -367,9 +367,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     // Verify track info updated to track 2
-    expect(find.text('Second Song'), findsOneWidget);
-    expect(find.text('Second Artist'), findsOneWidget);
-    expect(find.text('First Song'), findsNothing);
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_title'))).data, 'Second Song');
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_artist'))).data, 'Second Artist');
 
     addTearDown(() {
       Get.reset();
@@ -434,8 +433,8 @@ void main() {
     await tester.pump();
 
     // Verify initial Track Alpha
-    expect(find.text('Track Alpha'), findsOneWidget);
-    expect(find.text('Artist Alpha'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_title'))).data, 'Track Alpha');
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_artist'))).data, 'Artist Alpha');
 
     // Swipe left on the artwork PageView to go to next song
     final pageViewFinder = find.byType(PageView);
@@ -445,16 +444,16 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify now playing Track Beta
-    expect(find.text('Track Beta'), findsOneWidget);
-    expect(find.text('Artist Beta'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_title'))).data, 'Track Beta');
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_artist'))).data, 'Artist Beta');
 
     // Swipe right on the artwork PageView to go back to Track Alpha
     await tester.fling(pageViewFinder, const Offset(400, 0), 1000);
     await tester.pumpAndSettle();
 
     // Verify back to Track Alpha
-    expect(find.text('Track Alpha'), findsOneWidget);
-    expect(find.text('Artist Alpha'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_title'))).data, 'Track Alpha');
+    expect(tester.widget<Text>(find.byKey(const Key('player_current_artist'))).data, 'Artist Alpha');
 
     addTearDown(() {
       Get.reset();

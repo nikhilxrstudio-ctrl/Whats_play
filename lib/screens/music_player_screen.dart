@@ -7,6 +7,7 @@ import '../constants/app_colors.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../models/track_model.dart';
+import '../services/lyrics_service.dart';
 import '../utils/artwork_color_extractor.dart';
 import '../widgets/add_to_collection_sheet.dart';
 import '../widgets/spotify_back_button.dart';
@@ -24,6 +25,12 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
   String? _lastArtworkUrl;
 
   late PageController _artworkPageController;
+  late final ScrollController _scrollController;
+  final LyricsService _lyricsService = LyricsService();
+  String? _currentLyrics;
+  bool _isLoadingLyrics = false;
+  bool _isLyricsExpanded = false;
+
   int _currentPage = 0;
   bool _isSwipingFromPage = false;
   Worker? _trackWorker;
@@ -31,6 +38,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     if (Get.isRegistered<PlayerController>()) {
       final playerCtrl = Get.find<PlayerController>();
       if (Get.arguments is TrackModel) {
@@ -68,15 +76,58 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
       _artworkPageController = PageController(initialPage: _currentPage);
 
       _trackWorker = ever(playerCtrl.currentTrack, (track) {
-        if (track != null && !_isSwipingFromPage && mounted) {
-          _syncPageToCurrentTrack();
+        if (track != null && mounted) {
+          if (!_isSwipingFromPage) {
+            _syncPageToCurrentTrack();
+          }
+          _loadLyrics(track);
         }
       });
+
+      if (playerCtrl.currentTrack.value != null) {
+        _loadLyrics(playerCtrl.currentTrack.value!);
+      }
 
       _updateColor(playerCtrl.currentTrack.value?.artworkUrl);
     } else {
       _artworkPageController = PageController();
     }
+  }
+
+  void _loadLyrics(TrackModel track) {
+    if (!mounted) return;
+    setState(() {
+      _isLoadingLyrics = true;
+      _currentLyrics = null;
+    });
+    _lyricsService.getLyrics(track).then((lyrics) {
+      if (mounted && controller.currentTrack.value?.trackId == track.trackId) {
+        setState(() {
+          _currentLyrics = lyrics;
+          _isLoadingLyrics = false;
+        });
+      }
+    }).catchError((_) {
+      if (mounted) setState(() => _isLoadingLyrics = false);
+    });
+  }
+
+  void _scrollToLyrics() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      360.h,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _scrollToSimilarSongs() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      620.h,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   void _syncPageToCurrentTrack() {
@@ -117,6 +168,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
       controller.currentIndex.value = actualIndex;
       controller.playTrack(track);
       _updateColor(track.artworkUrl);
+      _loadLyrics(track);
 
       Future.delayed(const Duration(milliseconds: 350), () {
         if (mounted) _isSwipingFromPage = false;
@@ -138,6 +190,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
   void dispose() {
     _trackWorker?.dispose();
     _artworkPageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -250,15 +303,18 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
             }
 
             return SafeArea(
-              child: Padding(
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
                 padding: EdgeInsets.symmetric(horizontal: 24.w),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Spacer(flex: 1),
+                    SizedBox(height: 6.h),
                     // Spotify Large Square Artwork with ambient shadow & interactive swipe carousel
                     _buildArtworkCarousel(controller),
-                    const Spacer(flex: 2),
-                    // Track Info Header (Title, Artist, Like Heart)
+                    SizedBox(height: 18.h),
+                    // Track Info Header (Title, Artist, Like Heart, Download)
                     _buildTrackInfo(context, track),
                     SizedBox(height: 10.h),
                     // Subtle Media Notification Active Badge
@@ -266,13 +322,22 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
                     SizedBox(height: 14.h),
                     // Progress Slider & Timestamps
                     _buildProgressSlider(context),
-                    SizedBox(height: 12.h),
+                    SizedBox(height: 10.h),
                     // Playback Controls Row (Spotify Shuffle, Prev, White Play/Pause, Next, Repeat)
                     _buildPlaybackControls(),
-                    SizedBox(height: 20.h),
-                    // Spotify Bottom Controls (Device Connect & Queue)
+                    SizedBox(height: 16.h),
+                    // Spotify Bottom Controls (Lyrics, -10s, +10s, Queue)
                     _buildBottomIcons(),
-                    const Spacer(flex: 1),
+                    SizedBox(height: 14.h),
+                    // Scroll up hint
+                    _buildScrollHint(),
+                    SizedBox(height: 20.h),
+                    // Spotify-Style Lyrics Section
+                    _buildLyricsSection(track),
+                    SizedBox(height: 28.h),
+                    // Similar Songs in Category Section
+                    _buildSimilarSongsSection(track),
+                    SizedBox(height: 48.h),
                   ],
                 ),
               ),
@@ -381,6 +446,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
             children: [
               Text(
                 track.title,
+                key: const Key('player_current_title'),
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 20.sp,
@@ -393,6 +459,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
               SizedBox(height: 4.h),
               Text(
                 track.artistName,
+                key: const Key('player_current_artist'),
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 14.sp,
@@ -639,12 +706,12 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
       children: [
         IconButton(
           icon: Icon(
-            Icons.devices_rounded,
-            size: 20.sp,
-            color: AppColors.textSecondary,
+            Icons.lyrics_rounded,
+            size: 22.sp,
+            color: _currentLyrics != null ? AppColors.primary : AppColors.textSecondary,
           ),
-          tooltip: 'Connect to a device',
-          onPressed: () {},
+          tooltip: 'Lyrics',
+          onPressed: _scrollToLyrics,
         ),
         Row(
           children: [
@@ -686,8 +753,354 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
             size: 22.sp,
             color: AppColors.textSecondary,
           ),
-          tooltip: 'Queue',
-          onPressed: () {},
+          tooltip: 'Similar songs in category',
+          onPressed: _scrollToSimilarSongs,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScrollHint() {
+    return GestureDetector(
+      onTap: _scrollToLyrics,
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.12),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.keyboard_arrow_up_rounded, size: 16.sp, color: AppColors.textSecondary),
+              SizedBox(width: 4.w),
+              Flexible(
+                child: Text(
+                  'Swipe up for lyrics & similar tracks',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLyricsSection(TrackModel track) {
+    final cardBg = Color.lerp(const Color(0xFF1E1E1E), _artworkColor, 0.32)!;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 16.r,
+            offset: Offset(0, 6.h),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.lyrics_rounded,
+                    size: 20.sp,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    'Lyrics',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ],
+              ),
+              if (_currentLyrics != null && _currentLyrics!.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() => _isLyricsExpanded = !_isLyricsExpanded);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14.r),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _isLyricsExpanded ? 'COLLAPSE' : 'EXPAND',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        SizedBox(width: 4.w),
+                        Icon(
+                          _isLyricsExpanded
+                              ? Icons.keyboard_arrow_up_rounded
+                              : Icons.keyboard_arrow_down_rounded,
+                          size: 16.sp,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          if (_isLoadingLyrics)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.h),
+              child: const Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                  ),
+                ),
+              ),
+            )
+          else if (_currentLyrics != null && _currentLyrics!.isNotEmpty)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                setState(() => _isLyricsExpanded = !_isLyricsExpanded);
+              },
+              child: Text(
+                _currentLyrics!,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w600,
+                  height: 1.85,
+                  letterSpacing: 0.2,
+                ),
+                maxLines: _isLyricsExpanded ? null : 8,
+                overflow: _isLyricsExpanded ? TextOverflow.visible : TextOverflow.fade,
+              ),
+            )
+          else
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.h),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.music_off_rounded,
+                    size: 20.sp,
+                    color: Colors.white54,
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: Text(
+                      'Lyrics not available for this song',
+                      style: TextStyle(
+                        color: Colors.white60,
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimilarSongsSection(TrackModel currentTrack) {
+    // Collect similar songs:
+    // 1. Others in current playlist
+    final otherPlaylistTracks = controller.playlist
+        .where((t) => t.trackId != currentTrack.trackId)
+        .toList();
+
+    final List<TrackModel> candidates = List.from(otherPlaylistTracks);
+
+    // 2. If fewer than 8, supplement from MusicController
+    if (candidates.length < 8 && Get.isRegistered<MusicController>()) {
+      final musicCtrl = Get.find<MusicController>();
+      for (final t in [
+        ...musicCtrl.suggestedTracks,
+        ...musicCtrl.trendingTracks,
+        ...musicCtrl.topCharts,
+      ]) {
+        if (t.trackId != currentTrack.trackId && !candidates.any((c) => c.trackId == t.trackId)) {
+          candidates.add(t);
+        }
+      }
+    }
+
+    if (candidates.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final displayList = candidates.take(10).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 20.sp,
+                    color: AppColors.primary,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'More in this Category',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Text(
+              '${displayList.length} tracks',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12.h),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: displayList.length,
+          separatorBuilder: (context, index) => SizedBox(height: 8.h),
+          itemBuilder: (context, index) {
+            final item = displayList[index];
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                controller.playTrack(item, queue: [currentTrack, ...candidates]);
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6.r),
+                      child: item.artworkUrl != null && item.artworkUrl!.isNotEmpty
+                          ? Image.network(
+                              item.artworkUrl!,
+                              width: 46.w,
+                              height: 46.w,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                width: 46.w,
+                                height: 46.w,
+                                color: const Color(0xFF282828),
+                                child: const Icon(Icons.music_note_rounded, color: AppColors.primary),
+                              ),
+                            )
+                          : Container(
+                              width: 46.w,
+                              height: 46.w,
+                              color: const Color(0xFF282828),
+                              child: const Icon(Icons.music_note_rounded, color: AppColors.primary),
+                            ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13.5.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 3.h),
+                          Text(
+                            item.artistName,
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11.5.sp,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.play_circle_fill_rounded,
+                        size: 28.sp,
+                        color: AppColors.primary,
+                      ),
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        controller.playTrack(item, queue: [currentTrack, ...candidates]);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ],
     );
