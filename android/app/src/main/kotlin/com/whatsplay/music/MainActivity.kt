@@ -1,4 +1,4 @@
-package com.example.whats_play
+package com.whatsplay.music
 
 import io.flutter.embedding.android.FlutterActivity
 

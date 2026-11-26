@@ -168,7 +168,7 @@ void main() {
     test('toSqliteTrackMap strictly excludes transient non-schema fields', () {
       final track = testTrack1.copyWith(
         lastPlayedTimestamp: 1732600000000,
-        localFilePath: '/data/user/0/com.example/test.mp3',
+        localFilePath: '/data/user/0/com.whatsplay.music/test.mp3',
       );
 
       final map = track.toSqliteTrackMap();
