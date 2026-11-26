@@ -52,6 +52,36 @@ class MusicController extends GetxController {
   // In Library tab: viewing liked songs detail playlist
   final RxBool isViewingLikedSongs = false.obs;
 
+  // Double-tap back timestamp for home screen exit debounce
+  DateTime? lastBackPressTime;
+
+  /// Handles back navigation stack within MusicCatalogueScreen:
+  /// 1. If viewing liked songs detail -> close it and return to Library (returns true).
+  /// 2. If viewing a custom playlist detail -> close it and return to Library (returns true).
+  /// 3. If on a non-Home tab (Search or Library) -> switch to Home tab (returns true).
+  /// 4. If on Home tab -> requires a second back press within 2 seconds to exit (returns true on first press, false to allow exit on second press).
+  bool handleBackPress() {
+    if (isViewingLikedSongs.value) {
+      closeLikedSongs();
+      return true;
+    }
+    if (activeCustomPlaylist.value != null) {
+      closeCustomPlaylist();
+      return true;
+    }
+    if (currentTabIndex.value != 0) {
+      changeTab(0);
+      return true;
+    }
+    final now = DateTime.now();
+    if (lastBackPressTime == null ||
+        now.difference(lastBackPressTime!) > const Duration(seconds: 2)) {
+      lastBackPressTime = now;
+      return true;
+    }
+    return false;
+  }
+
   void openLikedSongs() {
     isViewingLikedSongs.value = true;
   }

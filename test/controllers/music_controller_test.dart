@@ -3,6 +3,7 @@ import 'package:whats_play/constants/app_constants.dart';
 import 'package:whats_play/controllers/music_controller.dart';
 import 'package:whats_play/models/artist_category_model.dart';
 import 'package:whats_play/models/audio_verification_model.dart';
+import 'package:whats_play/models/playlist_model.dart';
 import 'package:whats_play/models/track_model.dart';
 import 'package:whats_play/repositories/music_repository.dart';
 import 'package:whats_play/services/local_database_service.dart';
@@ -491,6 +492,45 @@ void main() {
       await controller.loadNewReleases();
       expect(controller.newReleases.length, 1);
       expect(controller.newReleases.first.title, 'Trending Hit');
+    });
+
+    test('handleBackPress handles Liked Songs, Custom Playlist, Tabs, and Home double-press exit', () async {
+      final repo = MockMusicRepository();
+      final db = MemoryLocalDatabaseService();
+      final controller = MusicController(repo, databaseService: db);
+
+      // 1. In Liked Songs view -> closes liked songs and returns true
+      controller.changeTab(2);
+      controller.openLikedSongs();
+      expect(controller.isViewingLikedSongs.value, true);
+      expect(controller.handleBackPress(), true);
+      expect(controller.isViewingLikedSongs.value, false);
+
+      // 2. In Custom Playlist view -> closes custom playlist and returns true
+      controller.openCustomPlaylist(
+        const PlaylistModel(id: 'test_p1', name: 'My Playlist', iconKey: 'fire', createdAt: 1000),
+      );
+      expect(controller.activeCustomPlaylist.value, isNotNull);
+      expect(controller.handleBackPress(), true);
+      expect(controller.activeCustomPlaylist.value, isNull);
+
+      // 3. In Library tab (tab 2) -> returns to Home tab (tab 0) and returns true
+      expect(controller.currentTabIndex.value, 2);
+      expect(controller.handleBackPress(), true);
+      expect(controller.currentTabIndex.value, 0);
+
+      // 4. In Search tab (tab 1) -> returns to Home tab (tab 0) and returns true
+      controller.changeTab(1);
+      expect(controller.handleBackPress(), true);
+      expect(controller.currentTabIndex.value, 0);
+
+      // 5. On Home tab (tab 0): first press sets timestamp and returns true (debounce)
+      controller.lastBackPressTime = null;
+      expect(controller.handleBackPress(), true);
+      expect(controller.lastBackPressTime, isNotNull);
+
+      // Rapid second press within 2 seconds allows exit (returns false)
+      expect(controller.handleBackPress(), false);
     });
   });
 }

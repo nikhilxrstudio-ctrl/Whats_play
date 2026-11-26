@@ -28,40 +28,52 @@ class MusicCatalogueScreen extends GetView<MusicController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final isViewingCustom = controller.activeCustomPlaylist.value != null;
-      final isViewingLiked = controller.isViewingLikedSongs.value;
-      final isDetail = controller.currentTabIndex.value == 2 &&
-          (isViewingLiked || isViewingCustom);
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        final handled = controller.handleBackPress();
+        if (handled) {
+          if (controller.currentTabIndex.value == 0 &&
+              !controller.isViewingLikedSongs.value &&
+              controller.activeCustomPlaylist.value == null) {
+            ScaffoldMessenger.of(context).removeCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Press back again to exit',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                backgroundColor: const Color(0xFF282828),
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(bottom: 80.h, left: 32.w, right: 32.w),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+            );
+          }
+          return;
+        }
+        SystemNavigator.pop();
+      },
+      child: Obx(() {
+        final isViewingCustom = controller.activeCustomPlaylist.value != null;
+        final isViewingLiked = controller.isViewingLikedSongs.value;
+        final isDetail = controller.currentTabIndex.value == 2 &&
+            (isViewingLiked || isViewingCustom);
 
-      return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-          systemNavigationBarColor:
-              isDetail ? AppColors.background : AppColors.bottomBar,
-          systemNavigationBarDividerColor: Colors.transparent,
-          systemNavigationBarIconBrightness: Brightness.light,
-        ),
-        child: PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) {
-            if (didPop) return;
-            if (controller.isViewingLikedSongs.value) {
-              controller.closeLikedSongs();
-              return;
-            }
-            if (controller.activeCustomPlaylist.value != null) {
-              controller.closeCustomPlaylist();
-              return;
-            }
-            if (controller.currentTabIndex.value != 0) {
-              controller.changeTab(0);
-              return;
-            }
-            SystemNavigator.pop();
-          },
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
+            systemNavigationBarColor:
+                isDetail ? AppColors.background : AppColors.bottomBar,
+            systemNavigationBarDividerColor: Colors.transparent,
+            systemNavigationBarIconBrightness: Brightness.light,
+          ),
           child: Scaffold(
             backgroundColor: AppColors.background,
             appBar: PreferredSize(
@@ -212,9 +224,9 @@ class MusicCatalogueScreen extends GetView<MusicController> {
         ),
       ),
     ),
-    ),
+  );
+      }),
     );
-    });
   }
 
   /// Tab 0: Home Music Catalogue View
