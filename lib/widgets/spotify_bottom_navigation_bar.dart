@@ -75,10 +75,39 @@ class SpotifyBottomNavigationBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isSelected ? selectedIcon : unselectedIcon,
-              color: color,
-              size: 22.sp,
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                if (isSelected)
+                  Container(
+                    width: 36.w,
+                    height: 24.h,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(12.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 10.r,
+                          spreadRadius: 1.r,
+                        ),
+                      ],
+                    ),
+                  ),
+                Icon(
+                  isSelected ? selectedIcon : unselectedIcon,
+                  color: color,
+                  size: 22.sp,
+                  shadows: isSelected
+                      ? [
+                          Shadow(
+                            color: AppColors.primary.withValues(alpha: 0.55),
+                            blurRadius: 8.r,
+                          ),
+                        ]
+                      : null,
+                ),
+              ],
             ),
             SizedBox(height: 3.h),
             Text(
