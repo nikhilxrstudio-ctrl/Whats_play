@@ -192,14 +192,18 @@ class MusicCatalogueScreen extends GetView<MusicController> {
           }
         }),
       ),
-      body: Obx(() => IndexedStack(
-            index: controller.currentTabIndex.value,
-            children: [
-              _buildHomeView(),
-              _buildSearchView(),
-              _buildLibraryView(),
-            ],
-          )),
+      body: PageView(
+        controller: controller.pageController,
+        onPageChanged: (index) {
+          controller.currentTabIndex.value = index;
+        },
+        physics: const BouncingScrollPhysics(),
+        children: [
+          _KeepAliveTab(child: _buildHomeView()),
+          _KeepAliveTab(child: _buildSearchView()),
+          _KeepAliveTab(child: _buildLibraryView()),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         bottom: true,
@@ -3450,3 +3454,24 @@ class _StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     return oldDelegate.child != child || oldDelegate.height != height;
   }
 }
+
+class _KeepAliveTab extends StatefulWidget {
+  final Widget child;
+  const _KeepAliveTab({required this.child});
+
+  @override
+  State<_KeepAliveTab> createState() => _KeepAliveTabState();
+}
+
+class _KeepAliveTabState extends State<_KeepAliveTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
+  }
+}
+

@@ -49,6 +49,9 @@ class MusicController extends GetxController {
   // Bottom Navigation Active Tab (0: Home, 1: Search, 2: Your Library)
   final RxInt currentTabIndex = 0.obs;
 
+  // PageController for smooth left-to-right / right-to-left TabBar sliding transitions
+  late final PageController pageController = PageController(initialPage: currentTabIndex.value);
+
   // In Library tab: viewing liked songs detail playlist
   final RxBool isViewingLikedSongs = false.obs;
 
@@ -313,11 +316,23 @@ class MusicController extends GetxController {
   void onClose() {
     _searchDebounceTimer?.cancel();
     searchTextController.dispose();
+    pageController.dispose();
     super.onClose();
   }
 
   void changeTab(int index) {
+    if (currentTabIndex.value == index &&
+        (!pageController.hasClients || pageController.page?.round() == index)) {
+      return;
+    }
     currentTabIndex.value = index;
+    if (pageController.hasClients && pageController.page?.round() != index) {
+      pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   @override
