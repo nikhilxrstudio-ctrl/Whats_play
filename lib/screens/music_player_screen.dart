@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,6 +33,8 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
 
   int _currentPage = 0;
   bool _isSwipingFromPage = false;
+  bool _isProgrammaticChange = false;
+  Timer? _swipeTimer;
   Worker? _trackWorker;
 
   @override
@@ -130,7 +133,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     );
   }
 
-  void _syncPageToCurrentTrack() {
+  void _syncPageToCurrentTrack({bool animate = true}) {
     if (_isSwipingFromPage ||
         !_artworkPageController.hasClients ||
         controller.playlist.isEmpty) {
@@ -138,27 +141,48 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     }
 
     final targetIndex = controller.currentIndex.value;
-    final currentPage = _artworkPageController.page?.round() ?? _currentPage;
-    final currentActual = currentPage % controller.playlist.length;
-
-    if (currentActual == targetIndex) return;
-
-    int diff = targetIndex - currentActual;
     final len = controller.playlist.length;
-    if (diff > len / 2) diff -= len;
-    if (diff < -len / 2) diff += len;
+    final currentPage = _artworkPageController.page?.round() ?? _currentPage;
 
-    final targetPage = currentPage + diff;
+    // Calculate nearest page index where (targetPage % len) == targetIndex
+    final currentCycle = (currentPage / len).floor();
+    final candidate1 = currentCycle * len + targetIndex;
+    final candidate2 = (currentCycle + 1) * len + targetIndex;
+    final candidate3 = (currentCycle - 1) * len + targetIndex;
+
+    int targetPage = candidate1;
+    if ((candidate2 - currentPage).abs() < (targetPage - currentPage).abs()) {
+      targetPage = candidate2;
+    }
+    if ((candidate3 - currentPage).abs() < (targetPage - currentPage).abs()) {
+      targetPage = candidate3;
+    }
+
+    if (targetPage == currentPage) return;
+
     _currentPage = targetPage;
-    _artworkPageController.animateToPage(
-      targetPage,
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
-    );
+    _isProgrammaticChange = true;
+
+    if (animate) {
+      _artworkPageController
+          .animateToPage(
+            targetPage,
+            duration: const Duration(milliseconds: 320),
+            curve: Curves.easeOutCubic,
+          )
+          .then((_) {
+            if (mounted) _isProgrammaticChange = false;
+          });
+    } else {
+      _artworkPageController.jumpToPage(targetPage);
+      _isProgrammaticChange = false;
+    }
   }
 
   void _onArtworkPageChanged(int pageIndex) {
     _currentPage = pageIndex;
+    // Disregard intermediate page ticks caused by programmatic animations
+    if (_isProgrammaticChange) return;
     if (controller.playlist.isEmpty) return;
 
     final actualIndex = pageIndex % controller.playlist.length;
@@ -170,24 +194,28 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
       _updateColor(track.artworkUrl);
       _loadLyrics(track);
 
-      Future.delayed(const Duration(milliseconds: 350), () {
+      _swipeTimer?.cancel();
+      _swipeTimer = Timer(const Duration(milliseconds: 350), () {
         if (mounted) _isSwipingFromPage = false;
       });
     }
   }
 
   void _handleNext() {
+    _isProgrammaticChange = true;
     controller.playNext();
     _syncPageToCurrentTrack();
   }
 
   void _handlePrevious() {
+    _isProgrammaticChange = true;
     controller.playPrevious();
     _syncPageToCurrentTrack();
   }
 
   @override
   void dispose() {
+    _swipeTimer?.cancel();
     _trackWorker?.dispose();
     _artworkPageController.dispose();
     _scrollController.dispose();
@@ -941,10 +969,12 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
 
   Widget _buildSimilarSongsSection(TrackModel currentTrack) {
     return Obx(() {
+      final currentTrackId = controller.currentTrack.value?.trackId ?? currentTrack.trackId;
+
       // Collect similar songs:
       // 1. Others in current playlist
       final otherPlaylistTracks = controller.playlist
-          .where((t) => t.trackId != currentTrack.trackId)
+          .where((t) => t.trackId != currentTrackId)
           .toList();
 
       final List<TrackModel> candidates = List.from(otherPlaylistTracks);
@@ -957,7 +987,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
           ...musicCtrl.trendingTracks,
           ...musicCtrl.topCharts,
         ]) {
-          if (t.trackId != currentTrack.trackId && !candidates.any((c) => c.trackId == t.trackId)) {
+          if (t.trackId != currentTrackId && !candidates.any((c) => c.trackId == t.trackId)) {
             candidates.add(t);
           }
         }
@@ -978,19 +1008,26 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.auto_awesome_rounded,
-                      size: 20.sp,
-                      color: AppColors.primary,
+                    Container(
+                      padding: EdgeInsets.all(6.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.16),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.auto_awesome_rounded,
+                        size: 16.sp,
+                        color: AppColors.primary,
+                      ),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: 10.w),
                     Expanded(
                       child: Text(
                         'More in this Category',
                         style: TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 17.sp,
+                          fontWeight: FontWeight.w700,
                           letterSpacing: -0.3,
                         ),
                         maxLines: 1,
@@ -1001,22 +1038,38 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
                 ),
               ),
               SizedBox(width: 8.w),
-              Text(
-                '${displayList.length} tracks',
-                style: TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  '${displayList.length} Tracks',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.5.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 14.h),
           Column(
             children: [
               for (int i = 0; i < displayList.length; i++) ...[
                 if (i > 0) SizedBox(height: 8.h),
-                _buildSimilarSongRow(displayList[i], currentTrack, candidates),
+                _buildSimilarSongRow(
+                  displayList[i],
+                  currentTrack,
+                  candidates,
+                  displayList[i].trackId == currentTrackId,
+                ),
               ],
             ],
           ),
@@ -1029,46 +1082,53 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     TrackModel item,
     TrackModel currentTrack,
     List<TrackModel> candidates,
+    bool isCurrentlyPlaying,
   ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(10.r),
-        onTap: () {
-          HapticFeedback.lightImpact();
-          controller.playTrack(item, queue: [currentTrack, ...candidates]);
-        },
+        borderRadius: BorderRadius.circular(12.r),
+        onTap: () => _onSimilarSongTapped(item, currentTrack, candidates),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
           decoration: BoxDecoration(
-            color: AppColors.surfaceLight.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(10.r),
+            color: isCurrentlyPlaying
+                ? AppColors.primary.withValues(alpha: 0.15)
+                : const Color(0xFF1E1E1E).withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: isCurrentlyPlaying
+                  ? AppColors.primary.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.08),
+              width: 1,
+            ),
           ),
           child: Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(6.r),
+                borderRadius: BorderRadius.circular(8.r),
                 child: item.artworkUrl != null && item.artworkUrl!.isNotEmpty
                     ? Image.network(
                         item.artworkUrl!,
-                        width: 46.w,
-                        height: 46.w,
+                        key: ValueKey('similar_art_${item.trackId}'),
+                        width: 48.w,
+                        height: 48.w,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
-                          width: 46.w,
-                          height: 46.w,
+                          width: 48.w,
+                          height: 48.w,
                           color: const Color(0xFF282828),
                           child: const Icon(Icons.music_note_rounded, color: AppColors.primary),
                         ),
                       )
                     : Container(
-                        width: 46.w,
-                        height: 46.w,
+                        width: 48.w,
+                        height: 48.w,
                         color: const Color(0xFF282828),
                         child: const Icon(Icons.music_note_rounded, color: AppColors.primary),
                       ),
               ),
-              SizedBox(width: 12.w),
+              SizedBox(width: 14.w),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1076,41 +1136,112 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
                     Text(
                       item.title,
                       style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 13.5.sp,
+                        color: isCurrentlyPlaying
+                            ? AppColors.primary
+                            : AppColors.textPrimary,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 3.h),
-                    Text(
-                      item.artistName,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11.5.sp,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            item.artistName,
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12.sp,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (item.albumName.isNotEmpty) ...[
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 4.w),
+                            child: Text(
+                              '•',
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 10.sp,
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              item.albumName,
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 11.sp,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
               ),
               IconButton(
                 icon: Icon(
-                  Icons.play_circle_fill_rounded,
-                  size: 28.sp,
-                  color: AppColors.primary,
+                  isCurrentlyPlaying && controller.isPlaying.value
+                      ? Icons.pause_circle_filled_rounded
+                      : Icons.play_circle_fill_rounded,
+                  size: 32.sp,
+                  color: isCurrentlyPlaying
+                      ? AppColors.primary
+                      : Colors.white70,
                 ),
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                  controller.playTrack(item, queue: [currentTrack, ...candidates]);
-                },
+                onPressed: () => _onSimilarSongTapped(item, currentTrack, candidates),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _onSimilarSongTapped(
+    TrackModel item,
+    TrackModel currentTrack,
+    List<TrackModel> candidates,
+  ) {
+    HapticFeedback.lightImpact();
+
+    // Construct full queue with currentTrack and all candidates
+    final fullQueue = <TrackModel>[];
+    if (!candidates.any((c) => c.trackId == currentTrack.trackId)) {
+      fullQueue.add(currentTrack);
+    }
+    for (final c in candidates) {
+      if (!fullQueue.any((t) => t.trackId == c.trackId)) {
+        fullQueue.add(c);
+      }
+    }
+
+    _isProgrammaticChange = true;
+    _isSwipingFromPage = false;
+
+    // Immediately play the selected track
+    controller.playTrack(item, queue: fullQueue);
+    _updateColor(item.artworkUrl);
+    _loadLyrics(item);
+
+    // Sync artwork PageView carousel to the newly selected track
+    _syncPageToCurrentTrack(animate: true);
+
+    // Smoothly scroll back to top of player so user sees new track & artwork
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 380),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 }
