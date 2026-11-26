@@ -308,6 +308,11 @@ class PlayerController extends GetxController {
       }
     }
 
+    if (audioUrlToPlay.isEmpty) {
+      debugPrint('[PlayerController] Cannot play track: audioUrl is empty for "${track.title}"');
+      return;
+    }
+
     debugPrint('[PlayerController] Loading track: "${track.title}" from: $audioUrlToPlay');
 
     try {

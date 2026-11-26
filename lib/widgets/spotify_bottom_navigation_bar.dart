@@ -4,12 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../constants/app_colors.dart';
 
 class SpotifyBottomNavigationBar extends StatelessWidget {
-  final TabController tabController;
+  final int currentIndex;
   final ValueChanged<int> onTabSelected;
 
   const SpotifyBottomNavigationBar({
     super.key,
-    required this.tabController,
+    required this.currentIndex,
     required this.onTabSelected,
   });
 
@@ -30,70 +30,68 @@ class SpotifyBottomNavigationBar extends StatelessWidget {
         bottom: true,
         child: SizedBox(
           height: 52.h,
-          child: AnimatedBuilder(
-            animation: tabController,
-            builder: (context, _) {
-              final activeIndex = tabController.index;
-              return TabBar(
-                controller: tabController,
-                onTap: onTabSelected,
-                indicator: const BoxDecoration(),
-                indicatorColor: Colors.transparent,
-                dividerColor: Colors.transparent,
-                labelColor: AppColors.primary,
-                unselectedLabelColor: AppColors.textMuted,
-                splashFactory: NoSplash.splashFactory,
-                overlayColor: WidgetStateProperty.all(Colors.transparent),
-                labelStyle: TextStyle(
-                  fontSize: 10.5.sp,
-                  fontWeight: FontWeight.w700,
-                ),
-                unselectedLabelStyle: TextStyle(
-                  fontSize: 10.5.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-                tabs: [
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 3.h),
-                    icon: Icon(
-                      activeIndex == 0
-                          ? CupertinoIcons.house_fill
-                          : CupertinoIcons.house,
-                      color: activeIndex == 0
-                          ? AppColors.primary
-                          : AppColors.textMuted,
-                      size: 22.sp,
-                    ),
-                    text: 'Home',
-                  ),
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 3.h),
-                    icon: Icon(
-                      CupertinoIcons.search,
-                      color: activeIndex == 1
-                          ? AppColors.primary
-                          : AppColors.textMuted,
-                      size: 22.sp,
-                    ),
-                    text: 'Search',
-                  ),
-                  Tab(
-                    iconMargin: EdgeInsets.only(bottom: 3.h),
-                    icon: Icon(
-                      activeIndex == 2
-                          ? CupertinoIcons.music_albums_fill
-                          : CupertinoIcons.music_albums,
-                      color: activeIndex == 2
-                          ? AppColors.primary
-                          : AppColors.textMuted,
-                      size: 22.sp,
-                    ),
-                    text: 'Your Library',
-                  ),
-                ],
-              );
-            },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildTabItem(
+                index: 0,
+                label: 'Home',
+                selectedIcon: CupertinoIcons.house_fill,
+                unselectedIcon: CupertinoIcons.house,
+              ),
+              _buildTabItem(
+                index: 1,
+                label: 'Search',
+                selectedIcon: CupertinoIcons.search,
+                unselectedIcon: CupertinoIcons.search,
+              ),
+              _buildTabItem(
+                index: 2,
+                label: 'Your Library',
+                selectedIcon: CupertinoIcons.music_albums_fill,
+                unselectedIcon: CupertinoIcons.music_albums,
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabItem({
+    required int index,
+    required String label,
+    required IconData selectedIcon,
+    required IconData unselectedIcon,
+  }) {
+    final isSelected = currentIndex == index;
+    final color = isSelected ? AppColors.primary : AppColors.textMuted;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => onTabSelected(index),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isSelected ? selectedIcon : unselectedIcon,
+              color: color,
+              size: 22.sp,
+            ),
+            SizedBox(height: 3.h),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 10.5.sp,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

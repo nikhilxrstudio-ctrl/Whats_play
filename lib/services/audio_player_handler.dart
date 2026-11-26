@@ -5,10 +5,8 @@ import 'package:just_audio/just_audio.dart';
 
 class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player = AudioPlayer();
-  AudioPlayer? _preloader;
 
   String? _currentAudioUrl;
-  String? _prebufferedUrl;
 
   AudioPlayer get player => _player;
 
@@ -86,23 +84,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
 
   /// Pre-buffers the next track in the background so track transitions are instantaneous
   Future<void> prebufferTrack(String audioUrl) async {
-    if (audioUrl.isEmpty || audioUrl == _currentAudioUrl || audioUrl == _prebufferedUrl) {
-      return;
-    }
-    _prebufferedUrl = audioUrl;
-    try {
-      _preloader ??= AudioPlayer();
-      debugPrint('[AudioPlayerHandler] Pre-buffering next track in background: $audioUrl');
-      if (audioUrl.startsWith('http://') || audioUrl.startsWith('https://')) {
-        await _preloader!.setUrl(audioUrl, preload: true);
-      } else {
-        await _preloader!.setFilePath(audioUrl, preload: true);
-      }
-      debugPrint('[AudioPlayerHandler] Next track pre-buffered and ready in cache.');
-    } catch (e) {
-      // Safe to ignore interruptions when pre-loading
-      debugPrint('[AudioPlayerHandler] Pre-buffering interrupted/ended: $e');
-    }
+    // Single-player architecture to prevent multi-ExoPlayer hardware codec exhaustions on real devices
   }
 
   Future<void> playTrack({
@@ -114,14 +96,30 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     String? artworkUrl,
     Duration? duration,
   }) async {
+    if (audioUrl.isEmpty) {
+      debugPrint('[AudioPlayerHandler] Cannot play: empty audioUrl');
+      return;
+    }
+
+    Uri? validArtUri;
+    if (artworkUrl != null && artworkUrl.isNotEmpty) {
+      try {
+        final parsed = Uri.parse(artworkUrl);
+        if (parsed.hasScheme &&
+            (parsed.scheme == 'http' ||
+                parsed.scheme == 'https' ||
+                parsed.scheme == 'file')) {
+          validArtUri = parsed;
+        }
+      } catch (_) {}
+    }
+
     final item = MediaItem(
       id: audioUrl,
       title: title,
       artist: artist,
       album: album,
-      artUri: artworkUrl != null && artworkUrl.isNotEmpty
-          ? Uri.tryParse(artworkUrl)
-          : null,
+      artUri: validArtUri,
       duration: duration,
       extras: {'trackId': trackId},
     );
@@ -215,9 +213,6 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   }
 
   Future<void> dispose() async {
-    try {
-      await _preloader?.dispose();
-    } catch (_) {}
     await _player.dispose();
   }
 }

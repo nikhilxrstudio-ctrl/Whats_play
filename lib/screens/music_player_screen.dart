@@ -161,7 +161,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
                     _buildMediaNotificationBadge(),
                     SizedBox(height: 14.h),
                     // Progress Slider & Timestamps
-                    _buildProgressSlider(),
+                    _buildProgressSlider(context),
                     SizedBox(height: 12.h),
                     // Playback Controls Row (Spotify Shuffle, Prev, White Play/Pause, Next, Repeat)
                     _buildPlaybackControls(),
@@ -364,7 +364,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     );
   }
 
-  Widget _buildProgressSlider() {
+  Widget _buildProgressSlider(BuildContext context) {
     final pos = controller.position.value;
     final dur = controller.duration.value;
     final maxSec = dur.inMilliseconds.toDouble();
@@ -374,7 +374,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     return Column(
       children: [
         SliderTheme(
-          data: SliderTheme.of(Get.context!).copyWith(
+          data: SliderTheme.of(context).copyWith(
             trackHeight: 3.h,
             thumbShape: RoundSliderThumbShape(enabledThumbRadius: 5.r),
             overlayShape: RoundSliderOverlayShape(overlayRadius: 12.r),

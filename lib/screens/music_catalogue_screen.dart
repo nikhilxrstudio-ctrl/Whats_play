@@ -23,52 +23,8 @@ import '../widgets/spotify_back_button.dart';
 import '../widgets/spotify_bottom_navigation_bar.dart';
 import '../widgets/track_options_sheet.dart';
 
-class MusicCatalogueScreen extends StatefulWidget {
+class MusicCatalogueScreen extends GetView<MusicController> {
   const MusicCatalogueScreen({super.key});
-
-  @override
-  State<MusicCatalogueScreen> createState() => _MusicCatalogueScreenState();
-}
-
-class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-  late final MusicController controller;
-  Worker? _tabWorker;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = Get.find<MusicController>();
-    _tabController = TabController(
-      length: 3,
-      vsync: this,
-      initialIndex: controller.currentTabIndex.value.clamp(0, 2),
-    );
-    controller.tabController = _tabController;
-
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        controller.currentTabIndex.value = _tabController.index;
-      }
-    });
-
-    _tabWorker = ever<int>(controller.currentTabIndex, (newIndex) {
-      if (_tabController.index != newIndex) {
-        _tabController.animateTo(newIndex);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _tabWorker?.dispose();
-    if (controller.tabController == _tabController) {
-      controller.tabController = null;
-    }
-    _tabController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -240,13 +196,16 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
               }
             }),
           ),
-          body: TabBarView(
-            controller: _tabController,
+          body: PageView(
+            controller: controller.pageController,
             physics: const BouncingScrollPhysics(),
+            onPageChanged: (index) {
+              controller.currentTabIndex.value = index;
+            },
             children: [
-              _KeepAliveTab(child: _buildHomeView()),
-              _KeepAliveTab(child: _buildSearchView()),
-              _KeepAliveTab(child: _buildLibraryView()),
+              _KeepAliveTab(child: _buildHomeView(context)),
+              _KeepAliveTab(child: _buildSearchView(context)),
+              _KeepAliveTab(child: _buildLibraryView(context)),
             ],
           ),
           bottomNavigationBar: SafeArea(
@@ -258,14 +217,14 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                 // Docked Mini Player Bar directly above bottom navigation bar
                 if (Get.isRegistered<PlayerController>())
                   const MiniPlayerBar(),
-                // Spotify-Style Cupertino Bottom Navigation Bar with TabBar
+                // Spotify-Style Cupertino Bottom Navigation Bar with isolated Obx
                 Obx(() {
                   final isViewingCustom = controller.activeCustomPlaylist.value != null;
                   final isViewingLiked = controller.isViewingLikedSongs.value;
                   final isDetail = controller.currentTabIndex.value == 2 &&
                       (isViewingLiked || isViewingCustom);
                   return SpotifyBottomNavigationBar(
-                    tabController: _tabController,
+                    currentIndex: controller.currentTabIndex.value,
                     onTabSelected: (index) {
                       if (isDetail) {
                         controller.closeLikedSongs();
@@ -285,7 +244,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
 
   /// Tab 0: Home Music Catalogue View
   /// Tab 0: Home Music Catalogue View (Full Page Scrolling with Sticky Category Bar)
-  Widget _buildHomeView() {
+  Widget _buildHomeView(BuildContext context) {
     return RefreshIndicator(
       color: AppColors.primary,
       backgroundColor: AppColors.surfaceLight,
@@ -1261,7 +1220,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                 Get.toNamed(AppRoutes.player, arguments: topDisplayTracks[i]);
               },
               onMoreTap: () => TrackOptionsSheet.show(
-                Get.context!,
+                Get.overlayContext ?? Get.context,
                 topDisplayTracks[i],
               ),
             ),
@@ -1705,7 +1664,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
   }
 
   /// Tab 1: Search View (Instant Music Search + Browse Categories)
-  Widget _buildSearchView() {
+  Widget _buildSearchView(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(top: 10.h, left: 16.w, right: 16.w),
       child: Column(
@@ -2000,7 +1959,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
   }
 
   /// Tab 2: Your Library View
-  Widget _buildLibraryView() {
+  Widget _buildLibraryView(BuildContext context) {
     return Obx(() {
       return AnimatedSwitcher(
         duration: const Duration(milliseconds: 280),
@@ -2644,7 +2603,10 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                       color: AppColors.textMuted,
                       size: 16.sp,
                     ),
-                    onPressed: () => _showPlaylistOptions(Get.context!, pl),
+                    onPressed: () {
+                      final ctx = Get.overlayContext ?? Get.context;
+                      if (ctx != null) _showPlaylistOptions(ctx, pl);
+                    },
                   ),
                   onTap: () => controller.openCustomPlaylist(pl),
                 ),
@@ -2868,7 +2830,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                   Get.toNamed(AppRoutes.player, arguments: track);
                 },
                 onMoreTap: () => TrackOptionsSheet.show(
-                  Get.context!,
+                  Get.overlayContext ?? Get.context,
                   track,
                 ),
               ),
@@ -2978,7 +2940,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                 Get.toNamed(AppRoutes.player, arguments: track);
               },
               onMoreTap: () => TrackOptionsSheet.show(
-                Get.context!,
+                Get.overlayContext ?? Get.context,
                 track,
               ),
             ),

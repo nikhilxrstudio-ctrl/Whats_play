@@ -13,11 +13,14 @@ import 'add_to_collection_sheet.dart';
 
 class TrackOptionsSheet {
   static void show(
-    BuildContext context,
+    BuildContext? context,
     TrackModel track, {
     String? currentPlaylistId,
     VoidCallback? onOpenCreatePlaylist,
   }) {
+    final effectiveContext = context ?? Get.overlayContext ?? Get.context;
+    if (effectiveContext == null) return;
+
     final playerCtrl = Get.isRegistered<PlayerController>()
         ? Get.find<PlayerController>()
         : null;
@@ -26,7 +29,7 @@ class TrackOptionsSheet {
         : null;
 
     showModalBottomSheet(
-      context: context,
+      context: effectiveContext,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (bottomSheetContext) {
@@ -146,7 +149,7 @@ class TrackOptionsSheet {
                       onTap: () {
                         Navigator.pop(bottomSheetContext);
                         AddToCollectionSheet.show(
-                          context,
+                          effectiveContext,
                           track,
                           onOpenCreatePlaylist: onOpenCreatePlaylist,
                         );
