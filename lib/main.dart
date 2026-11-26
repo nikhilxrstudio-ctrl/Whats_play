@@ -10,6 +10,7 @@ import 'controllers/player_controller.dart';
 import 'routes/app_pages.dart';
 import 'routes/app_routes.dart';
 import 'services/audio_player_handler.dart';
+import 'services/auth_service.dart';
 import 'services/local_database_service.dart';
 
 late AudioPlayerHandler audioHandler;
@@ -38,10 +39,11 @@ Future<void> main() async {
     ),
   );
 
-  // Register AudioPlayerHandler, LocalDatabaseService, and PlayerController globally
+  // Register AudioPlayerHandler, LocalDatabaseService, AuthService, and PlayerController globally
   final databaseService = LocalDatabaseService();
   Get.put<ILocalDatabaseService>(databaseService, permanent: true);
   Get.put<AudioPlayerHandler>(audioHandler, permanent: true);
+  Get.put<AuthService>(AuthService(), permanent: true);
   Get.put<PlayerController>(
     PlayerController(audioHandler, databaseService: databaseService),
     permanent: true,

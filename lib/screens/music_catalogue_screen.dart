@@ -18,6 +18,7 @@ import '../widgets/loading_view.dart';
 import '../widgets/mini_player_bar.dart';
 import '../widgets/music_track_card.dart';
 import '../widgets/playlist_icon_helper.dart';
+import '../widgets/profile_view.dart';
 import '../widgets/spotify_artist_selector.dart';
 import '../widgets/spotify_back_button.dart';
 import '../widgets/spotify_bottom_navigation_bar.dart';
@@ -141,7 +142,7 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                     ),
                   ),
                 );
-              } else {
+              } else if (controller.currentTabIndex.value == 2) {
                 return AppBar(
                   backgroundColor: AppColors.background,
                   elevation: 0,
@@ -193,6 +194,23 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                     ],
                   ],
                 );
+              } else {
+                return AppBar(
+                  backgroundColor: AppColors.background,
+                  elevation: 0,
+                  centerTitle: false,
+                  titleSpacing: 16.w,
+                  toolbarHeight: 56.h,
+                  title: Text(
+                    'Profile',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                );
               }
             }),
           ),
@@ -206,6 +224,7 @@ class MusicCatalogueScreen extends GetView<MusicController> {
               _KeepAliveTab(child: _buildHomeView(context)),
               _KeepAliveTab(child: _buildSearchView(context)),
               _KeepAliveTab(child: _buildLibraryView(context)),
+              _KeepAliveTab(child: const ProfileView()),
             ],
           ),
           bottomNavigationBar: SafeArea(
