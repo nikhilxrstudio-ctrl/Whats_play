@@ -19,7 +19,7 @@ Future<void> main() async {
   audioHandler = await AudioService.init(
     builder: () => AudioPlayerHandler(),
     config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.whatsplay.music.channel.audio',
+      androidNotificationChannelId: 'com.whatsplay.music.app.channel.audio',
       androidNotificationChannelName: 'WhatsPlay Music Playback',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
