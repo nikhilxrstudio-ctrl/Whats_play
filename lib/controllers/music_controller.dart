@@ -330,7 +330,11 @@ class MusicController extends GetxController {
     }
     currentTabIndex.value = index;
     if (pageController.hasClients && pageController.page?.round() != index) {
-      pageController.jumpToPage(index);
+      pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
