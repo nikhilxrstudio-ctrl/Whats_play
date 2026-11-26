@@ -1,4 +1,6 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -14,6 +16,14 @@ late AudioPlayerHandler audioHandler;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase (safely wrapped so offline / test environments don't throw)
+  try {
+    await Firebase.initializeApp();
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  } catch (e) {
+    debugPrint('[Firebase] Initialization skipped or error: $e');
+  }
 
   // Initialize background AudioService with Media Notification settings
   audioHandler = await AudioService.init(
