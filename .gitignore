@@ -47,6 +47,12 @@ android/app/build/
 /android/app/release
 *.keystore
 *.jks
+*.p12
+key.properties
+**/key.properties
+android/key.properties
+android/app/key.properties
+android/app/key/
 
 # iOS / Xcode
 ios/Pods/
