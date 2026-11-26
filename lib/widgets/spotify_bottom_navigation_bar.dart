@@ -82,12 +82,16 @@ class SpotifyBottomNavigationBar extends StatelessWidget {
               shadows: isSelected
                   ? [
                       Shadow(
-                        color: AppColors.primary.withValues(alpha: 0.65),
-                        blurRadius: 10.r,
+                        color: AppColors.primary.withValues(alpha: 0.45),
+                        blurRadius: 14.r,
                       ),
                       Shadow(
-                        color: AppColors.primary.withValues(alpha: 0.35),
-                        blurRadius: 18.r,
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                        blurRadius: 28.r,
+                      ),
+                      Shadow(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        blurRadius: 42.r,
                       ),
                     ]
                   : null,
