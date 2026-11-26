@@ -59,7 +59,12 @@ android {
             }
         }
         debug {
-            signingConfig = signingConfigs.getByName("debug")
+            val releaseKeystore = keystoreProperties.getProperty("storeFile")?.let { file(it) }
+            if (releaseKeystore != null && releaseKeystore.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 }
