@@ -21,6 +21,10 @@
   <a href="https://nikhilxrstudio-ctrl.github.io/Whats_play/"><img src="https://img.shields.io/badge/Official_Website-Live-00E5FF?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Website" /></a>
 </p>
 
+<p align="center">
+  <img src="assets/screenshots/whatsplay_showcase_banner.png" alt="WhatsPlay App Showcase Banner" width="100%" />
+</p>
+
 ---
 
 ## 📥 Download Release APK (Android)
@@ -184,15 +188,21 @@ WhatsPlay follows the **MVVM + Repository Pattern** to separate data access, bus
 
 ## 📱 Screenshots & UI Walkthrough
 
-| Home & Quick Access | Ranked Top Charts | Full Music Player |
-| :---: | :---: | :---: |
-| <img src="assets/icons/app_logo.png" width="220" alt="Home Screen" /> | <img src="assets/icons/app_logo.png" width="220" alt="Top Charts" /> | <img src="assets/icons/app_logo.png" width="220" alt="Player Screen" /> |
-| *8-Item Grid & Shelves* | *Ranked #1-#50 Badges* | *Dynamic Gradient Backdrop* |
+<p align="center">
+  <img src="assets/screenshots/whatsplay_showcase_banner.png" alt="WhatsPlay Panoramic Showcase Banner" width="100%" />
+</p>
 
-| Section Hero Header | Lock Screen Audio | Custom Library |
+### 📸 Google Play Store Feature Mockups
+
+| 🎧 Listen With No Limits | 🔍 Browse By Category | 🎵 Studio Music Player |
 | :---: | :---: | :---: |
-| <img src="assets/icons/app_logo.png" width="220" alt="Hero Header" /> | <img src="assets/icons/app_logo.png" width="220" alt="Media Notification" /> | <img src="assets/icons/app_logo.png" width="220" alt="Offline Library" /> |
-| *High-Res Header Art* | *Native System Media Notification* | *Liked, Playlists & History* |
+| <img src="assets/screenshots/playstore_1_home.png" width="260" alt="Home Screen" /> | <img src="assets/screenshots/playstore_2_search.png" width="260" alt="Search Screen" /> | <img src="assets/screenshots/playstore_3_player.png" width="260" alt="Music Player Screen" /> |
+| *Home & Regional Discovery* | *Genre Search & Recommendations* | *Waveform & Full Controls* |
+
+| 📚 Your Music Library | ⭐ Follow Top Artists | 🔥 Recommended Hits |
+| :---: | :---: | :---: |
+| <img src="assets/screenshots/playstore_4_library.png" width="260" alt="Library Screen" /> | <img src="assets/screenshots/playstore_5_artist.png" width="260" alt="Artist Profile Screen" /> | <img src="assets/screenshots/playstore_6_curated.png" width="260" alt="Curated Charts Screen" /> |
+| *Liked Songs & Offline Playlists* | *Verified Artist Discography* | *Taaza Tunes & Fresh Charts* |
 
 ---
 
