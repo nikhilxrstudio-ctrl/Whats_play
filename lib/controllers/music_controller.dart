@@ -66,14 +66,17 @@ class MusicController extends GetxController {
   bool handleBackPress() {
     if (isViewingLikedSongs.value) {
       closeLikedSongs();
+      lastBackPressTime = null;
       return true;
     }
     if (activeCustomPlaylist.value != null) {
       closeCustomPlaylist();
+      lastBackPressTime = null;
       return true;
     }
     if (currentTabIndex.value != 0) {
       changeTab(0);
+      lastBackPressTime = null;
       return true;
     }
     final now = DateTime.now();

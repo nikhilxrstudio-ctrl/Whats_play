@@ -76,11 +76,14 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
+        final wasOnHome = controller.currentTabIndex.value == 0 &&
+            !controller.isViewingLikedSongs.value &&
+            controller.activeCustomPlaylist.value == null;
+
         final handled = controller.handleBackPress();
         if (handled) {
-          if (controller.currentTabIndex.value == 0 &&
-              !controller.isViewingLikedSongs.value &&
-              controller.activeCustomPlaylist.value == null) {
+          // Only show "Press back again to exit" when user was ALREADY on the root Home tab
+          if (wasOnHome) {
             ScaffoldMessenger.of(context).removeCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -97,6 +100,9 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                 ),
               ),
             );
+          } else {
+            // Dismiss any existing snackbar when navigating back to Home
+            ScaffoldMessenger.of(context).removeCurrentSnackBar();
           }
           return;
         }
