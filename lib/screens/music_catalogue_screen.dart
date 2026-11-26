@@ -180,17 +180,14 @@ class MusicCatalogueScreen extends GetView<MusicController> {
           }
         }),
       ),
-      body: Obx(() {
-        switch (controller.currentTabIndex.value) {
-          case 1:
-            return _buildSearchView();
-          case 2:
-            return _buildLibraryView();
-          case 0:
-          default:
-            return _buildHomeView();
-        }
-      }),
+      body: Obx(() => IndexedStack(
+            index: controller.currentTabIndex.value,
+            children: [
+              _buildHomeView(),
+              _buildSearchView(),
+              _buildLibraryView(),
+            ],
+          )),
       bottomNavigationBar: SafeArea(
         top: false,
         bottom: true,
@@ -200,12 +197,17 @@ class MusicCatalogueScreen extends GetView<MusicController> {
             // Docked Mini Player Bar directly above bottom navigation bar
             if (Get.isRegistered<PlayerController>())
               const MiniPlayerBar(),
-            // Spotify-Style Cupertino Bottom Navigation Bar (hidden when viewing Liked Songs or Custom Collection)
-            if (!isDetail)
-              SpotifyBottomNavigationBar(
-                currentIndex: controller.currentTabIndex.value,
-                onTabSelected: (index) => controller.changeTab(index),
-              ),
+            // Spotify-Style Cupertino Bottom Navigation Bar
+            SpotifyBottomNavigationBar(
+              currentIndex: controller.currentTabIndex.value,
+              onTabSelected: (index) {
+                if (isDetail) {
+                  controller.closeLikedSongs();
+                  controller.closeCustomPlaylist();
+                }
+                controller.changeTab(index);
+              },
+            ),
           ],
         ),
       ),

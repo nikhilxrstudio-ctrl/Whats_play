@@ -36,7 +36,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.player,
       page: () => const MusicPlayerScreen(),
-      transition: Transition.rightToLeft,
+      transition: Transition.downToUp,
       transitionDuration: const Duration(milliseconds: 320),
       curve: Curves.easeOutCubic,
       popGesture: true,
@@ -44,9 +44,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.artist,
       page: () => const ArtistDetailScreen(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
+      transition: Transition.cupertino,
       popGesture: true,
       binding: BindingsBuilder(() {
         Get.lazyPut<ArtistDetailController>(
@@ -57,9 +55,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.sectionTracks,
       page: () => const SectionTracksScreen(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
+      transition: Transition.cupertino,
       popGesture: true,
       binding: BindingsBuilder(() {
         Get.lazyPut<SectionTracksController>(() => SectionTracksController());
@@ -68,9 +64,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.category,
       page: () => const CategoryDetailScreen(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
+      transition: Transition.cupertino,
       popGesture: true,
       binding: BindingsBuilder(() {
         Get.lazyPut<CategoryDetailController>(

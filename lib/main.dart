@@ -84,8 +84,8 @@ class WhatsPlayApp extends StatelessWidget {
           ),
           initialRoute: AppRoutes.catalogue,
           getPages: AppPages.routes,
-          defaultTransition: Transition.rightToLeft,
-          transitionDuration: const Duration(milliseconds: 320),
+          defaultTransition: Transition.cupertino,
+          transitionDuration: const Duration(milliseconds: 280),
           ),
         );
       },
