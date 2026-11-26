@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../constants/app_colors.dart';
+import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../models/track_model.dart';
 import '../utils/artwork_color_extractor.dart';
@@ -22,6 +23,11 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
   Color _artworkColor = const Color(0xFF282828);
   String? _lastArtworkUrl;
 
+  late PageController _artworkPageController;
+  int _currentPage = 0;
+  bool _isSwipingFromPage = false;
+  Worker? _trackWorker;
+
   @override
   void initState() {
     super.initState();
@@ -33,8 +39,106 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
           playerCtrl.playTrack(track);
         }
       }
+
+      if (playerCtrl.playlist.isEmpty) {
+        if (Get.isRegistered<MusicController>()) {
+          final musicCtrl = Get.find<MusicController>();
+          if (musicCtrl.suggestedTracks.isNotEmpty) {
+            playerCtrl.playlist.assignAll(musicCtrl.suggestedTracks);
+            final idx = playerCtrl.playlist.indexWhere(
+              (t) => t.trackId == playerCtrl.currentTrack.value?.trackId,
+            );
+            playerCtrl.currentIndex.value = idx >= 0 ? idx : 0;
+          }
+        }
+        if (playerCtrl.playlist.isEmpty && playerCtrl.currentTrack.value != null) {
+          playerCtrl.playlist.assignAll([playerCtrl.currentTrack.value!]);
+          playerCtrl.currentIndex.value = 0;
+        }
+      }
+
+      final initialIdx = playerCtrl.currentIndex.value.clamp(
+        0,
+        playerCtrl.playlist.isNotEmpty ? playerCtrl.playlist.length - 1 : 0,
+      );
+      final loopOffset = playerCtrl.playlist.length > 1
+          ? 1000 * playerCtrl.playlist.length
+          : 0;
+      _currentPage = loopOffset + initialIdx;
+      _artworkPageController = PageController(initialPage: _currentPage);
+
+      _trackWorker = ever(playerCtrl.currentTrack, (track) {
+        if (track != null && !_isSwipingFromPage && mounted) {
+          _syncPageToCurrentTrack();
+        }
+      });
+
       _updateColor(playerCtrl.currentTrack.value?.artworkUrl);
+    } else {
+      _artworkPageController = PageController();
     }
+  }
+
+  void _syncPageToCurrentTrack() {
+    if (_isSwipingFromPage ||
+        !_artworkPageController.hasClients ||
+        controller.playlist.isEmpty) {
+      return;
+    }
+
+    final targetIndex = controller.currentIndex.value;
+    final currentPage = _artworkPageController.page?.round() ?? _currentPage;
+    final currentActual = currentPage % controller.playlist.length;
+
+    if (currentActual == targetIndex) return;
+
+    int diff = targetIndex - currentActual;
+    final len = controller.playlist.length;
+    if (diff > len / 2) diff -= len;
+    if (diff < -len / 2) diff += len;
+
+    final targetPage = currentPage + diff;
+    _currentPage = targetPage;
+    _artworkPageController.animateToPage(
+      targetPage,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _onArtworkPageChanged(int pageIndex) {
+    _currentPage = pageIndex;
+    if (controller.playlist.isEmpty) return;
+
+    final actualIndex = pageIndex % controller.playlist.length;
+    if (actualIndex != controller.currentIndex.value) {
+      _isSwipingFromPage = true;
+      final track = controller.playlist[actualIndex];
+      controller.currentIndex.value = actualIndex;
+      controller.playTrack(track);
+      _updateColor(track.artworkUrl);
+
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted) _isSwipingFromPage = false;
+      });
+    }
+  }
+
+  void _handleNext() {
+    controller.playNext();
+    _syncPageToCurrentTrack();
+  }
+
+  void _handlePrevious() {
+    controller.playPrevious();
+    _syncPageToCurrentTrack();
+  }
+
+  @override
+  void dispose() {
+    _trackWorker?.dispose();
+    _artworkPageController.dispose();
+    super.dispose();
   }
 
   void _updateColor(String? artworkUrl) {
@@ -151,8 +255,8 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
                 child: Column(
                   children: [
                     const Spacer(flex: 1),
-                    // Spotify Large Square Artwork with ambient shadow
-                    _buildArtwork(track),
+                    // Spotify Large Square Artwork with ambient shadow & interactive swipe carousel
+                    _buildArtworkCarousel(controller),
                     const Spacer(flex: 2),
                     // Track Info Header (Title, Artist, Like Heart)
                     _buildTrackInfo(context, track),
@@ -179,7 +283,37 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     );
   }
 
+  Widget _buildArtworkCarousel(PlayerController controller) {
+    return Obx(() {
+      final playlist = controller.playlist;
+      final int count = playlist.length > 1 ? playlist.length * 2000 : 1;
+
+      return SizedBox(
+        height: 310.w,
+        child: PageView.builder(
+          controller: _artworkPageController,
+          itemCount: count,
+          physics: const BouncingScrollPhysics(),
+          clipBehavior: Clip.none,
+          onPageChanged: _onArtworkPageChanged,
+          itemBuilder: (context, index) {
+            final track = playlist.isNotEmpty
+                ? playlist[index % playlist.length]
+                : controller.currentTrack.value;
+            if (track == null) return const SizedBox.shrink();
+            return Center(
+              child: _buildArtwork(track),
+            );
+          },
+        ),
+      );
+    });
+  }
+
   Widget _buildArtwork(TrackModel track) {
+    final cachedColor = ArtworkColorExtractor.getCachedColor(track.artworkUrl);
+    final glowColor = cachedColor ?? _artworkColor;
+
     return Container(
       width: 290.w,
       height: 290.w,
@@ -188,7 +322,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
         boxShadow: [
           // Soft ambient color glow matching the song artwork
           BoxShadow(
-            color: _artworkColor.withValues(alpha: 0.38),
+            color: glowColor.withValues(alpha: 0.38),
             blurRadius: 36.r,
             offset: Offset(0, 14.h),
             spreadRadius: 2.r,
@@ -442,7 +576,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
             size: 38.sp,
             color: AppColors.textPrimary,
           ),
-          onPressed: () => controller.playPrevious(),
+          onPressed: _handlePrevious,
         ),
         // Big White Play/Pause Button (Spotify Signature High Contrast)
         GestureDetector(
@@ -482,7 +616,7 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
             size: 38.sp,
             color: AppColors.textPrimary,
           ),
-          onPressed: () => controller.playNext(),
+          onPressed: _handleNext,
         ),
         // Repeat
         IconButton(

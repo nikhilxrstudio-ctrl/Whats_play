@@ -377,4 +377,89 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
   });
+
+  testWidgets('MusicPlayerScreen swiping song artwork changes to next and previous track', (tester) async {
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 2.0;
+
+    const track1 = TrackModel(
+      trackId: '10',
+      title: 'Track Alpha',
+      artistName: 'Artist Alpha',
+      albumName: 'Album Alpha',
+      genre: 'Pop',
+      durationSeconds: 180,
+      audioUrl: 'https://example.com/10.mp3',
+      artworkUrl: 'https://example.com/art10.jpg',
+      musicSource: 'JioSaavn',
+      licenseInfo: 'Licensed',
+      isStreamable: true,
+      isDownloadable: false,
+    );
+
+    const track2 = TrackModel(
+      trackId: '20',
+      title: 'Track Beta',
+      artistName: 'Artist Beta',
+      albumName: 'Album Beta',
+      genre: 'Pop',
+      durationSeconds: 200,
+      audioUrl: 'https://example.com/20.mp3',
+      artworkUrl: 'https://example.com/art20.jpg',
+      musicSource: 'JioSaavn',
+      licenseInfo: 'Licensed',
+      isStreamable: true,
+      isDownloadable: false,
+    );
+
+    final mockHandler = MockAudioPlayerHandler();
+    final db = MemoryLocalDatabaseService();
+    final playerController = PlayerController(mockHandler, databaseService: db);
+    Get.put<PlayerController>(playerController);
+
+    await playerController.playTrack(track1, queue: [track1, track2]);
+
+    await tester.pumpWidget(
+      ScreenUtilInit(
+        designSize: const Size(360, 690),
+        minTextAdapt: true,
+        builder: (context, child) {
+          return const GetMaterialApp(
+            home: MusicPlayerScreen(),
+          );
+        },
+      ),
+    );
+
+    await tester.pump();
+
+    // Verify initial Track Alpha
+    expect(find.text('Track Alpha'), findsOneWidget);
+    expect(find.text('Artist Alpha'), findsOneWidget);
+
+    // Swipe left on the artwork PageView to go to next song
+    final pageViewFinder = find.byType(PageView);
+    expect(pageViewFinder, findsOneWidget);
+
+    await tester.fling(pageViewFinder, const Offset(-400, 0), 1000);
+    await tester.pumpAndSettle();
+
+    // Verify now playing Track Beta
+    expect(find.text('Track Beta'), findsOneWidget);
+    expect(find.text('Artist Beta'), findsOneWidget);
+
+    // Swipe right on the artwork PageView to go back to Track Alpha
+    await tester.fling(pageViewFinder, const Offset(400, 0), 1000);
+    await tester.pumpAndSettle();
+
+    // Verify back to Track Alpha
+    expect(find.text('Track Alpha'), findsOneWidget);
+    expect(find.text('Artist Alpha'), findsOneWidget);
+
+    addTearDown(() {
+      Get.reset();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+  });
 }
