@@ -55,88 +55,16 @@ class SpotifyBottomNavigationBar extends StatelessWidget {
         bottom: true,
         child: SizedBox(
           height: 52.h,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final tabWidth = constraints.maxWidth / _tabs.length;
-
-              Widget buildIndicator(double positionValue) {
-                final safePos = positionValue.clamp(0.0, (_tabs.length - 1).toDouble());
-                return Positioned(
-                  left: safePos * tabWidth,
-                  top: 0,
-                  width: tabWidth,
-                  height: 2.5.h,
-                  child: Center(
-                    child: Container(
-                      width: 32.w,
-                      height: 2.5.h,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(2.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.6),
-                            blurRadius: 4,
-                            spreadRadius: 0.5,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }
-
-              return Stack(
-                children: [
-                  // Smooth animated sliding indicator bar moving left-to-right / right-to-left
-                  if (tabController?.animation != null)
-                    AnimatedBuilder(
-                      animation: tabController!.animation!,
-                      builder: (context, _) =>
-                          buildIndicator(tabController!.animation!.value),
-                    )
-                  else
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutCubic,
-                      left: currentIndex.clamp(0, _tabs.length - 1) * tabWidth,
-                      top: 0,
-                      width: tabWidth,
-                      height: 2.5.h,
-                      child: Center(
-                        child: Container(
-                          width: 32.w,
-                          height: 2.5.h,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(2.r),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.6),
-                                blurRadius: 4,
-                                spreadRadius: 0.5,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Tab Items Row
-                  Row(
-                    children: List.generate(_tabs.length, (index) {
-                      final tab = _tabs[index];
-                      return _buildTabItem(
-                        index: index,
-                        label: tab.label,
-                        selectedIcon: tab.selectedIcon,
-                        unselectedIcon: tab.unselectedIcon,
-                      );
-                    }),
-                  ),
-                ],
+          child: Row(
+            children: List.generate(_tabs.length, (index) {
+              final tab = _tabs[index];
+              return _buildTabItem(
+                index: index,
+                label: tab.label,
+                selectedIcon: tab.selectedIcon,
+                unselectedIcon: tab.unselectedIcon,
               );
-            },
+            }),
           ),
         ),
       ),
