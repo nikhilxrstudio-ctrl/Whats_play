@@ -229,6 +229,64 @@
       margin-bottom: 60px;
     }
 
+    .screenshots-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 56px;
+    }
+
+    @media (max-width: 900px) {
+      .screenshots-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .screenshots-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+    }
+
+    .screenshot-card {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+      border: 1px solid #282828;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .screenshot-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+      box-shadow: 0 12px 30px rgba(30, 215, 96, 0.15);
+    }
+
+    .screenshot-card img {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .screenshot-info strong {
+      display: block;
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .screenshot-info p {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     footer {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding: 30px 20px;
@@ -279,36 +337,50 @@
     </div>
   </header>
 
-  <div style="max-width: 1200px; margin: 32px auto 40px; padding: 0 20px;">
-    <img src="assets/screenshots/whatsplay_showcase_banner.png" alt="WhatsPlay App Showcase Banner" style="width: 100%; border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); display: block;" />
-  </div>
-
   <main class="container">
     <h2 class="section-title">App Walkthrough & Screenshots</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 56px;">
-      <div style="background: var(--surface); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #282828;">
-        <img src="assets/screenshots/playstore_1_home.png" alt="Home Screen" style="width: 100%; border-radius: 8px; display: block; margin-bottom: 10px;" />
-        <strong style="color: var(--text-primary); font-size: 14px;">Discover Music</strong>
+    <div class="screenshots-grid">
+      <div class="screenshot-card">
+        <img src="assets/screenshots/playstore_1_home.png" alt="Discover Music - Home Screen" />
+        <div class="screenshot-info">
+          <strong>1. Discover Unlimited Music</strong>
+          <p>Home feed with regional Indian hits, Bollywood chartbusters & featured artists</p>
+        </div>
       </div>
-      <div style="background: var(--surface); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #282828;">
-        <img src="assets/screenshots/playstore_2_search.png" alt="Search Screen" style="width: 100%; border-radius: 8px; display: block; margin-bottom: 10px;" />
-        <strong style="color: var(--text-primary); font-size: 14px;">Browse & Search</strong>
+      <div class="screenshot-card">
+        <img src="assets/screenshots/playstore_2_search.png" alt="Smart Search & Browse Screen" />
+        <div class="screenshot-info">
+          <strong>2. Smart Instant Search</strong>
+          <p>Explore Punjabi, Gujarati, Hindi & EDM genres with real-time suggestions</p>
+        </div>
       </div>
-      <div style="background: var(--surface); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #282828;">
-        <img src="assets/screenshots/playstore_3_player.png" alt="Music Player Screen" style="width: 100%; border-radius: 8px; display: block; margin-bottom: 10px;" />
-        <strong style="color: var(--text-primary); font-size: 14px;">Studio Player</strong>
+      <div class="screenshot-card">
+        <img src="assets/screenshots/playstore_3_player.png" alt="Music Player Screen" />
+        <div class="screenshot-info">
+          <strong>3. Studio Audio Player</strong>
+          <p>Interactive waveform scrubber, full-screen album art, repeat & shuffle controls</p>
+        </div>
       </div>
-      <div style="background: var(--surface); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #282828;">
-        <img src="assets/screenshots/playstore_4_library.png" alt="Library Screen" style="width: 100%; border-radius: 8px; display: block; margin-bottom: 10px;" />
-        <strong style="color: var(--text-primary); font-size: 14px;">Your Library</strong>
+      <div class="screenshot-card">
+        <img src="assets/screenshots/playstore_4_library.png" alt="Your Music Library Screen" />
+        <div class="screenshot-info">
+          <strong>4. Your Personal Library</strong>
+          <p>Liked songs, custom playlist manager, offline downloads & listening history</p>
+        </div>
       </div>
-      <div style="background: var(--surface); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #282828;">
-        <img src="assets/screenshots/playstore_5_artist.png" alt="Artist Profile Screen" style="width: 100%; border-radius: 8px; display: block; margin-bottom: 10px;" />
-        <strong style="color: var(--text-primary); font-size: 14px;">Favorite Artists</strong>
+      <div class="screenshot-card">
+        <img src="assets/screenshots/playstore_5_artist.png" alt="Artist Profile Screen" />
+        <div class="screenshot-info">
+          <strong>5. Favorite Artists & Discography</strong>
+          <p>Follow top creators (Diljit, Arijit, Honey Singh) & stream verified popular tracks</p>
+        </div>
       </div>
-      <div style="background: var(--surface); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #282828;">
-        <img src="assets/screenshots/playstore_6_curated.png" alt="Curated Charts Screen" style="width: 100%; border-radius: 8px; display: block; margin-bottom: 10px;" />
-        <strong style="color: var(--text-primary); font-size: 14px;">Fresh Charts</strong>
+      <div class="screenshot-card">
+        <img src="assets/screenshots/playstore_6_curated.png" alt="Curated Charts Screen" />
+        <div class="screenshot-info">
+          <strong>6. Curated Charts & New Releases</strong>
+          <p>Ranked India Superhits Top 50, Taaza Tunes, Romantic & Party collections</p>
+        </div>
       </div>
     </div>
 
