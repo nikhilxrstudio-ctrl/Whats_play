@@ -33,7 +33,7 @@ Future<void> main() async {
       androidNotificationChannelName: 'WhatsPlay Music Playback',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
-      androidNotificationIcon: 'drawable/ic_notification',
+      androidNotificationIcon: 'mipmap/ic_launcher',
       notificationColor: AppColors.primary,
     ),
   );
