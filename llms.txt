@@ -1,0 +1,33 @@
+# WhatsPlay
+
+> WhatsPlay is an open-source, Spotify-inspired music streaming application built in Flutter with clean MVVM architecture, dual-engine audio streaming (JioSaavn and Audius), background audio playback, and offline SQLite caching.
+
+## Project Summary
+
+WhatsPlay provides full-track music discovery and streaming across Indian regional music (Bollywood, Punjabi, Gujarati) and global independent audio. It is engineered with Flutter, GetX state management, just_audio, and audio_service for native lock-screen media notifications and background playback.
+
+- **Primary Repository**: https://github.com/nikhilxrstudio-ctrl/Whats_play
+- **License**: MIT License
+- **Framework**: Flutter 3.41.8 / Dart 3.11.5
+- **Architecture**: Model-View-ViewModel (MVVM) with Repository Pattern
+- **Key Modules**: Audio Player, Section Tracks Hero Header, SQLite Local Library, Dynamic Color Extraction
+
+## Core Capabilities
+
+- **Dual-Engine Audio Streaming**: Integrates legitimate JioSaavn regional endpoints and Audius open-protocol REST streams.
+- **Regional Indian Music**: Dedicated discovery for Bollywood hits, Punjabi chartbusters, and Gujarati folk/contemporary songs.
+- **Top Charts**: Live ranked India Top 50 chart list with `#1` through `#50` ranking badges.
+- **Background & Lock Screen Playback**: Full system media notification controls powered by `audio_service`.
+- **Offline Mode**: Local SQLite caching for custom playlists, liked tracks, listening history, and sandboxed audio files.
+- **Responsive Typography**: Uniform cross-device font rendering via `flutter_screenutil` and `TextScaler.noScaling`.
+
+## Documentation & Code Links
+
+- [README.md](README.md): Comprehensive project guide, screenshots, installation, and testing.
+- [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md): Detailed architectural and factual specification for developers and AI search engines.
+- [lib/main.dart](lib/main.dart): Application initialization, dependency injection, and ScreenUtil configuration.
+- [lib/controllers/player_controller.dart](lib/controllers/player_controller.dart): Central audio engine managing playback state, queue, shuffle, and offline caching.
+- [lib/controllers/music_controller.dart](lib/controllers/music_controller.dart): Home catalogue controller managing shelves and genre categories.
+- [lib/services/saavn_service.dart](lib/services/saavn_service.dart): Regional Indian content streaming and search service.
+- [lib/services/audius_service.dart](lib/services/audius_service.dart): Decentralized open-protocol streaming service.
+- [lib/services/local_database_service.dart](lib/services/local_database_service.dart): SQLite database manager for playlists, likes, and history.
