@@ -510,6 +510,9 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                       subtitle: controller.suggestionSubtitle.value,
                       tracks: controller.suggestedTracks.toList(),
                       sectionType: 'suggested',
+                      imageUrl: controller.suggestedTracks.isNotEmpty
+                          ? controller.suggestedTracks.first.artworkUrl
+                          : 'https://c.saavncdn.com/editorial/Hindi-IndiaSuperhitsTop50_20261113063216_500x500.jpg',
                     ),
                   );
                 },
@@ -700,6 +703,7 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                         tracks: list.toList(),
                         sectionType: 'trending',
                         showRank: true,
+                        imageUrl: 'https://c.saavncdn.com/editorial/Hindi-IndiaSuperhitsTop50_20261113063216_500x500.jpg',
                       ),
                     );
                   },
@@ -924,6 +928,9 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                         subtitle: 'Fresh music drops and latest arrivals',
                         tracks: list.toList(),
                         sectionType: 'new_releases',
+                        imageUrl: list.isNotEmpty
+                            ? list.first.artworkUrl
+                            : 'https://c.saavncdn.com/editorial/Hindi-IndiaSuperhitsTop50_20261113063216_500x500.jpg',
                       ),
                     );
                   },
@@ -1152,6 +1159,7 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                         tracks: list.toList(),
                         sectionType: 'trending',
                         showRank: true,
+                        imageUrl: 'https://c.saavncdn.com/editorial/Hindi-IndiaSuperhitsTop50_20261113063216_500x500.jpg',
                       ),
                     );
                   },
@@ -1203,6 +1211,7 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                       tracks: list.toList(),
                       sectionType: 'trending',
                       showRank: true,
+                      imageUrl: 'https://c.saavncdn.com/editorial/Hindi-IndiaSuperhitsTop50_20261113063216_500x500.jpg',
                     ),
                   );
                 },
@@ -1311,6 +1320,7 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                         subtitle: 'Heart-touching acoustic & love ballads',
                         tracks: list.toList(),
                         sectionType: 'category',
+                        imageUrl: 'https://c.saavncdn.com/editorial/BollywoodLoveSongs_20231129150319_500x500.jpg',
                       ),
                     );
                   },
@@ -1501,6 +1511,7 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                         subtitle: 'High-voltage club bangers to turn up the mood',
                         tracks: list.toList(),
                         sectionType: 'category',
+                        imageUrl: 'https://c.saavncdn.com/editorial/NonStopParty_20261113052024_500x500.jpg',
                       ),
                     );
                   },

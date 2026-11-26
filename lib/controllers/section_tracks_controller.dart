@@ -10,6 +10,7 @@ class SectionTracksArgs {
   final List<TrackModel>? tracks;
   final String? sectionType; // e.g. 'suggested', 'category', 'genre', 'custom', 'trending'
   final bool showRank;
+  final String? imageUrl;
 
   const SectionTracksArgs({
     required this.title,
@@ -17,6 +18,7 @@ class SectionTracksArgs {
     this.tracks,
     this.sectionType,
     this.showRank = false,
+    this.imageUrl,
   });
 }
 
@@ -25,11 +27,33 @@ class SectionTracksController extends GetxController {
   final RxString subtitle = ''.obs;
   final RxString sectionType = ''.obs;
   final RxBool showRank = false.obs;
+  final RxString imageUrl = ''.obs;
   final RxList<TrackModel> tracks = <TrackModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxBool isSearchActive = false.obs;
   final TextEditingController searchTextController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
+  final ScrollController scrollController = ScrollController();
+  final RxDouble scrollOffset = 0.0.obs;
+
+  String get resolvedImageUrl {
+    if (imageUrl.value.isNotEmpty) return imageUrl.value;
+    if (tracks.isNotEmpty && (tracks.first.artworkUrl ?? '').isNotEmpty) {
+      return tracks.first.artworkUrl!;
+    }
+    // Contextual fallback based on title / type
+    final lower = title.value.toLowerCase();
+    if (lower.contains('romantic') || lower.contains('love')) {
+      return 'https://c.saavncdn.com/editorial/BollywoodLoveSongs_20231129150319_500x500.jpg';
+    }
+    if (lower.contains('party') || lower.contains('dance')) {
+      return 'https://c.saavncdn.com/editorial/NonStopParty_20261113052024_500x500.jpg';
+    }
+    if (lower.contains('punjabi')) {
+      return 'https://c.saavncdn.com/editorial/PunjabiHitSongs_20261027063731_500x500.jpg';
+    }
+    return 'https://c.saavncdn.com/editorial/Hindi-IndiaSuperhitsTop50_20261113063216_500x500.jpg';
+  }
 
   List<TrackModel> get filteredTracks {
     final query = searchQuery.value.trim().toLowerCase();
@@ -44,6 +68,9 @@ class SectionTracksController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    scrollController.addListener(() {
+      scrollOffset.value = scrollController.offset;
+    });
     _parseArguments();
   }
 
@@ -54,6 +81,9 @@ class SectionTracksController extends GetxController {
       subtitle.value = args.subtitle ?? '';
       sectionType.value = args.sectionType ?? '';
       showRank.value = args.showRank || (args.sectionType == 'trending');
+      if (args.imageUrl != null && args.imageUrl!.isNotEmpty) {
+        imageUrl.value = args.imageUrl!;
+      }
       if (args.tracks != null) {
         tracks.assignAll(args.tracks!);
       }
@@ -62,6 +92,9 @@ class SectionTracksController extends GetxController {
       subtitle.value = (args['subtitle'] ?? '').toString();
       sectionType.value = (args['sectionType'] ?? '').toString();
       showRank.value = args['showRank'] == true || sectionType.value == 'trending';
+      if (args['imageUrl'] != null) {
+        imageUrl.value = args['imageUrl'].toString();
+      }
       if (args['tracks'] is List<TrackModel>) {
         tracks.assignAll(args['tracks'] as List<TrackModel>);
       }
@@ -126,6 +159,7 @@ class SectionTracksController extends GetxController {
 
   @override
   void onClose() {
+    scrollController.dispose();
     searchFocusNode.dispose();
     searchTextController.dispose();
     super.onClose();
