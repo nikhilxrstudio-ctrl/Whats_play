@@ -16,10 +16,29 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License" /></a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/whatsplay-v1.0.0-arm64.apk"><img src="https://img.shields.io/badge/Download_APK-v1.0.0_(21.9_MB)-1DB954?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
+  <a href="https://nikhilxrstudio-ctrl.github.io/Whats_play/"><img src="https://img.shields.io/badge/Official_Website-Live-00E5FF?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Website" /></a>
+</p>
+
+---
+
+## 📥 Download Release APK (Android)
+
+Get the latest optimized release APK directly on your Android device:
+
+| Package | Architecture | Size | Download Link |
+| :--- | :--- | :--- | :--- |
+| **WhatsPlay v1.0.0 (Recommended)** | `arm64-v8a` (99% Modern Android Phones) | **21.9 MB** | [⬇️ **Download APK**](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/whatsplay-v1.0.0-arm64.apk) |
+| **Official Web Landing Page** | Live Site | N/A | [🌐 **Visit Website**](https://nikhilxrstudio-ctrl.github.io/Whats_play/) |
+
+> 📱 **Installation Tip**: On Android devices, when installing the downloaded APK, simply tap *"Allow from this source"* if prompted by your browser or file manager.
+
 ---
 
 ## 📌 Table of Contents
 
+- [Download Release APK](#-download-release-apk-android)
 - [Overview & Value Proposition](#-overview--value-proposition)
 - [Why WhatsPlay?](#-why-whatsplay)
 - [Key Features](#-key-features)
