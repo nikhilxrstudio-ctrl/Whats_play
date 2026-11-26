@@ -50,6 +50,14 @@
             </intent-filter>
         </receiver>
 
+        <!-- Notification icon references to guarantee inclusion in resources.arsc -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.whatsplay.music.app.notification_icon"
+            android:resource="@drawable/ic_notification" />
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
