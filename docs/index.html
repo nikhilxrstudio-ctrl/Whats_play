@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsPlay – Free Open-Source Flutter Music Streaming & Discovery App</title>
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="WhatsPlay – Free Open-Source Flutter Music Streaming & Discovery App">
+  <meta name="description" content="WhatsPlay is a free open-source Flutter music streaming player featuring dual-engine audio (JioSaavn & Audius), Bollywood, Punjabi, and Gujarati music, background playback, and offline caching.">
+  <meta name="keywords" content="flutter music player, music streaming app, open source music player, jiosaavn music app, bollywood music streaming, punjabi songs app, gujarati music player, free music app github, spotify alternative, audio player flutter">
+  <meta name="author" content="Nikhil (XR Studio)">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
+  <meta property="og:title" content="WhatsPlay – Free Open-Source Flutter Music Streaming App">
+  <meta property="og:description" content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/icons/app_logo.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
+  <meta property="twitter:title" content="WhatsPlay – Free Open-Source Flutter Music Streaming App">
+  <meta property="twitter:description" content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
+  <meta property="twitter:image" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/icons/app_logo.png">
+
+  <!-- Schema.org Structured Data for AI & Search Engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "WhatsPlay",
+    "applicationCategory": "MultimediaApplication",
+    "applicationSubCategory": "Music Player and Streaming",
+    "operatingSystem": "Android, iOS, macOS, Web",
+    "softwareVersion": "1.0.0",
+    "license": "https://opensource.org/licenses/MIT",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "An open-source, Spotify-inspired music streaming application built in Flutter with clean MVVM architecture, dual-engine audio streaming (JioSaavn and Audius), background audio playback, and offline SQLite caching.",
+    "url": "https://nikhilxrstudio-ctrl.github.io/Whats_play/",
+    "codeRepository": "https://github.com/nikhilxrstudio-ctrl/Whats_play",
+    "author": {
+      "@type": "Person",
+      "name": "Nikhil"
+    },
+    "featureList": [
+      "Dual-engine music streaming with JioSaavn and Audius API",
+      "Bollywood, Punjabi, and Gujarati music discovery",
+      "Live ranked India Top 50 chart list",
+      "Background audio playback via audio_service",
+      "Native lock screen media notifications",
+      "Offline song caching and SQLite database",
+      "Dynamic background gradient color extraction",
+      "Responsive typography with flutter_screenutil"
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      --primary: #1DB954;
+      --primary-hover: #1ed760;
+      --background: #121212;
+      --surface: #181818;
+      --surface-light: #282828;
+      --text-primary: #FFFFFF;
+      --text-secondary: #B3B3B3;
+      --text-muted: #727272;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 60px 20px 40px;
+      text-align: center;
+      background: radial-gradient(circle at top, #1f3b2b 0%, var(--background) 70%);
+    }
+
+    .logo-container {
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 28px;
+      box-shadow: 0 12px 36px rgba(29, 185, 84, 0.35);
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .tagline {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 680px;
+      margin: 0 auto 30px;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border-radius: 30px;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: scale(1.03);
+    }
+
+    .btn-secondary {
+      background-color: var(--surface-light);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background-color: #383838;
+      transform: scale(1.03);
+    }
+
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(29, 185, 84, 0.4);
+    }
+
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+
+    .card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    .card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .code-block {
+      background: #000;
+      padding: 20px;
+      border-radius: 10px;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      color: #00E5FF;
+      font-size: 0.95rem;
+      overflow-x: auto;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 60px;
+    }
+
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 30px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <img src="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/icons/app_logo.png" alt="WhatsPlay Music App" class="logo">
+    </div>
+    <h1>WhatsPlay</h1>
+    <p class="tagline">An open-source, Spotify-inspired music streaming application built in Flutter with dual-engine playback, regional Indian music discovery, background audio, and offline caching.</p>
+    
+    <div class="btn-group">
+      <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play" class="btn btn-primary">
+        ★ Star on GitHub
+      </a>
+      <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play#readme" class="btn btn-secondary">
+        Documentation
+      </a>
+      <a href="llms.txt" class="btn btn-secondary">
+        llms.txt (AI Spec)
+      </a>
+    </div>
+
+    <div class="badges">
+      <img src="https://img.shields.io/github/stars/nikhilxrstudio-ctrl/Whats_play?style=flat-square&color=1DB954" alt="GitHub Stars">
+      <img src="https://img.shields.io/badge/Flutter-3.41.8-02569B?style=flat-square" alt="Flutter">
+      <img src="https://img.shields.io/badge/Dart-3.11+-0175C2?style=flat-square" alt="Dart">
+      <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License">
+    </div>
+  </header>
+
+  <main class="container">
+    <h2 class="section-title">Key Capabilities</h2>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon">🎧</div>
+        <h3>Dual-Engine Music Streaming</h3>
+        <p>Integrates legitimate JioSaavn regional streaming endpoints and decentralized Audius protocol REST streams for full-length, high-bitrate playback.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🇮🇳</div>
+        <h3>Regional Indian Discovery</h3>
+        <p>Rich catalogs dedicated to Bollywood chartbusters, Punjabi hits, and Gujarati melodies, plus artist spotlights (Diljit, Honey Singh, Arijit, Sidhu, Badshah).</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Ranked Top 50 Charts</h3>
+        <p>Real-time India Superhits Top 50 ranked list featuring #1 through #50 ranking badges, Taaza Tunes (New Releases), and curated Romantic and Party shelves.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">📱</div>
+        <h3>Lock Screen & Background Audio</h3>
+        <p>Uninterrupted playback powered by <code>audio_service</code> and <code>just_audio</code> with native OS notification drawer and lock screen controls.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">💾</div>
+        <h3>Offline SQLite Library</h3>
+        <p>Client-side SQLite database for Liked Songs, Custom Playlists, 10-second Listening History, and sandboxed offline MP3 downloads without an internet connection.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">🎨</div>
+        <h3>Ambient Gradient Visuals</h3>
+        <p>Spotify-style dark mode interface featuring dynamic background color extraction from album artwork and live animated sound wave equalizers.</p>
+      </div>
+    </div>
+
+    <h2 class="section-title">Quick Installation</h2>
+    <div class="code-block">
+# Clone the repository<br>
+git clone https://github.com/nikhilxrstudio-ctrl/Whats_play.git<br>
+cd Whats_play<br><br>
+# Fetch dependencies<br>
+flutter pub get<br><br>
+# Run static analysis & test suite<br>
+flutter analyze<br>
+flutter test test/controllers/ test/widget_test.dart<br><br>
+# Launch WhatsPlay<br>
+flutter run
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 WhatsPlay • Distributed under the <a href="https://opensource.org/licenses/MIT">MIT License</a> • Maintained by <a href="https://github.com/nikhilxrstudio-ctrl">Nikhil (XR Studio)</a></p>
+  </footer>
+
+</body>
+</html>
