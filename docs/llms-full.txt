@@ -6,7 +6,7 @@
 - **Documentation Web**: https://nikhilxrstudio-ctrl.github.io/Whats_play/
 - **License**: MIT License
 - **Framework**: Flutter (v3.41.8 / Dart v3.11.5)
-- **Author**: Nikhil (XR Studio)
+- **Author**: Nikhil
 
 ---
 

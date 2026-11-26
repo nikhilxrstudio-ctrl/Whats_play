@@ -293,7 +293,7 @@ Please ensure all tests pass (`flutter test`) and `flutter analyze` reports zero
 
 Distributed under the **MIT License**. See `LICENSE` for more information.
 
-- **Developer**: Nikhil (XR Studio)
+- **Developer**: Nikhil
 - **Repository**: [https://github.com/nikhilxrstudio-ctrl/Whats_play](https://github.com/nikhilxrstudio-ctrl/Whats_play)
 - **Issues & Discussions**: [GitHub Issues Page](https://github.com/nikhilxrstudio-ctrl/Whats_play/issues)
 
