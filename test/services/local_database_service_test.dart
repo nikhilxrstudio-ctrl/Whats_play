@@ -164,5 +164,28 @@ void main() {
       expect(tracks, isEmpty);
       expect(await databaseService.getPlaylistSongCount('pl_workout'), 0);
     });
+
+    test('toSqliteTrackMap strictly excludes transient non-schema fields', () {
+      final track = testTrack1.copyWith(
+        lastPlayedTimestamp: 1732600000000,
+        localFilePath: '/data/user/0/com.example/test.mp3',
+      );
+
+      final map = track.toSqliteTrackMap();
+      expect(map.containsKey('last_played_at'), false);
+      expect(map.containsKey('local_file_path'), false);
+      expect(map['track_id'], 'track_1');
+      expect(map['title'], 'Pragat Piranu Navkhand Neje Punjanu');
+      expect(map.length, 13);
+    });
+
+    test('saving multiple liked songs persists all songs across retrievals', () async {
+      await databaseService.saveLikedSong(testTrack1);
+      await databaseService.saveLikedSong(testTrack2);
+
+      final liked = await databaseService.getLikedSongs();
+      expect(liked.length, 2);
+      expect(liked.map((t) => t.trackId), containsAll(['track_1', 'track_2']));
+    });
   });
 }

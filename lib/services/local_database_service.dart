@@ -327,7 +327,7 @@ class LocalDatabaseService implements ILocalDatabaseService {
   Future<void> saveLikedSong(TrackModel track) async {
     try {
       final db = await database;
-      final Map<String, dynamic> row = track.toMap();
+      final Map<String, dynamic> row = track.toSqliteTrackMap();
       row['created_at'] = DateTime.now().millisecondsSinceEpoch;
 
       await db.insert(
@@ -528,7 +528,7 @@ class LocalDatabaseService implements ILocalDatabaseService {
   Future<void> addTrackToPlaylist(String playlistId, TrackModel track) async {
     try {
       final db = await database;
-      final Map<String, dynamic> row = track.toMap();
+      final Map<String, dynamic> row = track.toSqliteTrackMap();
       row['playlist_id'] = playlistId;
       row['created_at'] = DateTime.now().millisecondsSinceEpoch;
 
@@ -924,7 +924,8 @@ class MemoryLocalDatabaseService implements ILocalDatabaseService {
   Future<void> addTrackToPlaylist(String playlistId, TrackModel track) async {
     final tracks = _playlistTracksStorage.putIfAbsent(playlistId, () => []);
     tracks.removeWhere((t) => t['track_id'] == track.trackId);
-    final map = track.toMap();
+    final map = track.toSqliteTrackMap();
+    map['playlist_id'] = playlistId;
     map['created_at'] = DateTime.now().millisecondsSinceEpoch;
     tracks.insert(0, map);
 

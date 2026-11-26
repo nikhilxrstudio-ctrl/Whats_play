@@ -269,6 +269,25 @@ class TrackModel {
     }
   }
 
+  /// Convert TrackModel to clean Map containing only core SQLite track columns
+  Map<String, dynamic> toSqliteTrackMap() {
+    return {
+      'track_id': trackId,
+      'title': title,
+      'artist_name': artistName,
+      'album_name': albumName,
+      'artwork_url': artworkUrl,
+      'genre': genre,
+      'duration_seconds': durationSeconds,
+      'release_date': releaseDate?.toIso8601String(),
+      'audio_url': audioUrl,
+      'music_source': musicSource,
+      'license_info': licenseInfo,
+      'is_streamable': isStreamable ? 1 : 0,
+      'is_downloadable': isDownloadable ? 1 : 0,
+    };
+  }
+
   /// Convert TrackModel to Map for SQLite local storage persistence
   Map<String, dynamic> toMap() {
     return {
@@ -285,8 +304,6 @@ class TrackModel {
       'license_info': licenseInfo,
       'is_streamable': isStreamable ? 1 : 0,
       'is_downloadable': isDownloadable ? 1 : 0,
-      'last_played_at': lastPlayedTimestamp,
-      'local_file_path': localFilePath,
     };
   }
 
