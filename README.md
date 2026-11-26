@@ -1,27 +1,77 @@
-# WhatsPlay – Flutter Music Catalogue App
+# WhatsPlay 🎵 – Flutter Music Streaming & Catalogue App
 
-A lightweight Flutter application built from scratch to integrate with legitimate music APIs, fetch live music data, and display the catalogue on a clean, responsive single screen.
+A production-grade, Spotify-inspired music streaming application built in Flutter with clean MVVM architecture, dual-engine legitimate music streaming, background audio playback with system media notifications, offline download caching, and responsive UI scaling.
 
 ---
 
-## 1. Architecture: MVVM + Repository Pattern
+## 📸 Core Features
 
-The project strictly follows the clean data flow requested:
+- 🎧 **Dual-Engine Streaming Services**:
+  - **JioSaavn Official Feeds**: Seamless streaming for Bollywood, Punjabi, Gujarati, Taaza Tunes (New Releases), Top Charts (India Top 50), Romantic Melodies, and Dance Anthems.
+  - **Audius Open Protocol**: High-fidelity global electronic, hip-hop, lo-fi, and independent music streaming with direct playable audio streams (`audio/mpeg`).
+- 🌟 **Spotify-Inspired Home Screen**:
+  - **8-Item Quick Access Grid**: Verified artists (Diljit Dosanjh, Honey Singh, Arijit Singh, Sidhu Moose Wala, Badshah) and curated Hit Playlists (Top 50 Bollywood, Party Mix, Chill Vibes, Romantic Hits) with active CDN artworks.
+  - **Ranked Top Charts Section**: Numbered rank badges (`#1`, `#2`, `#3` in Spotify green) with a "See all 50 chartbusters" shortcut.
+  - **Curated Horizontal Shelves**: *Taaza Tunes* (New Releases), *Romantic Melodies*, and *Party & Dance Anthems*.
+  - **Personalized Recommendations**: *Suggested For You* shelf computed dynamically from user listening history.
+  - **Sticky Genre Header**: Smooth pinned horizontal chip filters for instant genre filtering.
+- 🎛️ **Full-Featured Audio Player (`/player`)**:
+  - **Dynamic Background Gradients**: Ambient backdrop generated in real-time from the current track's album artwork.
+  - **Interactive Seekbar**: Smooth scrubbing with elapsed time and total duration.
+  - **Gesture Controls**: Swipe left/right on album artwork to change tracks seamlessly.
+  - **Playback Modes**: Loop/repeat (Off, Repeat All, Repeat One), shuffle mode, and 10-second skip forward/backward.
+  - **Live Equalizer Wave**: Animated audio wave indicator showing playback activity on album thumbnails and player views.
+- 📱 **System Media Notifications & Lock Screen**:
+  - Integrated via `audio_service` + `just_audio`.
+  - Background audio playback with native OS notification controls (Play/Pause, Skip Next/Previous, Seekbar, Artwork).
+- 💾 **Offline Library & SQLite Persistence**:
+  - **Liked Songs**: Instant heart toggle persisted to local storage.
+  - **Offline Downloads**: Save tracks directly to local device sandbox for seamless playback without an internet connection.
+  - **Custom Playlists**: Create, rename, delete playlists and manage songs.
+  - **Listening History**: Tracks automatically logged to history after 10+ seconds of playback.
+- 📱 **Consistent Cross-Device Typography**:
+  - Built with `flutter_screenutil` using strict non-scaling text scalers (`TextScaler.noScaling`) to ensure exact font proportions across all mobile screen densities and aspect ratios.
+- 🎯 **Version Management**:
+  - Managed via **FVM** (Flutter Version Management) pinned to Flutter `3.41.8`.
+
+---
+
+## 🏗️ Architecture: MVVM + Repository Pattern
+
+WhatsPlay strictly follows Clean Architecture principles with unidirectional data flow:
 
 ```
-Music API (Audius REST)
-         │
-         ▼
-Service Layer (`AudiusService` implements `IApiService`)
-         │
-         ▼
-Repository Layer (`MusicRepository` implements `IMusicRepository`)
-         │
-         ▼
-Controller Layer (`MusicController` GetxController)
-         │
-         ▼
-UI Layer (`MusicCatalogueScreen` + Reusable Widgets)
+┌────────────────────────────────────────────────────────┐
+│                      Data Sources                      │
+│        JioSaavn API Feeds   │   Audius REST Stream      │
+└─────────────────────────────┬──────────────────────────┘
+                              │
+                              ▼
+┌────────────────────────────────────────────────────────┐
+│                     Service Layer                      │
+│      SaavnService      │   AudiusService (IApiService) │
+│      LocalDatabaseService (SQLite) │ AudioPlayerHandler │
+└─────────────────────────────┬──────────────────────────┘
+                              │
+                              ▼
+┌────────────────────────────────────────────────────────┐
+│                   Repository Layer                     │
+│    MusicRepository (implements IMusicRepository)       │
+└─────────────────────────────┬──────────────────────────┘
+                              │
+                              ▼
+┌────────────────────────────────────────────────────────┐
+│                   Controller Layer                     │
+│  MusicController │ PlayerController │ ArtistDetailCtrl │
+│    SectionTracksController │ CategoryDetailController  │
+└─────────────────────────────┬──────────────────────────┘
+                              │
+                              ▼
+┌────────────────────────────────────────────────────────┐
+│                       UI Layer                         │
+│  MusicCatalogueScreen │ MusicPlayerScreen │ MiniPlayer │
+│     SectionTracksScreen │ ArtistDetailScreen           │
+└────────────────────────────────────────────────────────┘
 ```
 
 ### Folder Structure
@@ -29,159 +79,114 @@ UI Layer (`MusicCatalogueScreen` + Reusable Widgets)
 ```
 lib/
 ├── constants/
-│   ├── api_constants.dart      # Endpoints and environment configurations
-│   ├── app_colors.dart         # Theme palette (dark theme, badges, status)
-│   └── app_constants.dart      # Design dimensions, limits, and app metadata
+│   ├── api_constants.dart          # Remote endpoints & configuration
+│   ├── app_colors.dart             # Spotify dark palette, status badges & neon accents
+│   └── app_constants.dart          # Featured artists, hit playlists & layout limits
 ├── models/
-│   ├── audio_verification_model.dart # Audio HTTP stream verification response
-│   └── track_model.dart        # Strongly-typed Dart model for music tracks
+│   ├── artist_category_model.dart  # Featured artists & playlist metadata model
+│   ├── audio_verification_model.dart # Stream reachability and verification model
+│   ├── playlist_model.dart         # Custom user playlists model
+│   └── track_model.dart            # Strongly-typed audio track model
 ├── services/
-│   ├── api_service.dart        # IApiService abstraction
-│   └── audius_service.dart     # Audius REST API & stream verifier implementation
+│   ├── api_service.dart            # IApiService contract
+│   ├── audius_service.dart         # Audius REST API & stream client
+│   ├── audio_player_handler.dart   # AudioService background media notification handler
+│   ├── local_database_service.dart # SQLite database for playlists, history & offline tracks
+│   └── saavn_service.dart          # JioSaavn API service with decryptor & search
 ├── repositories/
-│   └── music_repository.dart   # IMusicRepository & concrete implementation
+│   └── music_repository.dart       # IMusicRepository interface & implementation
 ├── controllers/
-│   └── music_controller.dart   # GetX controller managing ViewState & reactive data
+│   ├── artist_detail_controller.dart # Artist discography & tracks
+│   ├── category_detail_controller.dart # Genre detail & browsing
+│   ├── music_controller.dart       # Home catalogue, categories & shelves
+│   ├── player_controller.dart      # Global playback engine, queue, likes & downloads
+│   └── section_tracks_controller.dart# See-all section tracks & full playlist view
 ├── screens/
-│   └── music_catalogue_screen.dart # Single clean screen displaying catalogue
+│   ├── artist_detail_screen.dart   # Artist profile & top songs screen
+│   ├── category_detail_screen.dart # Category tracklist screen
+│   ├── music_catalogue_screen.dart # Home catalogue screen with tabs & shelves
+│   ├── music_player_screen.dart    # Full-screen player with dynamic gradients
+│   └── section_tracks_screen.dart  # Section view (e.g. India Top 50, New Releases)
 ├── widgets/
-│   ├── audio_status_badge.dart # Status badge for audio availability
-│   ├── music_track_card.dart   # Responsive track card
-│   ├── loading_view.dart       # Centered loading state
-│   ├── error_view.dart         # Error state with retry action
-│   └── empty_view.dart         # Empty state handler
+│   ├── add_to_collection_sheet.dart# Bottom sheet to add track to custom playlists
+│   ├── audio_status_badge.dart     # Audio verification badge
+│   ├── category_selector_bar.dart  # Sticky horizontal genre selector
+│   ├── mini_player_bar.dart        # Docked bottom mini player
+│   ├── music_track_card.dart       # Responsive track card with rank & play state
+│   ├── music_wave_equalizer.dart   # Live animated equalizer bars
+│   ├── spotify_artist_selector.dart# Quick-access 8-item grid
+│   ├── spotify_bottom_navigation_bar.dart # Bottom navigation bar
+│   └── track_options_sheet.dart    # Track context menu (Like, Download, Add)
 ├── routes/
-│   ├── app_routes.dart         # Route names
-│   └── app_pages.dart          # GetPage routes with dependency injection bindings
-└── main.dart                   # ScreenUtilInit & GetMaterialApp entry point
+│   ├── app_routes.dart             # Named routes
+│   └── app_pages.dart              # Route bindings and transitions
+└── main.dart                       # App entrypoint with ScreenUtil & AudioService
 ```
 
 ---
 
-## 2. Music Provider Research & Comparison
+## 🧪 Testing & Verification
 
-| Provider | Free API Access | Auth Requirement | Playable Audio URL | Preview vs Full Track | Commercial / Licensing Rights | Rate Limits / Reliability | Verdict |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Audius** | **Yes (100% Free)** | **None** (Only standard `app_name`) | **Yes (Direct MP3 Stream)** | **Full Track (192-320 kbps)** | **Legitimate artist streaming distribution** | **High** (Decentralized host nodes & CDN) | **SELECTED (Best Overall)** |
-| **Jamendo** | Yes (Free Dev Tier) | `client_id` (Requires developer registration) | Yes (Direct MP3) | Full Track | Creative Commons (CC BY-NC, CC BY-SA) | Moderate (Demo keys subject to suspension) | Strong alternative with developer account |
-| **Free Music Archive (FMA)** | Restrictive | API key required | Discontinued public API | N/A | Variable CC | Deprecated public v1 API | Not viable for open integration |
-| **Internet Archive** | Yes | None | Yes (Raw file storage) | Inconsistent | Public Domain / CC | Unstructured metadata, variable bitrates | Inconsistent track schema |
-| **MusicBrainz** | Yes | None | **No** (Metadata only) | None | Open Data (CC0) | 1 req/sec | **No audio streaming available** |
-| **Spotify / Apple Music** | Paid / Restricted | OAuth 2.0 / JWT Client Secrets | **No direct stream URLs** (Spotify removed previews; requires Premium SDK) | 30s preview (deprecated) | Proprietary DRM / Paid Subscription | Strict commercial API terms | Ineligible for direct playback |
+The project includes an automated test suite verifying all layers:
 
-### Why Audius Was Chosen
+- **Unit Tests**:
+  - `track_model_test.dart`: Serialization, duration parsing, stream resolution.
+  - `audius_service_test.dart`: API response parsing, stream URL construction.
+  - `saavn_service_test.dart`: Media decryption, search resolution, playlist feeds.
+  - `local_database_service_test.dart`: SQLite CRUD for likes, playlists, and history.
+- **Controller Tests**:
+  - `player_controller_test.dart`: Play, pause, skip, seek, shuffle, repeat, like, offline caching, and 10s history tracking.
+  - `music_controller_test.dart`: State transitions, category filtering, shelf loading.
+  - `section_tracks_controller_test.dart`: Queue delegation and section playback.
+  - `artist_detail_controller_test.dart` & `category_detail_controller_test.dart`.
+- **Widget & Integration Tests**:
+  - `widget_test.dart`: Navigation to player screen, mini player swipe gesture, featured artist selection, and back button behaviors.
 
-1. **Legitimate Playable Audio**: Direct `/v1/tracks/{id}/stream` endpoint provides full playable `audio/mpeg` streams without artificial 30-second truncations.
-2. **Zero Barrier to Integration**: No secret server keys required; can be configured seamlessly using standard `app_name`.
-3. **Rich Metadata**: Complete song title, artist name, album name, high-resolution artwork (`150x150`, `480x480`, `1000x1000`), duration, genre, and release date.
-4. **Legitimate Licensing**: Artists distribute tracks directly through the Audius protocol under platform streaming terms.
+### Run Tests & Analysis
 
----
+```bash
+# Using FVM
+fvm flutter analyze
+fvm flutter test test/controllers/ test/widget_test.dart
 
-## 3. Audio URL Verification Results
-
-Live integration verification was performed on live Audius API endpoints:
-
-- **Target Audio URL**: `https://api.audius.co/v1/tracks/mRaOxp1/stream?app_name=WHATS_PLAY`
-- **HTTP Status**: `200 OK` (following 302 redirect to creator node)
-- **Content-Type**: `audio/mpeg`
-- **Full Track**: Verified full audio stream
-- **CORS / Access**: `access-control-allow-origin: *`
-- **Verification Details**: Verified in ~1.9s with live headers.
+# Using Flutter directly
+flutter analyze
+flutter test
+```
 
 ---
 
-## 4. Category & Spotify-Style Artist Filtering
-
-The single catalogue screen incorporates both **Genre Filters** and a **Spotify-Style Featured Artist & Regional View**:
-
-1. **Spotify-Style Featured Artists & Regional Carousel (`SpotifyArtistSelector`)**:
-   - Circular artist avatars with Spotify-inspired glowing active gradient rings (`LinearGradient([Purple, Cyan, Spotify Green])`) and verified checkmark badges.
-   - Featured categories include:
-     - **Diljit Dosanjh**
-     - **Yo Yo Honey Singh**
-     - **Gujarati Hits**
-     - **Arijit Singh**
-     - **Sidhu Moose Wala**
-     - **Bollywood Hits**
-     - **Punjabi Hits**
-   - Tapping an artist initiates a live search (`searchTracks(query)`) to retrieve and display their real tracks.
-   - Tapping the active artist again deselects it and reverts to trending music.
-
-2. **Genre Selector Bar (`CategorySelectorBar`)**:
-   - Horizontal chip selector for general genres (All, Electronic, Hip-Hop/Rap, Pop, Rock, Ambient, Bass, House, Techno, etc.).
-
-3. **Reactive State Flow**:
-   - `MusicController.selectArtist(artist)` and `MusicController.selectCategory(category)` update the reactive state, triggering the appropriate API call while keeping loading, empty, and error views seamless.
-
----
-
-## 5. Music Player Screen & System Media Notifications
-
-When a user taps any track in the catalogue list, the app initiates playback and navigates to the **Dedicated Music Player Screen (`/player`)**:
-
-1. **Music Player Screen (`MusicPlayerScreen`)**:
-   - **Large High-Res Artwork**: Center-stage 500x500 album artwork with ambient drop shadow.
-   - **Track Metadata**: Song title, artist name, and album name.
-   - **Interactive Seekbar**: Slider showing real-time elapsed position and total duration.
-   - **Playback Controls**:
-     - Big circular Play/Pause toggle with buffering indicator.
-     - Next & Previous track navigation through the active playlist.
-     - Quick 10s Rewind (`-10s`) & 10s Fast-Forward (`+10s`).
-     - Shuffle & Repeat modes.
-   - **Media Notification Status Badge**: Displays `"Media Notification Active"`.
-
-2. **System Media Notifications (`audio_service` + `just_audio`)**:
-   - Plays audio in the background and posts a native media notification in the device's notification drawer & lock screen.
-   - Notification displays:
-     - Song Title
-     - Artist Name
-     - High-resolution Album Artwork
-     - Interactive Play, Pause, Next, Previous, and Seek controls.
-
-3. **Docked Mini Player Bar (`MiniPlayerBar`)**:
-   - A persistent Spotify-style mini player bar docked above the bottom of the catalogue screen when a track is active.
-   - Tapping anywhere on the mini player re-opens the full Player Screen.
-
----
-
-## 6. API Security & AWS Readiness
-
-- **No Secrets Hardcoded**: No sensitive credentials exist in the client app.
-- **Environment Configuration**: Configured with `--dart-define=AUDIUS_APP_NAME=WHATS_PLAY`.
-- **AWS S3 / CloudFront Compatibility**: The `IApiService` and `IMusicRepository` abstractions allow seamless introduction of an AWS S3/CloudFront service implementation in the future without modifying UI or Controller code.
-
----
-
-## 5. How to Run the Project
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Flutter SDK (v3.24+ / 3.41+)
-- FVM (optional, supported at `/Users/imac/fvm/versions/3.41.8`)
+- Flutter SDK (v3.24+ or 3.41+)
+- [FVM](https://fvm.app/) (recommended): Pinned version `3.41.8` is defined in `.fvmrc`.
 
-### Running with Flutter
-
-```bash
-# 1. Fetch dependencies
-flutter pub get
-
-# 2. Run static analysis
-flutter analyze
-
-# 3. Run unit and integration tests
-flutter test
-
-# 4. Run the application
-flutter run -d chrome
-# or for mobile:
-flutter run -d <device_id>
-```
-
-### Running with FVM (if configured)
+### Installation & Run
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/nikhilxrstudio-ctrl/Whats_play.git
+cd Whats_play
+
+# 2. Use FVM to install the exact Flutter SDK version
+fvm install
+fvm use 3.41.8
+
+# 3. Fetch dependencies
 fvm flutter pub get
+
+# 4. Run Static Analysis & Tests
+fvm flutter analyze
+fvm flutter test
+
+# 5. Run the Application
 fvm flutter run
 ```
-# Whats_play
+
+---
+
+## 📄 License
+
+This project is built for evaluation, portfolio, and educational purposes. Audio streams are loaded directly from legitimate open public APIs (Audius protocol & public content distribution services).
