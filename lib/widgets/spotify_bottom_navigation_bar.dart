@@ -5,11 +5,13 @@ import '../constants/app_colors.dart';
 
 class SpotifyBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
+  final TabController? tabController;
   final ValueChanged<int> onTabSelected;
 
   const SpotifyBottomNavigationBar({
     super.key,
     required this.currentIndex,
+    this.tabController,
     required this.onTabSelected,
   });
 
@@ -56,36 +58,69 @@ class SpotifyBottomNavigationBar extends StatelessWidget {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final tabWidth = constraints.maxWidth / _tabs.length;
-              final safeIndex = currentIndex.clamp(0, _tabs.length - 1);
+
+              Widget buildIndicator(double positionValue) {
+                final safePos = positionValue.clamp(0.0, (_tabs.length - 1).toDouble());
+                return Positioned(
+                  left: safePos * tabWidth,
+                  top: 0,
+                  width: tabWidth,
+                  height: 2.5.h,
+                  child: Center(
+                    child: Container(
+                      width: 32.w,
+                      height: 2.5.h,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(2.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.6),
+                            blurRadius: 4,
+                            spreadRadius: 0.5,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
 
               return Stack(
                 children: [
                   // Smooth animated sliding indicator bar moving left-to-right / right-to-left
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutCubic,
-                    left: safeIndex * tabWidth,
-                    top: 0,
-                    width: tabWidth,
-                    height: 2.5.h,
-                    child: Center(
-                      child: Container(
-                        width: 32.w,
-                        height: 2.5.h,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(2.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.6),
-                              blurRadius: 4,
-                              spreadRadius: 0.5,
-                            ),
-                          ],
+                  if (tabController?.animation != null)
+                    AnimatedBuilder(
+                      animation: tabController!.animation!,
+                      builder: (context, _) =>
+                          buildIndicator(tabController!.animation!.value),
+                    )
+                  else
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      left: currentIndex.clamp(0, _tabs.length - 1) * tabWidth,
+                      top: 0,
+                      width: tabWidth,
+                      height: 2.5.h,
+                      child: Center(
+                        child: Container(
+                          width: 32.w,
+                          height: 2.5.h,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(2.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.6),
+                                blurRadius: 4,
+                                spreadRadius: 0.5,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
 
                   // Tab Items Row
                   Row(

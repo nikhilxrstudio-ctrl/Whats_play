@@ -24,8 +24,54 @@ import '../widgets/spotify_back_button.dart';
 import '../widgets/spotify_bottom_navigation_bar.dart';
 import '../widgets/track_options_sheet.dart';
 
-class MusicCatalogueScreen extends GetView<MusicController> {
+class MusicCatalogueScreen extends StatefulWidget {
   const MusicCatalogueScreen({super.key});
+
+  @override
+  State<MusicCatalogueScreen> createState() => _MusicCatalogueScreenState();
+}
+
+class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  late final MusicController controller;
+  Worker? _tabWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<MusicController>();
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: controller.currentTabIndex.value.clamp(0, 3),
+    );
+    controller.tabController = _tabController;
+
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        if (controller.currentTabIndex.value != _tabController.index) {
+          controller.currentTabIndex.value = _tabController.index;
+        }
+      }
+    });
+
+    _tabWorker = ever<int>(controller.currentTabIndex, (newIndex) {
+      if (mounted && _tabController.index != newIndex) {
+        _tabController.animateTo(newIndex);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabWorker?.dispose();
+    if (controller.tabController == _tabController) {
+      controller.tabController = null;
+    }
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -214,12 +260,9 @@ class MusicCatalogueScreen extends GetView<MusicController> {
               }
             }),
           ),
-          body: PageView(
-            controller: controller.pageController,
+          body: TabBarView(
+            controller: _tabController,
             physics: const BouncingScrollPhysics(),
-            onPageChanged: (index) {
-              controller.currentTabIndex.value = index;
-            },
             children: [
               _KeepAliveTab(child: _buildHomeView(context)),
               _KeepAliveTab(child: _buildSearchView(context)),
@@ -244,6 +287,7 @@ class MusicCatalogueScreen extends GetView<MusicController> {
                       (isViewingLiked || isViewingCustom);
                   return SpotifyBottomNavigationBar(
                     currentIndex: controller.currentTabIndex.value,
+                    tabController: _tabController,
                     onTabSelected: (index) {
                       if (isDetail) {
                         controller.closeLikedSongs();

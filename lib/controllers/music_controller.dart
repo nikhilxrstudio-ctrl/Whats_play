@@ -46,7 +46,10 @@ class MusicController extends GetxController {
   // TrackIds currently being actively verified
   final RxSet<String> verifyingTrackIds = <String>{}.obs;
 
-  // Bottom Navigation Active Tab (0: Home, 1: Search, 2: Your Library)
+  // Optional TabController attached by the view for native TabBar and TabBarView direct transitions
+  TabController? tabController;
+
+  // Bottom Navigation Active Tab (0: Home, 1: Search, 2: Your Library, 3: Profile)
   final RxInt currentTabIndex = 0.obs;
 
   // PageController for smooth tab navigation
@@ -324,17 +327,12 @@ class MusicController extends GetxController {
   }
 
   void changeTab(int index) {
-    if (currentTabIndex.value == index &&
-        (!pageController.hasClients || pageController.page?.round() == index)) {
-      return;
-    }
+    if (currentTabIndex.value == index) return;
     currentTabIndex.value = index;
-    if (pageController.hasClients && pageController.page?.round() != index) {
-      pageController.animateToPage(
-        index,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
-      );
+    if (tabController != null && tabController!.index != index) {
+      tabController!.animateTo(index);
+    } else if (pageController.hasClients && pageController.page?.round() != index) {
+      pageController.jumpToPage(index);
     }
   }
 
