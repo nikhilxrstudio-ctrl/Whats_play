@@ -117,9 +117,16 @@ class BlendService extends GetxService {
       final code = await generateUniqueCode();
       final now = DateTime.now();
 
+      final cleanUserName = auth?.userName.value.isNotEmpty == true
+          ? auth!.userName.value
+          : AuthService.formatCleanDisplayName(
+              displayName: user.displayName,
+              email: user.email,
+            );
+
       final creatorMember = BlendMember(
         uid: user.uid,
-        name: user.displayName ?? (user.email?.split('@').first ?? 'Creator'),
+        name: cleanUserName,
         photoUrl: user.photoURL ?? '',
         joinedAt: now,
       );
@@ -225,9 +232,16 @@ class BlendService extends GetxService {
         };
       }
 
+      final cleanUserName = auth?.userName.value.isNotEmpty == true
+          ? auth!.userName.value
+          : AuthService.formatCleanDisplayName(
+              displayName: user.displayName,
+              email: user.email,
+            );
+
       final newMember = BlendMember(
         uid: user.uid,
-        name: user.displayName ?? (user.email?.split('@').first ?? 'Friend'),
+        name: cleanUserName,
         photoUrl: user.photoURL ?? '',
         joinedAt: DateTime.now(),
       );
@@ -297,6 +311,13 @@ class BlendService extends GetxService {
         return false;
       }
 
+      final cleanUserName = auth?.userName.value.isNotEmpty == true
+          ? auth!.userName.value
+          : AuthService.formatCleanDisplayName(
+              displayName: user.displayName,
+              email: user.email,
+            );
+
       final trackDoc = tracksCollection.doc();
       final trackData = {
         'title': track.title,
@@ -306,7 +327,7 @@ class BlendService extends GetxService {
         'album': track.albumName,
         'durationSeconds': track.durationSeconds,
         'addedByUid': user.uid,
-        'addedByName': user.displayName ?? (user.email?.split('@').first ?? 'Friend'),
+        'addedByName': cleanUserName,
         'addedByPhoto': user.photoURL ?? '',
         'addedAt': FieldValue.serverTimestamp(),
       };

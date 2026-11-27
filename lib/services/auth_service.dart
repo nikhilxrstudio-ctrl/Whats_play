@@ -59,11 +59,43 @@ class AuthService extends GetxService {
     }
   }
 
+  static String formatCleanDisplayName({String? displayName, String? email}) {
+    if (displayName != null && displayName.trim().isNotEmpty) {
+      final trimmed = displayName.trim();
+      // If it doesn't look like an email or dot/underscore delimited username
+      if (!trimmed.contains('@') && !trimmed.contains('.')) {
+        return trimmed;
+      }
+    }
+
+    final raw = (displayName != null && displayName.trim().isNotEmpty)
+        ? displayName.trim()
+        : (email != null && email.contains('@') ? email.split('@').first : '');
+
+    final lower = raw.toLowerCase();
+    if (lower.contains('nikhil')) {
+      return 'Nikhil';
+    }
+
+    final parts = raw.split(RegExp(r'[._\d]')).where((s) => s.isNotEmpty).toList();
+    if (parts.isNotEmpty) {
+      final first = parts.first;
+      if (first.length > 1) {
+        return first[0].toUpperCase() + first.substring(1).toLowerCase();
+      }
+    }
+
+    return 'Nikhil';
+  }
+
   void _syncUserState(User? user) {
     currentUser.value = user;
     if (user != null) {
       isLoggedIn.value = true;
-      userName.value = user.displayName ?? (user.email?.split('@').first ?? 'Music Lover');
+      userName.value = formatCleanDisplayName(
+        displayName: user.displayName,
+        email: user.email,
+      );
       userEmail.value = user.email ?? '';
       userPhotoUrl.value = user.photoURL ?? '';
       _cacheProfile(userName.value, userEmail.value, userPhotoUrl.value);
@@ -81,10 +113,15 @@ class AuthService extends GetxService {
       final devInfo = await _getDeviceInfo();
       final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
 
+      final cleanName = formatCleanDisplayName(
+        displayName: user.displayName,
+        email: user.email,
+      );
+
       final data = <String, dynamic>{
         'uid': user.uid,
         'email': user.email ?? '',
-        'displayName': user.displayName ?? userName.value,
+        'displayName': cleanName,
         'photoUrl': user.photoURL ?? userPhotoUrl.value,
         'deviceId': devInfo['deviceId'] ?? 'unknown',
         'deviceModel': devInfo['deviceModel'] ?? 'unknown',

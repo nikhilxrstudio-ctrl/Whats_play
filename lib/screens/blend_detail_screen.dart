@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,6 +11,7 @@ import '../services/auth_service.dart';
 import '../services/blend_service.dart';
 import '../services/saavn_service.dart';
 import '../widgets/mini_player_bar.dart';
+import '../widgets/music_wave_equalizer.dart';
 import '../widgets/spotify_back_button.dart';
 
 class BlendDetailScreen extends StatefulWidget {
@@ -81,7 +83,16 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.background,
-        bottomNavigationBar: const MiniPlayerBar(),
+        bottomNavigationBar: Container(
+          color: const Color(0xFF1E1E1E),
+          child: SafeArea(
+            top: false,
+            bottom: true,
+            child: Get.isRegistered<PlayerController>()
+                ? const MiniPlayerBar()
+                : const SizedBox.shrink(),
+          ),
+        ),
         body: StreamBuilder<List<BlendTrack>>(
           stream: blendService.getBlendTracksStream(_blend.id),
           builder: (context, snapshot) {
@@ -97,20 +108,11 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                   pinned: true,
                   stretch: true,
                   backgroundColor: const Color(0xFF191919),
-                  leading: Padding(
-                    padding: EdgeInsets.only(left: 14.w),
-                    child: Center(
-                      child: SpotifyBackButton(
-                        onPressed: () => Get.back(),
-                      ),
-                    ),
-                  ),
+                  leadingWidth: 52.w,
+                  titleSpacing: 8.w,
+                  centerTitle: false,
+                  leading: const SpotifyBackButton(),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.share_rounded, color: Colors.white),
-                      tooltip: 'Share Join Code',
-                      onPressed: _copyCode,
-                    ),
                     IconButton(
                       icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
                       onPressed: () => _showBlendOptionsMenu(context, blendService, currentUid),
@@ -502,6 +504,35 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
     PlayerController? playerCtrl,
     String currentUid,
   ) {
+    if (playerCtrl == null) {
+      return _buildTrackTileContent(context, track, allTracks, false, false, currentUid);
+    }
+
+    return Obx(() {
+      final currentTrack = playerCtrl.currentTrack.value;
+      final isCurrentTrack = currentTrack != null &&
+          (currentTrack.trackId == track.id ||
+              currentTrack.title.trim().toLowerCase() ==
+                  track.title.trim().toLowerCase());
+      final isPlaying = isCurrentTrack && playerCtrl.isPlaying.value;
+
+      return _buildTrackTileContent(
+          context, track, allTracks, isCurrentTrack, isPlaying, currentUid);
+    });
+  }
+
+  Widget _buildTrackTileContent(
+    BuildContext context,
+    BlendTrack track,
+    List<BlendTrack> allTracks,
+    bool isCurrentTrack,
+    bool isPlaying,
+    String currentUid,
+  ) {
+    final playerCtrl = Get.isRegistered<PlayerController>()
+        ? Get.find<PlayerController>()
+        : null;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -514,45 +545,73 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
           padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 4.w),
           child: Row(
             children: [
-              // Artwork
+              // 48x48 Artwork with animated wave equalizer overlay when currently playing
               ClipRRect(
                 borderRadius: BorderRadius.circular(8.r),
-                child: track.artwork.isNotEmpty
-                    ? Image.network(
-                        track.artwork,
-                        width: 48.w,
-                        height: 48.w,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          width: 48.w,
-                          height: 48.w,
-                          color: AppColors.surfaceLight,
-                          child: const Icon(Icons.music_note_rounded, color: Colors.white54),
+                child: SizedBox(
+                  width: 48.w,
+                  height: 48.w,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      track.artwork.isNotEmpty
+                          ? Image.network(
+                              track.artwork,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                color: AppColors.surfaceLight,
+                                child: const Icon(Icons.music_note_rounded, color: Colors.white54),
+                              ),
+                            )
+                          : Container(
+                              color: AppColors.surfaceLight,
+                              child: const Icon(Icons.music_note_rounded, color: Colors.white54),
+                            ),
+                      if (isCurrentTrack)
+                        Container(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          child: Center(
+                            child: MusicWaveEqualizer(
+                              isPlaying: isPlaying,
+                              size: 16.h,
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ),
-                      )
-                    : Container(
-                        width: 48.w,
-                        height: 48.w,
-                        color: AppColors.surfaceLight,
-                        child: const Icon(Icons.music_note_rounded, color: Colors.white54),
-                      ),
+                    ],
+                  ),
+                ),
               ),
               SizedBox(width: 12.w),
 
-              // Title, Artist & Added By Pill
+              // Title, Artist, Playing Equalizer & Added By Pill
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      track.title,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14.5.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            track.title,
+                            style: TextStyle(
+                              color: isCurrentTrack ? AppColors.primary : AppColors.textPrimary,
+                              fontSize: 14.5.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (isCurrentTrack) ...[
+                          SizedBox(width: 6.w),
+                          MusicWaveEqualizer(
+                            isPlaying: isPlaying,
+                            size: 11.h,
+                            color: AppColors.primary,
+                          ),
+                        ],
+                      ],
                     ),
                     SizedBox(height: 3.h),
                     Row(
@@ -561,7 +620,9 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                           child: Text(
                             track.artist,
                             style: TextStyle(
-                              color: AppColors.textSecondary,
+                              color: isCurrentTrack
+                                  ? AppColors.primary.withValues(alpha: 0.75)
+                                  : AppColors.textSecondary,
                               fontSize: 12.sp,
                             ),
                             maxLines: 1,
@@ -687,6 +748,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
     final searchResults = <TrackModel>[].obs;
     final isSearching = false.obs;
     final saavn = Get.isRegistered<SaavnService>() ? Get.find<SaavnService>() : null;
+    Timer? debounceTimer;
 
     showModalBottomSheet(
       context: context,
@@ -721,7 +783,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
               ),
               SizedBox(height: 12.h),
 
-              // Search Bar
+              // Search Bar with instant debounce as user types
               TextField(
                 controller: searchCtrl,
                 style: const TextStyle(color: Colors.white),
@@ -732,8 +794,10 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.clear_rounded, color: Colors.white54),
                     onPressed: () {
+                      debounceTimer?.cancel();
                       searchCtrl.clear();
                       searchResults.clear();
+                      isSearching.value = false;
                     },
                   ),
                   filled: true,
@@ -744,7 +808,27 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                   ),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 ),
+                onChanged: (query) {
+                  debounceTimer?.cancel();
+                  if (query.trim().isEmpty) {
+                    searchResults.clear();
+                    isSearching.value = false;
+                    return;
+                  }
+                  debounceTimer = Timer(const Duration(milliseconds: 350), () async {
+                    if (query.trim().isEmpty || saavn == null) return;
+                    isSearching.value = true;
+                    try {
+                      final tracks = await saavn.searchTracks(query: query.trim());
+                      searchResults.value = tracks;
+                    } catch (e) {
+                      debugPrint('Error searching tracks: $e');
+                    }
+                    isSearching.value = false;
+                  });
+                },
                 onSubmitted: (query) async {
+                  debounceTimer?.cancel();
                   if (query.trim().isEmpty || saavn == null) return;
                   isSearching.value = true;
                   try {
