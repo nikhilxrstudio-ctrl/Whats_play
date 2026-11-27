@@ -33,6 +33,25 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
+            <!-- Deep Link for WhatsPlay Blend: whatsplay://blend?code=XXXXXX -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="whatsplay" android:host="blend" />
+            </intent-filter>
+
+            <!-- App Links: https://nikhilxrstudio-ctrl.github.io/Whats_play/blend -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="nikhilxrstudio-ctrl.github.io"
+                    android:pathPrefix="/Whats_play/blend" />
+            </intent-filter>
         </activity>
 
         <service android:name="com.ryanheise.audioservice.AudioService"

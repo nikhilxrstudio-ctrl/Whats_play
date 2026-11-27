@@ -12,6 +12,7 @@ import 'routes/app_routes.dart';
 import 'services/audio_player_handler.dart';
 import 'services/auth_service.dart';
 import 'services/blend_service.dart';
+import 'services/deep_link_service.dart';
 import 'services/local_database_service.dart';
 
 late AudioPlayerHandler audioHandler;
@@ -46,6 +47,7 @@ Future<void> main() async {
   Get.put<AudioPlayerHandler>(audioHandler, permanent: true);
   Get.put<AuthService>(AuthService(), permanent: true);
   Get.put<BlendService>(BlendService(), permanent: true);
+  Get.put<DeepLinkService>(DeepLinkService(), permanent: true);
   Get.put<PlayerController>(
     PlayerController(audioHandler, databaseService: databaseService),
     permanent: true,

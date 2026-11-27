@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join Shared Blend | WhatsPlay Music</title>
+
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Join my Shared Blend on WhatsPlay Music 🎵">
+  <meta name="description" content="Listen together in real-time! Tap to join this Blend in WhatsPlay Music. 100% free streaming, no ads, unlimited skips.">
+  <meta name="author" content="Nikhil">
+
+  <!-- Open Graph / Facebook / WhatsApp / Telegram / Discord -->
+  <meta property="og:type" content="music.playlist">
+  <meta property="og:url" content="https://nikhilxrstudio-ctrl.github.io/Whats_play/blend.html">
+  <meta property="og:site_name" content="WhatsPlay Music">
+  <meta property="og:title" content="Join my Shared Blend on WhatsPlay Music 🎵">
+  <meta property="og:description" content="Listen together in real-time! Tap to join this Blend in WhatsPlay Music. 100% free streaming, no ads, unlimited skips.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
+  <meta property="og:image:secure_url" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://nikhilxrstudio-ctrl.github.io/Whats_play/blend.html">
+  <meta name="twitter:title" content="Join my Shared Blend on WhatsPlay Music 🎵">
+  <meta name="twitter:description" content="Listen together in real-time! Tap to join this Blend in WhatsPlay Music. 100% free streaming, no ads, unlimited skips.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
+
+  <link rel="icon" type="image/png" href="assets/icons/app_icon.png">
+
+  <style>
+    :root {
+      --bg: #121212;
+      --surface: #181818;
+      --surface-light: #242424;
+      --primary: #1DB954;
+      --primary-hover: #1ed760;
+      --text-main: #FFFFFF;
+      --text-dim: #B3B3B3;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background gradient glow */
+    .glow-bg {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(29, 185, 84, 0.18) 0%, rgba(142, 36, 170, 0.12) 40%, transparent 70%);
+      filter: blur(60px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      background: var(--surface);
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      padding: 36px 28px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+    }
+
+    .app-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .app-brand img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+    }
+
+    .app-brand span {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(29, 185, 84, 0.12);
+      border: 1px solid rgba(29, 185, 84, 0.3);
+      color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+      line-height: 1.25;
+    }
+
+    p.subtitle {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 26px;
+    }
+
+    /* Join Code Box */
+    .code-card {
+      background: var(--surface-light);
+      border: 1px solid rgba(29, 185, 84, 0.4);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 24px rgba(29, 185, 84, 0.15);
+      position: relative;
+    }
+
+    .code-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .code-value {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 8px;
+      color: var(--primary);
+      margin-bottom: 14px;
+      user-select: all;
+    }
+
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 8px 18px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-copy:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
+    }
+
+    /* Action Buttons */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 24px;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #000000;
+      box-shadow: 0 6px 20px rgba(29, 185, 84, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(29, 185, 84, 0.45);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Instruction steps */
+    .steps {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 16px;
+      padding: 18px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: left;
+    }
+
+    .steps h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .step-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #000000;
+      font-size: 0.75rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    footer {
+      margin-top: 32px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <div class="container">
+    <a href="index.html" class="app-brand">
+      <img src="assets/icons/app_icon.png" alt="WhatsPlay Logo" onerror="this.src='https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/icons/app_icon.png'">
+      <span>WhatsPlay Music</span>
+    </a>
+
+    <div>
+      <span class="badge">✦ Real-Time Shared Blend</span>
+    </div>
+
+    <h1 id="blend-title">Join Shared Blend</h1>
+    <p class="subtitle" id="blend-subtitle">Listen together in real-time! If WhatsPlay is installed, tap below to open directly.</p>
+
+    <div class="code-card">
+      <div class="code-label">Blend Join Code</div>
+      <div class="code-value" id="blend-code">------</div>
+      <button class="btn-copy" id="copy-btn" onclick="copyCode()">
+        📋 Copy Code
+      </button>
+    </div>
+
+    <div class="actions">
+      <!-- Direct App Deep Link Trigger -->
+      <a href="whatsplay://blend" id="open-app-btn" class="btn btn-primary">
+        📱 Open in WhatsPlay App
+      </a>
+
+      <!-- Direct APK Download -->
+      <a href="downloads/WhatsPlay.apk" class="btn btn-secondary" download="WhatsPlay.apk">
+        ⬇️ Download WhatsPlay APK (25.4 MB)
+      </a>
+    </div>
+
+    <div class="steps">
+      <h3>How to Join with Friend</h3>
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div>Install or open <strong>WhatsPlay Music</strong> on your Android device.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div>Go to <strong>Your Library</strong> &rarr; <strong>Blends</strong> &rarr; tap <strong>Join with Code</strong>.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div>Enter the 6-character code above to blend your songs together in real time!</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Made with ❤️ by <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play">Nikhil</a> • Open-Source Flutter Music Player
+  </footer>
+
+  <script>
+    // Extract query parameters from URL (e.g. ?code=RB4X4T&name=Weekend+Vibes)
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawCode = (urlParams.get('code') || '').trim().toUpperCase();
+    const rawName = (urlParams.get('name') || '').trim();
+
+    if (rawCode) {
+      document.getElementById('blend-code').textContent = rawCode;
+    }
+
+    if (rawName) {
+      document.getElementById('blend-title').textContent = 'Join "' + rawName + '"';
+      document.title = 'Join "' + rawName + '" | WhatsPlay Music';
+    }
+
+    // Configure deep link intent buttons
+    const deepLinkUrl = rawCode ? `whatsplay://blend?code=${encodeURIComponent(rawCode)}` : 'whatsplay://blend';
+    document.getElementById('open-app-btn').setAttribute('href', deepLinkUrl);
+
+    // If on Android, automatically attempt to launch the app via intent
+    if (/Android/i.test(navigator.userAgent) && rawCode) {
+      const intentUrl = `intent://blend?code=${rawCode}#Intent;scheme=whatsplay;package=com.whatsplay.music.app;S.browser_fallback_url=${encodeURIComponent(window.location.href)};end`;
+      setTimeout(() => {
+        window.location.href = intentUrl;
+      }, 400);
+    }
+
+    // Copy code button handler
+    function copyCode() {
+      const code = document.getElementById('blend-code').textContent.trim();
+      if (!code || code === '------') return;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.getElementById('copy-btn');
+        const origText = btn.innerHTML;
+        btn.innerHTML = '✅ Copied!';
+        btn.style.color = '#1DB954';
+        setTimeout(() => {
+          btn.innerHTML = origText;
+          btn.style.color = '';
+        }, 2200);
+      }).catch(() => {
+        alert('Code: ' + code);
+      });
+    }
+  </script>
+</body>
+</html>

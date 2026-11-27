@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import '../constants/app_colors.dart';
 import '../controllers/player_controller.dart';
 import '../models/blend_model.dart';
@@ -47,18 +48,34 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
     }
   }
 
-  void _copyCode() {
+  void _shareBlend([BlendModel? blendOverride]) async {
     HapticFeedback.mediumImpact();
-    Clipboard.setData(ClipboardData(text: _blend.code));
-    Get.snackbar(
-      'Code Copied!',
-      'Blend code ${_blend.code} copied to clipboard. Share with friends to join!',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.surfaceLight,
-      colorText: AppColors.textPrimary,
-      duration: const Duration(seconds: 3),
-      icon: const Icon(Icons.copy_rounded, color: AppColors.primary),
-    );
+    final blend = blendOverride ?? _blend;
+    final encodedName = Uri.encodeComponent(blend.name);
+    final link = 'https://nikhilxrstudio-ctrl.github.io/Whats_play/blend.html?code=${blend.code}&name=$encodedName';
+    final shareMessage = '🎵 Join my "${blend.name}" Blend on WhatsPlay!\n\nBlend Code: ${blend.code}\n\nListen & blend music together in real-time:\n$link';
+
+    // Copy code to clipboard
+    Clipboard.setData(ClipboardData(text: blend.code));
+
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          text: shareMessage,
+          subject: 'Join my "${blend.name}" Blend on WhatsPlay',
+        ),
+      );
+    } catch (_) {
+      Get.snackbar(
+        'Code Copied!',
+        'Blend code ${blend.code} copied to clipboard.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.surfaceLight,
+        colorText: AppColors.textPrimary,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.copy_rounded, color: AppColors.primary),
+      );
+    }
   }
 
   @override
@@ -121,8 +138,8 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                       actions: [
                         IconButton(
                           icon: const Icon(Icons.share_rounded, color: Colors.white),
-                          tooltip: 'Share Blend Code',
-                          onPressed: _copyCode,
+                          tooltip: 'Share Blend Link',
+                          onPressed: () => _shareBlend(currentBlend),
                         ),
                         IconButton(
                           icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
@@ -718,14 +735,18 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.copy_rounded, color: currentBlend.themeColor),
-                  title: Text(
-                    'Copy Join Code (${currentBlend.code})',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  leading: Icon(Icons.share_rounded, color: currentBlend.themeColor),
+                  title: const Text(
+                    'Share Blend Link',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Code: ${currentBlend.code} • Share to WhatsApp, Instagram & apps',
+                    style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
                   ),
                   onTap: () {
                     Navigator.pop(sheetContext);
-                    _copyCode();
+                    _shareBlend(currentBlend);
                   },
                 ),
                 ListTile(
