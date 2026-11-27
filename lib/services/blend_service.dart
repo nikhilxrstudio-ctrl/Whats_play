@@ -45,11 +45,15 @@ class BlendService extends GetxService {
 
   void _listenToUserBlends(String uid) {
     _blendsSubscription?.cancel();
+    if (uid.isEmpty) return;
     try {
       _blendsSubscription = FirebaseFirestore.instance
           .collection('blends')
           .where('memberUids', arrayContains: uid)
           .snapshots()
+          .handleError((error) {
+            debugPrint('[BlendService] Handled stream error in _listenToUserBlends: $error');
+          })
           .listen(
         (snapshot) {
           final list = snapshot.docs
@@ -66,6 +70,7 @@ class BlendService extends GetxService {
         onError: (err) {
           debugPrint('[BlendService] Error listening to user blends: $err');
         },
+        cancelOnError: false,
       );
     } catch (e) {
       debugPrint('[BlendService] Firestore listen init error: $e');

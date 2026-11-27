@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -27,6 +29,14 @@ Future<void> main() async {
   // Initialize Firebase (safely wrapped so offline / test environments don't throw)
   try {
     await Firebase.initializeApp();
+
+    // Enable offline persistence so Firestore caches all data and doesn't crash or disconnect when offline/idle
+    try {
+      FirebaseFirestore.instance.settings = const Settings(
+        persistenceEnabled: true,
+        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+      );
+    } catch (_) {}
 
     // Disable Crashlytics collection completely in debug mode; only collect in release mode
     if (kDebugMode) {
@@ -56,7 +66,13 @@ Future<void> main() async {
           errStr.contains('UNAVAILABLE') ||
           errStr.contains('Unable to resolve host') ||
           errStr.contains('UnknownHostException') ||
-          errStr.contains('cloud_firestore/unavailable');
+          errStr.contains('cloud_firestore/unavailable') ||
+          errStr.contains('EAI_NODATA') ||
+          errStr.contains('android_getaddrinfo') ||
+          errStr.contains('GaiException') ||
+          errStr.contains('End of stream') ||
+          errStr.contains('Failed to resolve name') ||
+          errStr.contains('network-request-failed');
 
       // COMPLETELY SUPPRESS / IGNORE image timeouts, offline disconnects, and silent handled errors
       // so this issue stays completely closed in Firebase Crashlytics
@@ -88,7 +104,12 @@ Future<void> main() async {
           errStr.contains('Unable to resolve host') ||
           errStr.contains('UnknownHostException') ||
           errStr.contains('cloud_firestore/unavailable') ||
-          errStr.contains('network-request-failed')) {
+          errStr.contains('network-request-failed') ||
+          errStr.contains('EAI_NODATA') ||
+          errStr.contains('android_getaddrinfo') ||
+          errStr.contains('GaiException') ||
+          errStr.contains('End of stream') ||
+          errStr.contains('Failed to resolve name')) {
         debugPrint('[Crashlytics] Suppressed handled async network/offline error: $error');
         return true; // Handled
       }
@@ -128,9 +149,35 @@ Future<void> main() async {
 
   final onboardingDone = await OnboardingService().isOnboardingDone();
 
-  runApp(WhatsPlayApp(
-    initialRoute: onboardingDone ? AppRoutes.catalogue : AppRoutes.onboarding,
-  ));
+  runZonedGuarded(() {
+    runApp(WhatsPlayApp(
+      initialRoute: onboardingDone ? AppRoutes.catalogue : AppRoutes.onboarding,
+    ));
+  }, (error, stack) {
+    final errStr = error.toString();
+    if (error is SocketException ||
+        error is HttpException ||
+        errStr.contains('SocketException') ||
+        errStr.contains('Connection timed out') ||
+        errStr.contains('image codec') ||
+        errStr.contains('UNAVAILABLE') ||
+        errStr.contains('Unable to resolve host') ||
+        errStr.contains('UnknownHostException') ||
+        errStr.contains('cloud_firestore/unavailable') ||
+        errStr.contains('network-request-failed') ||
+        errStr.contains('EAI_NODATA') ||
+        errStr.contains('android_getaddrinfo') ||
+        errStr.contains('GaiException') ||
+        errStr.contains('End of stream') ||
+        errStr.contains('Failed to resolve name')) {
+      debugPrint('[runZonedGuarded] Suppressed background offline network disconnect: $error');
+      return;
+    }
+    debugPrint('[runZonedGuarded] Uncaught async error: $error\n$stack');
+    if (!kDebugMode) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
+    }
+  });
 }
 
 class WhatsPlayApp extends StatelessWidget {
