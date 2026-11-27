@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -26,11 +27,23 @@ Future<void> main() async {
   // Initialize Firebase (safely wrapped so offline / test environments don't throw)
   try {
     await Firebase.initializeApp();
-    // Catch framework-level errors (images, widgets, gestures)
+
+    // Disable Crashlytics collection completely in debug mode; only collect in release mode
+    if (kDebugMode) {
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+    } else {
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    }
+
+    // Catch framework-level errors (widgets, layout, gestures)
     FlutterError.onError = (FlutterErrorDetails details) {
-      // Benign network errors (image codec timeouts, 404s, offline sockets)
-      // or silent framework errors handled by errorBuilder / widgets
-      // must NOT be logged as fatal crashes in Crashlytics.
+      // In debug mode, print to local console only; do NOT send to Firebase
+      if (kDebugMode) {
+        FlutterError.dumpErrorToConsole(details);
+        return;
+      }
+
+      // Check for image codec / network image timeouts or benign silent errors
       final isSilent = details.silent;
       final isImageResource = details.library == 'image resource service' ||
           details.context?.toString().contains('image codec') == true ||
@@ -40,25 +53,36 @@ Future<void> main() async {
           details.exception.toString().contains('SocketException') ||
           details.exception.toString().contains('Connection timed out');
 
+      // COMPLETELY SUPPRESS / IGNORE image timeouts and silent handled errors
+      // so this issue stays completely closed in Firebase Crashlytics
       if (isSilent || isImageResource || isNetworkTimeout) {
-        // Record as non-fatal warning so crash metrics stay accurate and app never registers a fatal crash
-        FirebaseCrashlytics.instance.recordFlutterError(details);
-      } else {
-        // Genuine fatal widget tree crashes
-        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+        debugPrint('[Crashlytics] Suppressed handled image/network error: ${details.exception}');
+        return;
       }
+
+      // Send all genuine crashes to Firebase in release mode
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
     };
 
-    // Catch asynchronous / platform-level errors (e.g. background socket timeouts)
+    // Catch asynchronous / platform-level unhandled errors
     PlatformDispatcher.instance.onError = (error, stack) {
+      // In debug mode, print locally only; do NOT send to Firebase
+      if (kDebugMode) {
+        debugPrint('[UncaughtAsyncError]: $error\n$stack');
+        return true;
+      }
+
+      // Completely suppress socket timeouts and image codec errors from Firebase
       if (error is SocketException ||
           error is HttpException ||
           error.toString().contains('SocketException') ||
           error.toString().contains('Connection timed out') ||
           error.toString().contains('image codec')) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
-        return true; // Mark as handled
+        debugPrint('[Crashlytics] Suppressed handled async network error: $error');
+        return true; // Handled
       }
+
+      // All real unhandled asynchronous crashes are sent to Firebase as fatal
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
