@@ -301,18 +301,31 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
           parent: BouncingScrollPhysics(),
         ),
         slivers: [
-          // 1. Sticky Horizontal Genre / Category Filter Bar (Pins to top right after App Bar!)
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _StickyCategoryHeaderDelegate(
-              height: 46.h,
-              child: Obx(() => CategorySelectorBar(
-                    categories: controller.categories,
-                    selectedCategory: controller.selectedCategory.value,
-                    onCategorySelected: (category) =>
-                        controller.selectCategory(category),
-                  )),
-            ),
+          // 1. Top Quick-Filter Chips: ONLY 'All' + user's selected onboarding genres!
+          SliverToBoxAdapter(
+            child: Obx(() {
+              final chips = controller.userFavoriteCategories;
+              return Padding(
+                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 4.h),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
+                    children: chips.map((cat) {
+                      final isSelected = controller.selectedCategory.value.toLowerCase() == cat.toLowerCase();
+                      return Padding(
+                        padding: EdgeInsets.only(right: 8.w),
+                        child: _buildTopCategoryPill(
+                          cat,
+                          isSelected: isSelected,
+                          onTap: () => controller.selectCategory(cat),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              );
+            }),
           ),
 
           // 2. Spotify-Style Featured Artist & Liked Songs Quick-Access Grid (Shown on 'All')
@@ -334,6 +347,20 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
               ),
             );
           }),
+
+          // 3. Sticky Horizontal Genre / Category Filter Bar in its original position with ALL categories!
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _StickyCategoryHeaderDelegate(
+              height: 46.h,
+              child: Obx(() => CategorySelectorBar(
+                    categories: controller.categories,
+                    selectedCategory: controller.selectedCategory.value,
+                    onCategorySelected: (category) =>
+                        controller.selectCategory(category),
+                  )),
+            ),
+          ),
 
           // Suggested for You Shelf (Built from repeat listening & user history, shown on 'All')
           Obx(() {
@@ -3784,6 +3811,38 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
         ],
       );
     });
+  }
+
+  Widget _buildTopCategoryPill(
+    String title, {
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.surfaceLight,
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : Colors.white.withValues(alpha: 0.08),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.black : AppColors.textPrimary,
+            fontSize: 12.sp,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildLibraryPill(

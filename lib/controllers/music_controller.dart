@@ -34,6 +34,11 @@ class MusicController extends GetxController {
 
   // Selected Category / Genre
   final RxString selectedCategory = 'All'.obs;
+
+  // Top chips under App Bar: ONLY 'All' + user's selected genres from onboarding
+  final RxList<String> userFavoriteCategories = <String>['All'].obs;
+
+  // Full category selector (in Home body): all available categories
   final RxList<String> categories = <String>[
     'All',
     'Bollywood',
@@ -46,6 +51,11 @@ class MusicController extends GetxController {
     'Chill',
     'Hip-Hop/Rap',
     'Rock',
+    'Electronic',
+    'Classical',
+    'R&B / Soul',
+    'Acoustic',
+    'Jazz',
   ].obs;
 
   // Selected Spotify-style Artist / Regional category
@@ -365,36 +375,17 @@ class MusicController extends GetxController {
     loadPartyTracks();
   }
 
-  /// Loads favorite genres from onboarding and personalizes the category filter pills
+  /// Loads favorite genres from onboarding for the top filter chips
   Future<void> loadCategoryPreferences() async {
     try {
       final savedGenres = await OnboardingService().getSavedGenres();
-      final List<String> list = ['All'];
+      final List<String> userList = ['All'];
       for (final g in savedGenres) {
-        if (g.isNotEmpty && !list.contains(g)) {
-          list.add(g);
+        if (g.isNotEmpty && g != 'All' && !userList.contains(g)) {
+          userList.add(g);
         }
       }
-      const popular = [
-        'Bollywood',
-        'Punjabi',
-        'Romantic',
-        'Party',
-        'Gujarati',
-        'Pop',
-        'Lo-Fi',
-        'Chill',
-        'Hip-Hop/Rap',
-        'Rock',
-        'Electronic',
-        'Classical',
-      ];
-      for (final p in popular) {
-        if (!list.contains(p)) {
-          list.add(p);
-        }
-      }
-      categories.assignAll(list);
+      userFavoriteCategories.assignAll(userList);
     } catch (e) {
       debugPrint('[MusicController] Error loading category preferences: $e');
     }
