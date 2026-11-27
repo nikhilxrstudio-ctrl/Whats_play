@@ -52,6 +52,137 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
     _showShareBlendSheet(context, blend);
   }
 
+  void _showSendEmailInviteDialog(BuildContext context, BlendModel blend) {
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+    final initialEmail = auth?.userEmail.value ?? '';
+    final emailCtrl = TextEditingController(text: initialEmail);
+
+    showDialog(
+      context: context,
+      builder: (dlgContext) {
+        bool isSending = false;
+        return StatefulBuilder(
+          builder: (context, setDlgState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF222222),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.email_rounded, color: AppColors.primary),
+                  ),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'Send Email Invite',
+                    style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sends a rich, styled HTML invitation email with your Blend code and magic link:',
+                    style: TextStyle(color: Colors.white70, fontSize: 12.5.sp),
+                  ),
+                  SizedBox(height: 14.h),
+                  TextField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    style: TextStyle(color: Colors.white, fontSize: 13.5.sp),
+                    decoration: InputDecoration(
+                      labelText: 'Recipient Email',
+                      labelStyle: TextStyle(color: Colors.white60, fontSize: 12.sp),
+                      hintText: 'friend@gmail.com',
+                      hintStyle: TextStyle(color: Colors.white30, fontSize: 12.sp),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.06),
+                      prefixIcon: const Icon(Icons.alternate_email_rounded, color: Colors.white54),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSending ? null : () => Navigator.pop(dlgContext),
+                  child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                ),
+                ElevatedButton(
+                  onPressed: isSending
+                      ? null
+                      : () async {
+                          final email = emailCtrl.text.trim();
+                          if (email.isEmpty || !email.contains('@')) {
+                            Get.snackbar(
+                              'Invalid Email',
+                              'Please enter a valid email address.',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.redAccent.withValues(alpha: 0.9),
+                              colorText: Colors.white,
+                            );
+                            return;
+                          }
+
+                          setDlgState(() => isSending = true);
+                          final success = await EmailTemplateService.sendBlendCreatedEmail(
+                            blend,
+                            recipientEmail: email,
+                          );
+                          if (dlgContext.mounted) {
+                            Navigator.pop(dlgContext);
+                          }
+
+                          if (success) {
+                            Get.snackbar(
+                              'Email Sent! ✉️',
+                              'Formatted HTML invitation delivered to $email',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: const Color(0xFF2C2C2C),
+                              colorText: Colors.white,
+                              icon: const Icon(Icons.check_circle_rounded, color: AppColors.primary),
+                              duration: const Duration(seconds: 4),
+                            );
+                          } else {
+                            Get.snackbar(
+                              'Send Failed',
+                              'Could not deliver email. Please check your network connection.',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.redAccent,
+                              colorText: Colors.white,
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                  ),
+                  child: isSending
+                      ? SizedBox(
+                          width: 16.w,
+                          height: 16.w,
+                          child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                        )
+                      : const Text('Send Invite', style: TextStyle(fontWeight: FontWeight.w800)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showShareBlendSheet(BuildContext context, BlendModel blend) {
     HapticFeedback.lightImpact();
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
@@ -225,33 +356,79 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                   ),
                   SizedBox(height: 18.h),
 
-                  // Option 1: Share via Email (Full Template)
+                  // Option 1: Send HTML Invitation Email (Brevo Instant Delivery)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Container(
                       width: 40.w,
                       height: 40.w,
                       decoration: BoxDecoration(
-                        color: Colors.redAccent.withValues(alpha: 0.15),
+                        color: AppColors.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12.r),
                       ),
-                      child: const Icon(Icons.email_rounded, color: Colors.redAccent),
+                      child: const Icon(Icons.mark_email_read_rounded, color: AppColors.primary),
                     ),
                     title: const Text(
-                      'Share via Email (Full Template)',
+                      'Send HTML Invite to Email',
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
                     ),
                     subtitle: Text(
-                      'Formatted invitation template with join code & steps',
+                      'Delivers rich formatted card with join button & code',
                       style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
                     ),
                     onTap: () {
                       Navigator.pop(sheetContext);
-                      EmailTemplateService.shareViaEmail(blend);
+                      _showSendEmailInviteDialog(context, blend);
                     },
                   ),
 
-                  // Option 2: Share to Apps
+                  // Option 2: Send directly to My Email (if logged in)
+                  if (isLoggedInWithEmail)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 40.w,
+                        height: 40.w,
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: const Icon(Icons.send_rounded, color: Colors.blueAccent),
+                      ),
+                      title: const Text(
+                        'Send Template to My Email',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        'Direct delivery to $userEmail',
+                        style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
+                      ),
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        final success = await EmailTemplateService.sendBlendCreatedEmail(blend);
+                        if (success) {
+                          Get.snackbar(
+                            'Email Delivered! ✉️',
+                            'Formatted HTML template delivered to $userEmail',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: const Color(0xFF2C2C2C),
+                            colorText: Colors.white,
+                            icon: const Icon(Icons.check_circle_rounded, color: AppColors.primary),
+                            duration: const Duration(seconds: 4),
+                          );
+                        } else {
+                          Get.snackbar(
+                            'Send Failed',
+                            'Could not deliver email. Please check your network connection.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                          );
+                        }
+                      },
+                    ),
+
+                  // Option 3: Share to Apps (WhatsApp, Telegram, etc.)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Container(
@@ -284,43 +461,31 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                     },
                   ),
 
-                  // Option 3: Send to My Email (if logged in)
-                  if (isLoggedInWithEmail)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        width: 40.w,
-                        height: 40.w,
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        child: const Icon(Icons.mark_email_read_rounded, color: Colors.blueAccent),
+                  // Option 4: Open in Phone Email App (Compose)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 40.w,
+                      height: 40.w,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
-                      title: const Text(
-                        'Send Template to My Email',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-                      ),
-                      subtitle: Text(
-                        'Send to $userEmail',
-                        style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
-                      ),
-                      onTap: () async {
-                        Navigator.pop(sheetContext);
-                        final success = await EmailTemplateService.sendBlendCreatedEmail(blend);
-                        if (success) {
-                          Get.snackbar(
-                            'Email Sent!',
-                            'Blend template sent to $userEmail',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: const Color(0xFF2C2C2C),
-                            colorText: Colors.white,
-                            icon: const Icon(Icons.check_circle_rounded, color: AppColors.primary),
-                            duration: const Duration(seconds: 3),
-                          );
-                        }
-                      },
+                      child: const Icon(Icons.open_in_new_rounded, color: Colors.white70),
                     ),
+                    title: const Text(
+                      'Open Phone Email App',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      'Compose via Gmail/Outlook app on device',
+                      style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
+                    ),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      EmailTemplateService.shareViaEmail(blend);
+                    },
+                  ),
 
                   SizedBox(height: 8.h),
                 ],
