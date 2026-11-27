@@ -49,7 +49,7 @@ class MusicController extends GetxController {
   // Optional TabController attached by the view for native TabBar and TabBarView direct transitions
   TabController? tabController;
 
-  // Bottom Navigation Active Tab (0: Home, 1: Search, 2: Your Library, 3: Profile)
+  // Bottom Navigation Active Tab (0: Home, 1: Search, 2: Your Library)
   final RxInt currentTabIndex = 0.obs;
 
   // PageController for smooth tab navigation

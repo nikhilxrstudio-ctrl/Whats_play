@@ -11,6 +11,7 @@ import '../controllers/section_tracks_controller.dart';
 import '../controllers/category_detail_controller.dart';
 import '../models/playlist_model.dart';
 import '../routes/app_routes.dart';
+import '../services/auth_service.dart';
 import '../widgets/category_selector_bar.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/error_view.dart';
@@ -18,7 +19,6 @@ import '../widgets/loading_view.dart';
 import '../widgets/mini_player_bar.dart';
 import '../widgets/music_track_card.dart';
 import '../widgets/playlist_icon_helper.dart';
-import '../widgets/profile_view.dart';
 import '../widgets/spotify_artist_selector.dart';
 import '../widgets/spotify_back_button.dart';
 import '../widgets/spotify_bottom_navigation_bar.dart';
@@ -42,9 +42,9 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
     super.initState();
     controller = Get.find<MusicController>();
     _tabController = TabController(
-      length: 4,
+      length: 3,
       vsync: this,
-      initialIndex: controller.currentTabIndex.value.clamp(0, 3),
+      initialIndex: controller.currentTabIndex.value.clamp(0, 2),
     );
     controller.tabController = _tabController;
 
@@ -188,7 +188,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                     ),
                   ),
                 );
-              } else if (controller.currentTabIndex.value == 2) {
+              } else {
                 return AppBar(
                   backgroundColor: AppColors.background,
                   elevation: 0,
@@ -240,23 +240,6 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                     ],
                   ],
                 );
-              } else {
-                return AppBar(
-                  backgroundColor: AppColors.background,
-                  elevation: 0,
-                  centerTitle: false,
-                  titleSpacing: 16.w,
-                  toolbarHeight: 56.h,
-                  title: Text(
-                    'Profile',
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                );
               }
             }),
           ),
@@ -267,7 +250,6 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
               _KeepAliveTab(child: _buildHomeView(context)),
               _KeepAliveTab(child: _buildSearchView(context)),
               _KeepAliveTab(child: _buildLibraryView(context)),
-              _KeepAliveTab(child: const ProfileView()),
             ],
           ),
           bottomNavigationBar: SafeArea(
@@ -2397,6 +2379,151 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
 
 
 
+  Widget _buildUserProfileTile() {
+    final auth = Get.isRegistered<AuthService>()
+        ? Get.find<AuthService>()
+        : Get.put(AuthService());
+
+    return Obx(() {
+      final isLoggedIn = auth.isLoggedIn.value;
+      final userName = auth.userName.value;
+      final userEmail = auth.userEmail.value;
+      final userPhoto = auth.userPhotoUrl.value;
+
+      return Container(
+        margin: EdgeInsets.only(bottom: 12.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.06),
+            width: 1.w,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10.r),
+            onTap: () => Get.toNamed(AppRoutes.profile),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              child: Row(
+                children: [
+                  ClipOval(
+                    child: userPhoto.isNotEmpty
+                        ? Image.network(
+                            userPhoto,
+                            width: 36.w,
+                            height: 36.w,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildAvatarFallback(isLoggedIn, userName),
+                          )
+                        : _buildAvatarFallback(isLoggedIn, userName),
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          isLoggedIn
+                              ? (userName.isNotEmpty ? userName : 'Music Lover')
+                              : 'Sign in to WhatsPlay',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 13.5.sp,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 1.h),
+                        Text(
+                          isLoggedIn
+                              ? (userEmail.isNotEmpty ? userEmail : 'View profile & statistics')
+                              : 'Sync your liked songs & playlists',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                  if (!isLoggedIn)
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(14.r),
+                      ),
+                      child: Text(
+                        'Log in',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    )
+                  else
+                    Icon(
+                      CupertinoIcons.chevron_right,
+                      color: AppColors.textMuted,
+                      size: 15.sp,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildAvatarFallback(bool isLoggedIn, String name) {
+    if (isLoggedIn && name.trim().isNotEmpty) {
+      final initial = name.trim()[0].toUpperCase();
+      return Container(
+        width: 36.w,
+        height: 36.w,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          initial,
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+    }
+    return Container(
+      width: 36.w,
+      height: 36.w,
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceLight,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        CupertinoIcons.person_crop_circle,
+        color: AppColors.textMuted,
+        size: 22.sp,
+      ),
+    );
+  }
+
   Widget _buildLibraryOverview() {
     final playerCtrl = Get.isRegistered<PlayerController>()
         ? Get.find<PlayerController>()
@@ -2410,6 +2537,9 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // User Profile Tile right after App Bar
+            _buildUserProfileTile(),
+
             // Category Pills: Playlists, History, Downloaded, Artists
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,

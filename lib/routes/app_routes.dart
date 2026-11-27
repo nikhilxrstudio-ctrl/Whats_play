@@ -4,4 +4,5 @@ abstract class AppRoutes {
   static const artist = '/artist';
   static const sectionTracks = '/section-tracks';
   static const category = '/category';
+  static const profile = '/profile';
 }

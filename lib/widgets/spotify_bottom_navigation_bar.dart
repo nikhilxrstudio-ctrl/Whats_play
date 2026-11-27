@@ -31,11 +31,6 @@ class SpotifyBottomNavigationBar extends StatelessWidget {
       selectedIcon: CupertinoIcons.music_albums_fill,
       unselectedIcon: CupertinoIcons.music_albums,
     ),
-    _BottomNavItemData(
-      label: 'Profile',
-      selectedIcon: CupertinoIcons.person_crop_circle_fill,
-      unselectedIcon: CupertinoIcons.person_crop_circle,
-    ),
   ];
 
   @override

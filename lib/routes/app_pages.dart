@@ -9,6 +9,7 @@ import '../screens/artist_detail_screen.dart';
 import '../screens/category_detail_screen.dart';
 import '../screens/music_catalogue_screen.dart';
 import '../screens/music_player_screen.dart';
+import '../screens/profile_screen.dart';
 import '../screens/section_tracks_screen.dart';
 import '../services/audius_service.dart';
 import '../services/saavn_service.dart';
@@ -71,6 +72,12 @@ class AppPages {
           () => CategoryDetailController(Get.find<IMusicRepository>()),
         );
       }),
+    ),
+    GetPage(
+      name: AppRoutes.profile,
+      page: () => const ProfileScreen(),
+      transition: Transition.cupertino,
+      popGesture: true,
     ),
   ];
 }
