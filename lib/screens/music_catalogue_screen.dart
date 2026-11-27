@@ -3921,6 +3921,15 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                       ),
                       onTap: () {
                         Navigator.pop(bottomSheetContext);
+                        final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+                        if (auth != null && !auth.isLoggedIn.value) {
+                          _showGoogleSignInBottomSheet(
+                            context,
+                            subtitle: 'Sign in with Google to create and host a Blend playlist with friends.',
+                            onSuccess: () => _showCreateBlendSheet(context),
+                          );
+                          return;
+                        }
                         _showCreateBlendSheet(context);
                       },
                     ),
@@ -3974,11 +3983,6 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
   void _showCreateBlendSheet(BuildContext context) {
     final textController = TextEditingController(text: 'Our Blend');
     final blendService = Get.isRegistered<BlendService>() ? BlendService.to : Get.put(BlendService());
-    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
-    final isGuest = auth == null || !auth.isLoggedIn.value;
-    final nameController = TextEditingController(
-      text: isGuest ? (auth?.guestUserName.value.isNotEmpty == true ? auth!.guestUserName.value : 'Music Lover') : '',
-    );
     final isCreating = false.obs;
     final selectedPreset = kBlendPresets.first.obs;
 
@@ -4045,42 +4049,9 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 20.h),
-                    if (isGuest) ...[
-                      TextField(
-                        controller: nameController,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: 'Your Name (Guest)',
-                          labelStyle: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 13.sp,
-                          ),
-                          hintText: 'e.g. Nikhil',
-                          hintStyle: TextStyle(color: Colors.white30, fontSize: 13.sp),
-                          prefixIcon: const Icon(Icons.person_rounded, color: AppColors.primary, size: 20),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14.r),
-                            borderSide: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.1),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14.r),
-                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 12.h),
-                    ],
                     TextField(
                       controller: textController,
-                      autofocus: !isGuest,
+                      autofocus: true,
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16.sp,
@@ -4190,16 +4161,11 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                               : () async {
                                   final name = textController.text.trim();
                                   if (name.isEmpty) return;
-                                  final guestName = isGuest ? nameController.text.trim() : null;
-                                  if (isGuest && guestName != null && guestName.isNotEmpty) {
-                                    auth?.updateGuestName(guestName);
-                                  }
                                   isCreating.value = true;
                                   final newBlend = await blendService.createBlend(
                                     name: name,
                                     icon: activePreset.icon,
                                     colorHex: activePreset.colorHex,
-                                    guestName: (guestName != null && guestName.isNotEmpty) ? guestName : null,
                                   );
                                   isCreating.value = false;
                                   if (newBlend != null && sheetContext.mounted) {
@@ -4500,6 +4466,15 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
+                      final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+                      if (auth != null && !auth.isLoggedIn.value) {
+                        _showGoogleSignInBottomSheet(
+                          context,
+                          subtitle: 'Sign in with Google to create and host a Blend playlist with friends.',
+                          onSuccess: () => _showCreateBlendSheet(context),
+                        );
+                        return;
+                      }
                       _showCreateBlendSheet(context);
                     },
                     style: ElevatedButton.styleFrom(
