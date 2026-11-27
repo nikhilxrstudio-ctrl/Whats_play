@@ -27,5 +27,12 @@ service cloud.firestore {
         allow read, write: if true;
       }
     }
+
+    // ── MAIL COLLECTION ──────────────────────────────────────────────
+    // Queued email templates (Trigger Email extension or client notifications)
+    match /mail/{mailId} {
+      allow create: if true;
+      allow read: if false;
+    }
   }
 }

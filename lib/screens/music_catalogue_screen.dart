@@ -4197,6 +4197,19 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                                   isCreating.value = false;
                                   if (newBlend != null && sheetContext.mounted) {
                                     Navigator.pop(sheetContext);
+                                    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+                                    final userEmail = auth?.userEmail.value ?? '';
+                                    if ((auth?.isLoggedIn.value ?? false) && userEmail.isNotEmpty) {
+                                      Get.snackbar(
+                                        'Blend Created!',
+                                        'Blend code "${newBlend.code}" and invite template sent to $userEmail',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        backgroundColor: const Color(0xFF2C2C2C),
+                                        colorText: Colors.white,
+                                        icon: const Icon(Icons.mark_email_read_rounded, color: AppColors.primary),
+                                        duration: const Duration(seconds: 4),
+                                      );
+                                    }
                                     Get.toNamed(AppRoutes.blendDetail, arguments: newBlend);
                                   }
                                 },

@@ -8,6 +8,7 @@ import '../controllers/player_controller.dart';
 import '../models/blend_model.dart';
 import '../services/auth_service.dart';
 import '../services/blend_service.dart';
+import '../services/email_template_service.dart';
 import '../widgets/add_song_to_blend_sheet.dart';
 import '../widgets/mini_player_bar.dart';
 import '../widgets/music_wave_equalizer.dart';
@@ -46,34 +47,289 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
     }
   }
 
-  void _shareBlend([BlendModel? blendOverride]) async {
-    HapticFeedback.mediumImpact();
+  void _shareBlend([BlendModel? blendOverride]) {
     final blend = blendOverride ?? _blend;
-    final encodedName = Uri.encodeComponent(blend.name);
-    final link = 'https://nikhilxrstudio-ctrl.github.io/Whats_play/blend.html?code=${blend.code}&name=$encodedName';
-    final shareMessage = '🎵 Join my "${blend.name}" Blend on WhatsPlay!\n\nBlend Code: ${blend.code}\n\nListen & blend music together in real-time:\n$link';
+    _showShareBlendSheet(context, blend);
+  }
 
-    // Copy code to clipboard
-    Clipboard.setData(ClipboardData(text: blend.code));
+  void _showShareBlendSheet(BuildContext context, BlendModel blend) {
+    HapticFeedback.lightImpact();
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+    final userEmail = auth?.userEmail.value ?? '';
+    final isLoggedInWithEmail = (auth?.isLoggedIn.value ?? false) && userEmail.isNotEmpty;
+    final link = EmailTemplateService.getBlendLink(blend);
 
-    try {
-      await SharePlus.instance.share(
-        ShareParams(
-          text: shareMessage,
-          subject: 'Join my "${blend.name}" Blend on WhatsPlay',
-        ),
-      );
-    } catch (_) {
-      Get.snackbar(
-        'Code Copied!',
-        'Blend code ${blend.code} copied to clipboard.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.surfaceLight,
-        colorText: AppColors.textPrimary,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.copy_rounded, color: AppColors.primary),
-      );
-    }
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            systemNavigationBarColor: Color(0xFF1E1E1E),
+            systemNavigationBarDividerColor: Colors.transparent,
+            systemNavigationBarIconBrightness: Brightness.light,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
+            ),
+            child: SafeArea(
+              top: false,
+              bottom: true,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Drag Handle
+                  Center(
+                    child: Container(
+                      width: 38.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+
+                  // Header with Icon & Title
+                  Row(
+                    children: [
+                      Container(
+                        width: 36.w,
+                        height: 36.w,
+                        decoration: BoxDecoration(
+                          color: blend.themeColor.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: blend.themeColor.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(blend.icon, style: TextStyle(fontSize: 18.sp)),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Share "${blend.name}"',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              'Invite friends with your unique Blend code',
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 11.5.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16.h),
+
+                  // Code Card with Tap to Copy
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.mediumImpact();
+                      Clipboard.setData(ClipboardData(text: blend.code));
+                      Get.snackbar(
+                        'Code Copied!',
+                        'Blend code ${blend.code} copied to clipboard.',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: const Color(0xFF2C2C2C),
+                        colorText: Colors.white,
+                        icon: const Icon(Icons.copy_rounded, color: AppColors.primary),
+                        duration: const Duration(seconds: 2),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(16.r),
+                        border: Border.all(
+                          color: blend.themeColor.withValues(alpha: 0.4),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'BLEND CODE',
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                blend.code,
+                                style: TextStyle(
+                                  color: blend.themeColor,
+                                  fontSize: 24.sp,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 4.0,
+                                  fontFamily: 'monospace',
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                            decoration: BoxDecoration(
+                              color: blend.themeColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.copy_rounded, size: 14.sp, color: blend.themeColor),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  'Copy',
+                                  style: TextStyle(
+                                    color: blend.themeColor,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 18.h),
+
+                  // Option 1: Share via Email (Full Template)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 40.w,
+                      height: 40.w,
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: const Icon(Icons.email_rounded, color: Colors.redAccent),
+                    ),
+                    title: const Text(
+                      'Share via Email (Full Template)',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      'Formatted invitation template with join code & steps',
+                      style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
+                    ),
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      EmailTemplateService.shareViaEmail(blend);
+                    },
+                  ),
+
+                  // Option 2: Share to Apps
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      width: 40.w,
+                      height: 40.w,
+                      decoration: BoxDecoration(
+                        color: blend.themeColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Icon(Icons.share_rounded, color: blend.themeColor),
+                    ),
+                    title: const Text(
+                      'Share to Apps',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      'WhatsApp, Instagram, Telegram, SMS & apps',
+                      style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(sheetContext);
+                      final shareMessage = '🎵 Join my "${blend.name}" Blend on WhatsPlay!\n\nBlend Code: ${blend.code}\n\nListen & blend music together in real-time:\n$link';
+                      Clipboard.setData(ClipboardData(text: blend.code));
+                      await SharePlus.instance.share(
+                        ShareParams(
+                          text: shareMessage,
+                          subject: 'Join my "${blend.name}" Blend on WhatsPlay',
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Option 3: Send to My Email (if logged in)
+                  if (isLoggedInWithEmail)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 40.w,
+                        height: 40.w,
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: const Icon(Icons.mark_email_read_rounded, color: Colors.blueAccent),
+                      ),
+                      title: const Text(
+                        'Send Template to My Email',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        'Send to $userEmail',
+                        style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
+                      ),
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        final success = await EmailTemplateService.sendBlendCreatedEmail(blend);
+                        if (success) {
+                          Get.snackbar(
+                            'Email Sent!',
+                            'Blend template sent to $userEmail',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: const Color(0xFF2C2C2C),
+                            colorText: Colors.white,
+                            icon: const Icon(Icons.check_circle_rounded, color: AppColors.primary),
+                            duration: const Duration(seconds: 3),
+                          );
+                        }
+                      },
+                    ),
+
+                  SizedBox(height: 8.h),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override

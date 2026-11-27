@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../models/blend_model.dart';
 import '../models/track_model.dart';
 import 'auth_service.dart';
+import 'email_template_service.dart';
 
 class BlendService extends GetxService {
   static BlendService get to => Get.find<BlendService>();
@@ -185,6 +186,12 @@ class BlendService extends GetxService {
       );
 
       isLoading.value = false;
+
+      // Automatically queue email template if user is signed in with Google/email
+      if (auth != null && auth.isLoggedIn.value && auth.userEmail.value.isNotEmpty) {
+        EmailTemplateService.sendBlendCreatedEmail(newBlend);
+      }
+
       return newBlend;
     } catch (e) {
       debugPrint('[BlendService] Create blend error: $e');
