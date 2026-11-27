@@ -48,15 +48,20 @@ Future<void> main() async {
       final isImageResource = details.library == 'image resource service' ||
           details.context?.toString().contains('image codec') == true ||
           details.context?.toString().contains('image resource') == true;
+      final errStr = details.exception.toString();
       final isNetworkTimeout = details.exception is SocketException ||
           details.exception is HttpException ||
-          details.exception.toString().contains('SocketException') ||
-          details.exception.toString().contains('Connection timed out');
+          errStr.contains('SocketException') ||
+          errStr.contains('Connection timed out') ||
+          errStr.contains('UNAVAILABLE') ||
+          errStr.contains('Unable to resolve host') ||
+          errStr.contains('UnknownHostException') ||
+          errStr.contains('cloud_firestore/unavailable');
 
-      // COMPLETELY SUPPRESS / IGNORE image timeouts and silent handled errors
+      // COMPLETELY SUPPRESS / IGNORE image timeouts, offline disconnects, and silent handled errors
       // so this issue stays completely closed in Firebase Crashlytics
       if (isSilent || isImageResource || isNetworkTimeout) {
-        debugPrint('[Crashlytics] Suppressed handled image/network error: ${details.exception}');
+        debugPrint('[Crashlytics] Suppressed handled image/network/offline error: ${details.exception}');
         return;
       }
 
@@ -72,13 +77,19 @@ Future<void> main() async {
         return true;
       }
 
-      // Completely suppress socket timeouts and image codec errors from Firebase
+      final errStr = error.toString();
+      // Completely suppress socket timeouts, background disconnects, and image codec errors from Firebase
       if (error is SocketException ||
           error is HttpException ||
-          error.toString().contains('SocketException') ||
-          error.toString().contains('Connection timed out') ||
-          error.toString().contains('image codec')) {
-        debugPrint('[Crashlytics] Suppressed handled async network error: $error');
+          errStr.contains('SocketException') ||
+          errStr.contains('Connection timed out') ||
+          errStr.contains('image codec') ||
+          errStr.contains('UNAVAILABLE') ||
+          errStr.contains('Unable to resolve host') ||
+          errStr.contains('UnknownHostException') ||
+          errStr.contains('cloud_firestore/unavailable') ||
+          errStr.contains('network-request-failed')) {
+        debugPrint('[Crashlytics] Suppressed handled async network/offline error: $error');
         return true; // Handled
       }
 

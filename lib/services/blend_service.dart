@@ -364,6 +364,7 @@ class BlendService extends GetxService {
 
   /// Real-time stream of tracks in a specific Blend
   Stream<List<BlendTrack>> getBlendTracksStream(String blendId) {
+    if (blendId.isEmpty) return Stream.value([]);
     return FirebaseFirestore.instance
         .collection('blends')
         .doc(blendId)
@@ -371,19 +372,28 @@ class BlendService extends GetxService {
         .orderBy('addedAt', descending: true)
         .snapshots()
         .map((snapshot) =>
-            snapshot.docs.map((doc) => BlendTrack.fromFirestore(doc)).toList());
+            snapshot.docs.map((doc) => BlendTrack.fromFirestore(doc)).toList())
+        .handleError((error) {
+          debugPrint('[BlendService] getBlendTracksStream handled error: $error');
+          return <BlendTrack>[];
+        });
   }
 
   /// Real-time stream of a Blend document itself for syncing theme & details
   Stream<BlendModel?> getBlendStream(String blendId) {
+    if (blendId.isEmpty) return Stream.value(null);
     return FirebaseFirestore.instance
         .collection('blends')
         .doc(blendId)
         .snapshots()
         .map((doc) {
-      if (!doc.exists) return null;
-      return BlendModel.fromFirestore(doc);
-    });
+          if (!doc.exists) return null;
+          return BlendModel.fromFirestore(doc);
+        })
+        .handleError((error) {
+          debugPrint('[BlendService] getBlendStream handled error: $error');
+          return null;
+        });
   }
 
   /// Update the blend's custom icon/emoji and color theme

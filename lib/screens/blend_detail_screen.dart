@@ -110,17 +110,21 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                 : const SizedBox.shrink(),
           ),
         ),
-        body: StreamBuilder<BlendModel?>(
-          stream: blendService.getBlendStream(_blend.id),
-          initialData: _blend,
-          builder: (context, blendSnapshot) {
-            final currentBlend = blendSnapshot.data ?? _blend;
+        body: _blend.id.isEmpty
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              )
+            : StreamBuilder<BlendModel?>(
+                stream: blendService.getBlendStream(_blend.id),
+                initialData: _blend,
+                builder: (context, blendSnapshot) {
+                  final currentBlend = blendSnapshot.data ?? _blend;
 
-            return StreamBuilder<List<BlendTrack>>(
-              stream: blendService.getBlendTracksStream(currentBlend.id),
-              builder: (context, snapshot) {
-                final tracks = snapshot.data ?? [];
-                final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+                  return StreamBuilder<List<BlendTrack>>(
+                    stream: blendService.getBlendTracksStream(currentBlend.id),
+                    builder: (context, snapshot) {
+                      final tracks = snapshot.data ?? [];
+                      final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
 
                 return CustomScrollView(
                   physics: const BouncingScrollPhysics(),
