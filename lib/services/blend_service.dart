@@ -1,0 +1,404 @@
+import 'dart:async';
+import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
+import '../models/blend_model.dart';
+import '../models/track_model.dart';
+import 'auth_service.dart';
+
+class BlendService extends GetxService {
+  static BlendService get to => Get.find<BlendService>();
+
+  final RxList<BlendModel> userBlends = <BlendModel>[].obs;
+  final RxBool isLoading = false.obs;
+
+  StreamSubscription<QuerySnapshot>? _blendsSubscription;
+  Worker? _authWorker;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+    if (auth != null) {
+      _authWorker = ever(auth.currentUser, (user) {
+        if (user != null) {
+          _listenToUserBlends(user.uid);
+        } else {
+          _blendsSubscription?.cancel();
+          userBlends.clear();
+        }
+      });
+
+      if (auth.currentUser.value != null) {
+        _listenToUserBlends(auth.currentUser.value!.uid);
+      }
+    }
+  }
+
+  @override
+  void onClose() {
+    _authWorker?.dispose();
+    _blendsSubscription?.cancel();
+    super.onClose();
+  }
+
+  void _listenToUserBlends(String uid) {
+    _blendsSubscription?.cancel();
+    try {
+      _blendsSubscription = FirebaseFirestore.instance
+          .collection('blends')
+          .where('memberUids', arrayContains: uid)
+          .snapshots()
+          .listen(
+        (snapshot) {
+          final list = snapshot.docs
+              .map((doc) => BlendModel.fromFirestore(doc))
+              .toList();
+          // Sort by updatedAt descending
+          list.sort((a, b) {
+            final aTime = a.updatedAt ?? a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bTime = b.updatedAt ?? b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+            return bTime.compareTo(aTime);
+          });
+          userBlends.value = list;
+        },
+        onError: (err) {
+          debugPrint('[BlendService] Error listening to user blends: $err');
+        },
+      );
+    } catch (e) {
+      debugPrint('[BlendService] Firestore listen init error: $e');
+    }
+  }
+
+  /// Generate a unique 6-character uppercase alphanumeric code (no confusing chars: 0/O, 1/I)
+  static String _generateRawCode() {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    final rand = Random.secure();
+    return List.generate(6, (_) => chars[rand.nextInt(chars.length)]).join();
+  }
+
+  /// Generates a verified unique uppercase code in Firestore
+  Future<String> generateUniqueCode() async {
+    for (int i = 0; i < 5; i++) {
+      final code = _generateRawCode();
+      try {
+        final query = await FirebaseFirestore.instance
+            .collection('blends')
+            .where('code', isEqualTo: code)
+            .limit(1)
+            .get();
+        if (query.docs.isEmpty) {
+          return code;
+        }
+      } catch (_) {
+        return code;
+      }
+    }
+    return _generateRawCode();
+  }
+
+  /// Create a new shared Blend
+  Future<BlendModel?> createBlend({required String name}) async {
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+    final user = auth?.currentUser.value;
+    if (user == null) {
+      Get.snackbar(
+        'Authentication Required',
+        'Please sign in with Google to create a Blend.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return null;
+    }
+
+    isLoading.value = true;
+    try {
+      final code = await generateUniqueCode();
+      final now = DateTime.now();
+
+      final creatorMember = BlendMember(
+        uid: user.uid,
+        name: user.displayName ?? (user.email?.split('@').first ?? 'Creator'),
+        photoUrl: user.photoURL ?? '',
+        joinedAt: now,
+      );
+
+      final blendRef = FirebaseFirestore.instance.collection('blends').doc();
+
+      final blendData = {
+        'name': name.trim().isNotEmpty ? name.trim() : 'Our Blend',
+        'code': code.toUpperCase(),
+        'creatorUid': user.uid,
+        'creatorName': creatorMember.name,
+        'creatorPhoto': creatorMember.photoUrl,
+        'memberUids': [user.uid],
+        'members': [creatorMember.toMap()],
+        'tracksCount': 0,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await blendRef.set(blendData);
+
+      // Increment createdBlendsCount on users/{uid}
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'createdBlendsCount': FieldValue.increment(1),
+          'lastActive': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (_) {}
+
+      final newBlend = BlendModel(
+        id: blendRef.id,
+        name: blendData['name'] as String,
+        code: code,
+        creatorUid: user.uid,
+        creatorName: creatorMember.name,
+        creatorPhoto: creatorMember.photoUrl,
+        memberUids: [user.uid],
+        members: [creatorMember],
+        tracksCount: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      isLoading.value = false;
+      return newBlend;
+    } catch (e) {
+      debugPrint('[BlendService] Create blend error: $e');
+      isLoading.value = false;
+      Get.snackbar(
+        'Error Creating Blend',
+        'Could not create blend. Please check your internet connection.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return null;
+    }
+  }
+
+  /// Join an existing Blend using its unique uppercase code
+  Future<Map<String, dynamic>> joinBlendWithCode(String code) async {
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+    final user = auth?.currentUser.value;
+    if (user == null) {
+      return {
+        'success': false,
+        'message': 'Please sign in with Google to join a Blend.',
+      };
+    }
+
+    final cleanCode = code.trim().toUpperCase();
+    if (cleanCode.length != 6) {
+      return {
+        'success': false,
+        'message': 'Blend code must be 6 characters.',
+      };
+    }
+
+    isLoading.value = true;
+    try {
+      final query = await FirebaseFirestore.instance
+          .collection('blends')
+          .where('code', isEqualTo: cleanCode)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        isLoading.value = false;
+        return {
+          'success': false,
+          'message': 'No Blend found with code "$cleanCode". Check and try again.',
+        };
+      }
+
+      final doc = query.docs.first;
+      final existingBlend = BlendModel.fromFirestore(doc);
+
+      // Check if user is already in this blend
+      if (existingBlend.memberUids.contains(user.uid)) {
+        isLoading.value = false;
+        return {
+          'success': true,
+          'message': 'You are already in "${existingBlend.name}"!',
+          'blend': existingBlend,
+        };
+      }
+
+      final newMember = BlendMember(
+        uid: user.uid,
+        name: user.displayName ?? (user.email?.split('@').first ?? 'Friend'),
+        photoUrl: user.photoURL ?? '',
+        joinedAt: DateTime.now(),
+      );
+
+      // Add user to memberUids and members list
+      await doc.reference.update({
+        'memberUids': FieldValue.arrayUnion([user.uid]),
+        'members': FieldValue.arrayUnion([newMember.toMap()]),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Increment joinedBlendsCount on users/{uid}
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'joinedBlendsCount': FieldValue.increment(1),
+          'lastActive': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (_) {}
+
+      // Re-fetch updated blend
+      final updatedDoc = await doc.reference.get();
+      final updatedBlend = BlendModel.fromFirestore(updatedDoc);
+
+      isLoading.value = false;
+      return {
+        'success': true,
+        'message': 'Successfully joined "${updatedBlend.name}"!',
+        'blend': updatedBlend,
+      };
+    } catch (e) {
+      debugPrint('[BlendService] Join blend error: $e');
+      isLoading.value = false;
+      return {
+        'success': false,
+        'message': 'Failed to join Blend: $e',
+      };
+    }
+  }
+
+  /// Add a song/track to a specific Blend
+  Future<bool> addTrackToBlend(String blendId, TrackModel track) async {
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+    final user = auth?.currentUser.value;
+    if (user == null) {
+      Get.snackbar(
+        'Authentication Required',
+        'Please sign in with Google to add tracks to this Blend.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    }
+
+    try {
+      final tracksCollection = FirebaseFirestore.instance
+          .collection('blends')
+          .doc(blendId)
+          .collection('tracks');
+
+      // Check if track is already added to avoid duplicates
+      final existing = await tracksCollection.where('audioUrl', isEqualTo: track.audioUrl).limit(1).get();
+      if (existing.docs.isNotEmpty) {
+        Get.snackbar(
+          'Already in Blend',
+          '"${track.title}" is already in this Blend playlist.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
+
+      final trackDoc = tracksCollection.doc();
+      final trackData = {
+        'title': track.title,
+        'artist': track.artistName,
+        'artwork': track.artworkUrl ?? '',
+        'audioUrl': track.audioUrl,
+        'album': track.albumName,
+        'durationSeconds': track.durationSeconds,
+        'addedByUid': user.uid,
+        'addedByName': user.displayName ?? (user.email?.split('@').first ?? 'Friend'),
+        'addedByPhoto': user.photoURL ?? '',
+        'addedAt': FieldValue.serverTimestamp(),
+      };
+
+      await trackDoc.set(trackData);
+
+      // Increment tracksCount on parent blend doc
+      await FirebaseFirestore.instance.collection('blends').doc(blendId).update({
+        'tracksCount': FieldValue.increment(1),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      Get.snackbar(
+        'Added to Blend',
+        '"${track.title}" added to Blend playlist!',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return true;
+    } catch (e) {
+      debugPrint('[BlendService] Add track error: $e');
+      Get.snackbar(
+        'Error',
+        'Could not add track: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    }
+  }
+
+  /// Real-time stream of tracks in a specific Blend
+  Stream<List<BlendTrack>> getBlendTracksStream(String blendId) {
+    return FirebaseFirestore.instance
+        .collection('blends')
+        .doc(blendId)
+        .collection('tracks')
+        .orderBy('addedAt', descending: true)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => BlendTrack.fromFirestore(doc)).toList());
+  }
+
+  /// Remove a song from a Blend
+  Future<bool> removeTrackFromBlend(String blendId, String trackDocId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('blends')
+          .doc(blendId)
+          .collection('tracks')
+          .doc(trackDocId)
+          .delete();
+
+      await FirebaseFirestore.instance.collection('blends').doc(blendId).update({
+        'tracksCount': FieldValue.increment(-1),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return true;
+    } catch (e) {
+      debugPrint('[BlendService] Remove track error: $e');
+      return false;
+    }
+  }
+
+  /// Leave a Blend
+  Future<bool> leaveBlend(String blendId) async {
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+    final user = auth?.currentUser.value;
+    if (user == null) return false;
+
+    try {
+      final docRef = FirebaseFirestore.instance.collection('blends').doc(blendId);
+      final doc = await docRef.get();
+      if (!doc.exists) return false;
+
+      final blend = BlendModel.fromFirestore(doc);
+      final remainingUids = List<String>.from(blend.memberUids)..remove(user.uid);
+      final remainingMembers = blend.members.where((m) => m.uid != user.uid).toList();
+
+      if (remainingUids.isEmpty) {
+        // No members left, delete the blend
+        await docRef.delete();
+      } else {
+        await docRef.update({
+          'memberUids': remainingUids,
+          'members': remainingMembers.map((m) => m.toMap()).toList(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      return true;
+    } catch (e) {
+      debugPrint('[BlendService] Leave blend error: $e');
+      return false;
+    }
+  }
+}

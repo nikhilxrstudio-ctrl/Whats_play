@@ -9,9 +9,11 @@ import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../controllers/section_tracks_controller.dart';
 import '../controllers/category_detail_controller.dart';
+import '../models/blend_model.dart';
 import '../models/playlist_model.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_service.dart';
+import '../services/blend_service.dart';
 import '../widgets/category_selector_bar.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/error_view.dart';
@@ -3165,12 +3167,18 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
             // User Profile Tile right after App Bar
             _buildUserProfileTile(),
 
-            // Category Pills: Playlists, History, Downloaded, Artists
+            // Category Pills: Blends, Playlists, History, Downloaded, Artists
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               child: Row(
                 children: [
+                  _buildLibraryPill(
+                    'Blends',
+                    isSelected: currentFilter == 'Blends',
+                    onTap: () => controller.selectLibraryFilter('Blends'),
+                  ),
+                  SizedBox(width: 8.w),
                   _buildLibraryPill(
                     'Playlists',
                     isSelected: currentFilter == 'Playlists',
@@ -3201,13 +3209,15 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
 
             // Content based on selected Library Pill
             Expanded(
-              child: currentFilter == 'Artists'
-                  ? _buildFollowedArtistsSection()
-                  : currentFilter == 'History'
-                      ? _buildHistorySection(playerCtrl)
-                      : currentFilter == 'Downloaded'
-                          ? _buildDownloadedSection(playerCtrl)
-                          : _buildPlaylistsSection(playerCtrl),
+              child: currentFilter == 'Blends'
+                  ? _buildBlendsSection()
+                  : currentFilter == 'Artists'
+                      ? _buildFollowedArtistsSection()
+                      : currentFilter == 'History'
+                          ? _buildHistorySection(playerCtrl)
+                          : currentFilter == 'Downloaded'
+                              ? _buildDownloadedSection(playerCtrl)
+                              : _buildPlaylistsSection(playerCtrl),
             ),
           ],
         ),
@@ -3878,7 +3888,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                       },
                     ),
                     SizedBox(height: 8.h),
-                    // Option 2: Blend
+                    // Option 2: Create Blend
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: Container(
@@ -3889,13 +3899,13 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          CupertinoIcons.person_2_fill,
-                          color: Colors.white,
+                          Icons.auto_awesome_rounded,
+                          color: AppColors.primary,
                           size: 22.sp,
                         ),
                       ),
                       title: Text(
-                        'Blend',
+                        'Create Blend',
                         style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 15.sp,
@@ -3903,43 +3913,72 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                         ),
                       ),
                       subtitle: Text(
-                        'Combine tastes in a shared playlist with friends',
+                        'Generate unique code & blend music with friends',
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12.sp,
                         ),
                       ),
-                      onTap: () async {
+                      onTap: () {
                         Navigator.pop(bottomSheetContext);
                         final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
                         if (auth != null && !auth.isLoggedIn.value) {
                           _showGoogleSignInBottomSheet(
                             context,
                             subtitle:
-                                'Sign in with Google to create a Blend playlist and share music tastes with friends.',
-                            onSuccess: () async {
-                              await controller.createCustomPlaylist('Friends Blend', 'party');
-                              Get.snackbar(
-                                'Blend Created',
-                                'Your blend playlist is ready in Your Library!',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: AppColors.surfaceLight,
-                                colorText: AppColors.textPrimary,
-                                duration: const Duration(seconds: 2),
-                              );
-                            },
+                                'Sign in with Google to create a Blend playlist and share music with friends.',
+                            onSuccess: () => _showCreateBlendSheet(context),
                           );
                           return;
                         }
-                        await controller.createCustomPlaylist('Friends Blend', 'party');
-                        Get.snackbar(
-                          'Blend Created',
-                          'Your blend playlist is ready in Your Library!',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: AppColors.surfaceLight,
-                          colorText: AppColors.textPrimary,
-                          duration: const Duration(seconds: 2),
-                        );
+                        _showCreateBlendSheet(context);
+                      },
+                    ),
+                    SizedBox(height: 8.h),
+                    // Option 3: Join Blend with Code
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        width: 48.w,
+                        height: 48.w,
+                        decoration: const BoxDecoration(
+                          color: AppColors.surfaceLight,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.tag_rounded,
+                          color: const Color(0xFF00E5FF),
+                          size: 22.sp,
+                        ),
+                      ),
+                      title: Text(
+                        'Join with Code',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Enter a friend\'s 6-character code to join their Blend',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(bottomSheetContext);
+                        final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+                        if (auth != null && !auth.isLoggedIn.value) {
+                          _showGoogleSignInBottomSheet(
+                            context,
+                            subtitle:
+                                'Sign in with Google to join a friend\'s Blend playlist.',
+                            onSuccess: () => _showJoinBlendSheet(context),
+                          );
+                          return;
+                        }
+                        _showJoinBlendSheet(context);
                       },
                     ),
                   ],
@@ -3949,6 +3988,669 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
           ),
         );
       },
+    );
+  }
+
+  void _showCreateBlendSheet(BuildContext context) {
+    final textController = TextEditingController(text: 'Our Blend');
+    final blendService = Get.isRegistered<BlendService>() ? BlendService.to : Get.put(BlendService());
+    final isCreating = false.obs;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            systemNavigationBarColor: Color(0xFF191919),
+            systemNavigationBarIconBrightness: Brightness.light,
+            systemNavigationBarDividerColor: Colors.transparent,
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+            ),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF242424), Color(0xFF141414)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1,
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                    SizedBox(height: 18.h),
+                    Text(
+                      'Create a Shared Blend',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 19.sp,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    Text(
+                      'A unique 6-character code will be generated. Share it with friends to blend music in real-time!',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.5.sp,
+                        height: 1.35,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 20.h),
+                    TextField(
+                      controller: textController,
+                      autofocus: true,
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: 'Blend Name',
+                        labelStyle: TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 14.sp,
+                        ),
+                        hintText: 'e.g. Weekend Vibes',
+                        hintStyle: TextStyle(color: Colors.white30, fontSize: 14.sp),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14.r),
+                          borderSide: BorderSide(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14.r),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                        ),
+                        prefixIcon: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
+                      ),
+                    ),
+                    SizedBox(height: 22.h),
+                    Obx(() {
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 48.h,
+                        child: ElevatedButton(
+                          onPressed: isCreating.value
+                              ? null
+                              : () async {
+                                  final name = textController.text.trim();
+                                  if (name.isEmpty) return;
+                                  isCreating.value = true;
+                                  final newBlend = await blendService.createBlend(name: name);
+                                  isCreating.value = false;
+                                  if (newBlend != null && sheetContext.mounted) {
+                                    Navigator.pop(sheetContext);
+                                    Get.toNamed(AppRoutes.blendDetail, arguments: newBlend);
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.r),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: isCreating.value
+                              ? SizedBox(
+                                  width: 20.w,
+                                  height: 20.w,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : Text(
+                                  'Create & Get Code',
+                                  style: TextStyle(
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                        ),
+                      );
+                    }),
+                    SizedBox(height: 10.h),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showJoinBlendSheet(BuildContext context) {
+    final codeController = TextEditingController();
+    final blendService = Get.isRegistered<BlendService>() ? BlendService.to : Get.put(BlendService());
+    final isJoining = false.obs;
+    final errorMessage = ''.obs;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            systemNavigationBarColor: Color(0xFF191919),
+            systemNavigationBarIconBrightness: Brightness.light,
+            systemNavigationBarDividerColor: Colors.transparent,
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+            ),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF242424), Color(0xFF141414)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1,
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                    SizedBox(height: 18.h),
+                    Text(
+                      'Join a Friend\'s Blend',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 19.sp,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    Text(
+                      'Enter the 6-character code shared by your friend to blend your music together in real-time.',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.5.sp,
+                        height: 1.35,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 20.h),
+                    TextField(
+                      controller: codeController,
+                      autofocus: true,
+                      textCapitalization: TextCapitalization.characters,
+                      textAlign: TextAlign.center,
+                      maxLength: 6,
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 8,
+                      ),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        hintText: 'CODE',
+                        hintStyle: TextStyle(
+                          color: Colors.white24,
+                          fontSize: 24.sp,
+                          letterSpacing: 8,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16.r),
+                          borderSide: BorderSide(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16.r),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                        ),
+                      ),
+                      onChanged: (val) {
+                        errorMessage.value = '';
+                      },
+                    ),
+                    Obx(() {
+                      if (errorMessage.value.isNotEmpty) {
+                        return Padding(
+                          padding: EdgeInsets.only(top: 8.h),
+                          child: Text(
+                            errorMessage.value,
+                            style: TextStyle(
+                              color: const Color(0xFFFF5252),
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                    SizedBox(height: 22.h),
+                    Obx(() {
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 48.h,
+                        child: ElevatedButton(
+                          onPressed: isJoining.value
+                              ? null
+                              : () async {
+                                  final code = codeController.text.trim();
+                                  if (code.length != 6) {
+                                    errorMessage.value = 'Please enter a valid 6-character code.';
+                                    return;
+                                  }
+                                  isJoining.value = true;
+                                  final result = await blendService.joinBlendWithCode(code);
+                                  isJoining.value = false;
+
+                                  if (result['success'] == true && sheetContext.mounted) {
+                                    Navigator.pop(sheetContext);
+                                    final blend = result['blend'] as BlendModel?;
+                                    if (blend != null) {
+                                      Get.toNamed(AppRoutes.blendDetail, arguments: blend);
+                                    }
+                                  } else {
+                                    errorMessage.value = result['message']?.toString() ?? 'Failed to join Blend';
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.r),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: isJoining.value
+                              ? SizedBox(
+                                  width: 20.w,
+                                  height: 20.w,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : Text(
+                                  'Join Blend',
+                                  style: TextStyle(
+                                    fontSize: 15.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                        ),
+                      );
+                    }),
+                    SizedBox(height: 10.h),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBlendsSection() {
+    final blendService = Get.isRegistered<BlendService>()
+        ? BlendService.to
+        : Get.put(BlendService());
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+
+    return Obx(() {
+      final isLoggedIn = auth?.isLoggedIn.value ?? false;
+      final blends = blendService.userBlends;
+
+      return ListView(
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.zero,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      if (!isLoggedIn) {
+                        _showGoogleSignInBottomSheet(
+                          context,
+                          subtitle: 'Sign in with Google to create and share Blend playlists.',
+                          onSuccess: () => _showCreateBlendSheet(context),
+                        );
+                        return;
+                      }
+                      _showCreateBlendSheet(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                      elevation: 0,
+                    ),
+                    icon: Icon(Icons.add_rounded, size: 18.sp, color: Colors.black),
+                    label: Text(
+                      'Create Blend',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      if (!isLoggedIn) {
+                        _showGoogleSignInBottomSheet(
+                          context,
+                          subtitle: 'Sign in with Google to join a friend\'s Blend playlist.',
+                          onSuccess: () => _showJoinBlendSheet(context),
+                        );
+                        return;
+                      }
+                      _showJoinBlendSheet(context);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 10.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                    ),
+                    icon: Icon(Icons.tag_rounded, size: 16.sp, color: AppColors.primary),
+                    label: Text(
+                      'Join with Code',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 12.h),
+
+          if (!isLoggedIn)
+            _buildBlendLoggedOutCard()
+          else if (blends.isEmpty)
+            _buildBlendEmptyStateCard()
+          else
+            ...blends.map((blend) => _buildBlendCard(blend)),
+        ],
+      );
+    });
+  }
+
+  Widget _buildBlendCard(BlendModel blend) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.07),
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16.r),
+          onTap: () {
+            Get.toNamed(AppRoutes.blendDetail, arguments: blend);
+          },
+          child: Padding(
+            padding: EdgeInsets.all(12.w),
+            child: Row(
+              children: [
+                Container(
+                  width: 52.w,
+                  height: 52.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.r),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF8E24AA),
+                        Color(0xFF1DB954),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.auto_awesome_rounded,
+                      color: Colors.white,
+                      size: 24.sp,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 14.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        blend.name,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '${blend.tracksCount} ${blend.tracksCount == 1 ? 'song' : 'songs'} • ${blend.members.length} ${blend.members.length == 1 ? 'member' : 'members'}',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                InkWell(
+                  borderRadius: BorderRadius.circular(12.r),
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    Clipboard.setData(ClipboardData(text: blend.code));
+                    Get.snackbar(
+                      'Code Copied!',
+                      'Code ${blend.code} copied to clipboard.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: AppColors.surfaceLight,
+                      colorText: AppColors.textPrimary,
+                      duration: const Duration(seconds: 2),
+                      icon: const Icon(Icons.copy_rounded, color: AppColors.primary),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.6),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          blend.code,
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 12.5.sp,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        SizedBox(width: 5.w),
+                        Icon(
+                          Icons.copy_rounded,
+                          size: 13.sp,
+                          color: Colors.white70,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBlendLoggedOutCard() {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.group_add_rounded, size: 40.sp, color: AppColors.primary),
+          SizedBox(height: 12.h),
+          Text(
+            'Sign in to Blend with Friends',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            'Create unique codes, invite friends, and add songs together in real-time.',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12.5.sp,
+              height: 1.35,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 16.h),
+          ElevatedButton(
+            onPressed: () => _showGoogleSignInBottomSheet(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+            ),
+            child: const Text(
+              'Sign In with Google',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlendEmptyStateCard() {
+    return Container(
+      padding: EdgeInsets.all(24.w),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.auto_awesome_rounded, size: 40.sp, color: AppColors.primary),
+          SizedBox(height: 12.h),
+          Text(
+            'No Blends Yet',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            'Tap "Create Blend" to get a unique 6-character code, or tap "Join with Code" to connect with a friend\'s Blend.',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12.5.sp,
+              height: 1.35,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 

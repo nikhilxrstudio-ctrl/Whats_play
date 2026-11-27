@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -64,12 +67,68 @@ class AuthService extends GetxService {
       userEmail.value = user.email ?? '';
       userPhotoUrl.value = user.photoURL ?? '';
       _cacheProfile(userName.value, userEmail.value, userPhotoUrl.value);
+      _syncUserToFirestore(user);
     } else {
       isLoggedIn.value = false;
       userName.value = '';
       userEmail.value = '';
       userPhotoUrl.value = '';
     }
+  }
+
+  Future<void> _syncUserToFirestore(User user) async {
+    try {
+      final devInfo = await _getDeviceInfo();
+      final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+
+      final data = <String, dynamic>{
+        'uid': user.uid,
+        'email': user.email ?? '',
+        'displayName': user.displayName ?? userName.value,
+        'photoUrl': user.photoURL ?? userPhotoUrl.value,
+        'deviceId': devInfo['deviceId'] ?? 'unknown',
+        'deviceModel': devInfo['deviceModel'] ?? 'unknown',
+        'deviceBrand': devInfo['deviceBrand'] ?? 'unknown',
+        'osVersion': devInfo['osVersion'] ?? 'unknown',
+        'lastActive': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await userDoc.set(data, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('[AuthService] Error syncing user to Firestore: $e');
+    }
+  }
+
+  Future<Map<String, String>> _getDeviceInfo() async {
+    final plugin = DeviceInfoPlugin();
+    try {
+      if (!kIsWeb && Platform.isAndroid) {
+        final android = await plugin.androidInfo;
+        return {
+          'deviceId': android.id,
+          'deviceModel': '${android.manufacturer} ${android.model}',
+          'deviceBrand': android.brand,
+          'osVersion': 'Android ${android.version.release} (SDK ${android.version.sdkInt})',
+        };
+      } else if (!kIsWeb && Platform.isIOS) {
+        final ios = await plugin.iosInfo;
+        return {
+          'deviceId': ios.identifierForVendor ?? 'unknown',
+          'deviceModel': ios.utsname.machine,
+          'deviceBrand': 'Apple',
+          'osVersion': 'iOS ${ios.systemVersion}',
+        };
+      }
+    } catch (e) {
+      debugPrint('[AuthService] Device info lookup failed: $e');
+    }
+    return {
+      'deviceId': 'unknown',
+      'deviceModel': 'unknown',
+      'deviceBrand': 'unknown',
+      'osVersion': 'unknown',
+    };
   }
 
   Future<void> _cacheProfile(String name, String email, String photo) async {

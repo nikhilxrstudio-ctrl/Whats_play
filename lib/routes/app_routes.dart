@@ -5,4 +5,5 @@ abstract class AppRoutes {
   static const sectionTracks = '/section-tracks';
   static const category = '/category';
   static const profile = '/profile';
+  static const blendDetail = '/blend-detail';
 }

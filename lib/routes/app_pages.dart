@@ -6,6 +6,7 @@ import '../controllers/music_controller.dart';
 import '../controllers/section_tracks_controller.dart';
 import '../repositories/music_repository.dart';
 import '../screens/artist_detail_screen.dart';
+import '../screens/blend_detail_screen.dart';
 import '../screens/category_detail_screen.dart';
 import '../screens/music_catalogue_screen.dart';
 import '../screens/music_player_screen.dart';
@@ -76,6 +77,12 @@ class AppPages {
     GetPage(
       name: AppRoutes.profile,
       page: () => const ProfileScreen(),
+      transition: Transition.cupertino,
+      popGesture: true,
+    ),
+    GetPage(
+      name: AppRoutes.blendDetail,
+      page: () => const BlendDetailScreen(),
       transition: Transition.cupertino,
       popGesture: true,
     ),
