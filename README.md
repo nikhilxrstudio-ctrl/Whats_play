@@ -54,6 +54,7 @@ Get the latest optimized release APK directly on your Android device:
   - [Offline Music & SQLite Library](#6-offline-library--sqlite-persistence)
   - [Cross-Device Typography Scaling](#7-cross-device-typography-scaling)
   - [Real-Time Shared Blend Music](#8-real-time-shared-blend-music)
+  - [Onboarding & Personalized Home Discovery](#9-onboarding--personalized-home-discovery)
 - [Architecture & Tech Stack](#-architecture--tech-stack)
 - [Screenshots & UI Walkthrough](#-screenshots--ui-walkthrough)
 - [Prerequisites & Development Setup](#-prerequisites--development-setup)
@@ -141,6 +142,11 @@ WhatsPlay integrates two independent music providers to ensure rich catalog dive
 - **Real-Time Now-Playing Indicators**: Active songs display with Spotify green titles, animated audio wave equalizer overlays on artwork, and synced playback.
 - **Instant Search Debounce**: Fast 350ms debounced search when adding tracks to Blends without requiring software keyboard confirmation.
 - **User Activity & Telemetry**: Securely stores profiles, device telemetry, and blend history for future dashboard integration.
+
+### 9. Onboarding & Personalized Home Discovery
+- **2-Step Onboarding with Progress Bar**: First-time users are greeted with a smooth 2-step setup to enter their name and select their favorite music vibes with emojis (*Bollywood, Punjabi, Gujarati, Romantic, Party, Pop, Lo-Fi, etc.*).
+- **Zero-Friction Blend Joining**: Because guests establish their display name during onboarding, joining a Blend later requires zero typing—just enter the 6-character code and join instantly.
+- **Pinned Home Filter Pills**: Pinned right beneath the Home top app bar, filter pills display "All" along with the user's favorite genres selected during onboarding. Selecting any pill dynamically filters songs for that genre, while "All" restores the full rich multi-shelf layout.
 
 ---
 
