@@ -31,29 +31,45 @@ class ProfileView extends StatelessWidget {
         physics: const AlwaysScrollableScrollPhysics(
           parent: ClampingScrollPhysics(),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 12.h),
         children: [
+          // Hero User Profile Card
           if (isLoggedIn)
             _buildLoggedInHeader(context, auth)
           else
             _buildLoggedOutHeader(context, auth),
+
           SizedBox(height: 24.h),
+
+          // Vibrant 4-Grid Activity Section
           _buildActivitySection(context, playerCtrl, musicCtrl),
+
           SizedBox(height: 24.h),
+
+          // Audio & Streaming Preferences Section
           _buildPreferencesSection(context),
+
           SizedBox(height: 24.h),
+
+          // Sign Out Button (if logged in)
           if (isLoggedIn) ...[
             _buildSignOutButton(context, auth),
             SizedBox(height: 24.h),
           ],
+
+          // Footer
           _buildAppInfoFooter(),
-          SizedBox(height: 80.h),
+          SizedBox(height: 60.h),
         ],
       );
     });
   }
 
   Widget _buildLoggedInHeader(BuildContext context, AuthService auth) {
+    final name = auth.userName.value.isNotEmpty ? auth.userName.value : 'Music Lover';
+    final email = auth.userEmail.value.isNotEmpty ? auth.userEmail.value : 'Google Account Connected';
+    final photo = auth.userPhotoUrl.value;
+
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -61,31 +77,56 @@ class ProfileView extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary.withValues(alpha: 0.22),
-            const Color(0xFF1E1E1E),
+            const Color(0xFF1DB954).withValues(alpha: 0.32),
+            const Color(0xFF262626),
+            const Color(0xFF181818),
           ],
         ),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.35),
-          width: 1,
+          color: const Color(0xFF1DB954).withValues(alpha: 0.45),
+          width: 1.2.w,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1DB954).withValues(alpha: 0.15),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 34.r,
-            backgroundColor: AppColors.surfaceLight,
-            backgroundImage: auth.userPhotoUrl.isNotEmpty
-                ? NetworkImage(auth.userPhotoUrl.value)
-                : null,
-            child: auth.userPhotoUrl.isEmpty
-                ? Icon(
-                    CupertinoIcons.person_fill,
-                    size: 34.sp,
-                    color: AppColors.primary,
-                  )
-                : null,
+          // Glowing Avatar with Double Ring
+          Container(
+            padding: EdgeInsets.all(3.w),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1DB954), Color(0xFF00E5FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1DB954).withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: CircleAvatar(
+              radius: 34.r,
+              backgroundColor: const Color(0xFF242424),
+              backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
+              child: photo.isEmpty
+                  ? Icon(
+                      CupertinoIcons.person_fill,
+                      size: 34.sp,
+                      color: AppColors.primary,
+                    )
+                  : null,
+            ),
           ),
           SizedBox(width: 16.w),
           Expanded(
@@ -96,13 +137,11 @@ class ProfileView extends StatelessWidget {
                   children: [
                     Flexible(
                       child: Text(
-                        auth.userName.value.isNotEmpty
-                            ? auth.userName.value
-                            : 'Music Lover',
+                        name,
                         style: TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 18.5.sp,
+                          fontWeight: FontWeight.w800,
                           letterSpacing: -0.3,
                         ),
                         maxLines: 1,
@@ -113,15 +152,13 @@ class ProfileView extends StatelessWidget {
                     Icon(
                       Icons.verified_rounded,
                       color: AppColors.primary,
-                      size: 16.sp,
+                      size: 18.sp,
                     ),
                   ],
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  auth.userEmail.value.isNotEmpty
-                      ? auth.userEmail.value
-                      : 'Google Account Connected',
+                  email,
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 12.5.sp,
@@ -131,20 +168,42 @@ class ProfileView extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 8.h),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Text(
-                    'Google Account Linked',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 10.5.sp,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 3.5.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6.w,
+                            height: 6.w,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          SizedBox(width: 5.w),
+                          Text(
+                            'Google Connected',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -162,33 +221,55 @@ class ProfileView extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
+            const Color(0xFF1DB954).withValues(alpha: 0.24),
             const Color(0xFF282828),
-            const Color(0xFF161616),
+            const Color(0xFF191919),
           ],
         ),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.1),
-          width: 1,
+          color: const Color(0xFF1DB954).withValues(alpha: 0.4),
+          width: 1.2.w,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1DB954).withValues(alpha: 0.18),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10.r),
-                child: Image.asset(
-                  'assets/icons/app_logo.png',
-                  width: 44.w,
-                  height: 44.w,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 44.w,
-                    height: 44.w,
-                    color: AppColors.surfaceLight,
-                    child: const Icon(Icons.music_note_rounded, color: AppColors.primary),
+              Container(
+                padding: EdgeInsets.all(3.w),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1DB954), Color(0xFF00E5FF)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1DB954).withValues(alpha: 0.4),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/icons/app_logo.png',
+                    width: 48.w,
+                    height: 48.w,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 48.w,
+                      height: 48.w,
+                      color: const Color(0xFF242424),
+                      child: const Icon(Icons.music_note_rounded, color: AppColors.primary),
+                    ),
                   ),
                 ),
               ),
@@ -198,20 +279,21 @@ class ProfileView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sign in to WhatsPlay',
+                      'Welcome to WhatsPlay',
                       style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         letterSpacing: -0.3,
                       ),
                     ),
                     SizedBox(height: 3.h),
                     Text(
-                      'Sync your music library across devices',
+                      'Sign in to sync your music & favorites',
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -220,77 +302,116 @@ class ProfileView extends StatelessWidget {
             ],
           ),
           SizedBox(height: 18.h),
-          Text(
-            'Connect with Google to securely backup your custom playlists, favorite artists, and liked tracks in the cloud.',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12.5.sp,
-              height: 1.45,
+
+          // Feature Benefit Pills
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 6.h,
+            children: [
+              _buildFeaturePill(Icons.cloud_sync_rounded, 'Cloud Sync'),
+              _buildFeaturePill(CupertinoIcons.heart_fill, 'Liked Songs Backup'),
+              _buildFeaturePill(CupertinoIcons.device_phone_portrait, 'Cross-Device'),
+            ],
+          ),
+
+          SizedBox(height: 20.h),
+
+          // Google Sign-In Button
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(28.r),
+              onTap: auth.isLoading.value
+                  ? null
+                  : () async {
+                      HapticFeedback.mediumImpact();
+                      final success = await auth.signInWithGoogle();
+                      if (success) {
+                        Get.snackbar(
+                          'Welcome!',
+                          'Signed in successfully as ${auth.userName.value}',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: const Color(0xFF1E1E1E),
+                          colorText: Colors.white,
+                          duration: const Duration(seconds: 3),
+                        );
+                      }
+                    },
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 13.h),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: auth.isLoading.value
+                      ? SizedBox(
+                          width: 22.w,
+                          height: 22.w,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.g_mobiledata_rounded,
+                              size: 32.sp,
+                              color: Colors.black,
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              'Continue with Google',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14.5.sp,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
             ),
           ),
-          SizedBox(height: 20.h),
-          GestureDetector(
-            onTap: auth.isLoading.value
-                ? null
-                : () async {
-                    HapticFeedback.lightImpact();
-                    final success = await auth.signInWithGoogle();
-                    if (success) {
-                      Get.snackbar(
-                        'Welcome!',
-                        'Signed in successfully as ${auth.userName.value}',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: const Color(0xFF1E1E1E),
-                        colorText: Colors.white,
-                        duration: const Duration(seconds: 3),
-                      );
-                    }
-                  },
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 13.h),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(26.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: auth.isLoading.value
-                    ? SizedBox(
-                        width: 20.w,
-                        height: 20.w,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2.2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                        ),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.g_mobiledata_rounded,
-                            size: 30.sp,
-                            color: Colors.black,
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            'Continue with Google',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturePill(IconData icon, String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12.sp, color: AppColors.primary),
+          SizedBox(width: 5.w),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -310,8 +431,8 @@ class ProfileView extends StatelessWidget {
           'Your Activity',
           style: TextStyle(
             color: AppColors.textPrimary,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w800,
             letterSpacing: -0.3,
           ),
         ),
@@ -321,11 +442,16 @@ class ProfileView extends StatelessWidget {
             Expanded(
               child: _buildActivityCard(
                 icon: CupertinoIcons.heart_fill,
-                iconColor: AppColors.primary,
+                accentColor: const Color(0xFFE040FB),
+                gradientColors: [
+                  const Color(0xFF8E24AA).withValues(alpha: 0.28),
+                  const Color(0xFF222222),
+                ],
                 title: 'Liked Songs',
                 value: '${playerCtrl?.likedTracks.length ?? 0}',
                 subtitle: 'Tracks saved',
                 onTap: () {
+                  Get.back();
                   musicCtrl?.changeTab(2);
                   musicCtrl?.openLikedSongs();
                 },
@@ -335,11 +461,16 @@ class ProfileView extends StatelessWidget {
             Expanded(
               child: _buildActivityCard(
                 icon: CupertinoIcons.arrow_down_circle_fill,
-                iconColor: const Color(0xFF29B6F6),
+                accentColor: const Color(0xFF00E5FF),
+                gradientColors: [
+                  const Color(0xFF0288D1).withValues(alpha: 0.28),
+                  const Color(0xFF222222),
+                ],
                 title: 'Downloads',
                 value: '${playerCtrl?.downloadedTracks.length ?? 0}',
                 subtitle: 'Offline tracks',
                 onTap: () {
+                  Get.back();
                   musicCtrl?.changeTab(2);
                 },
               ),
@@ -352,11 +483,16 @@ class ProfileView extends StatelessWidget {
             Expanded(
               child: _buildActivityCard(
                 icon: CupertinoIcons.music_albums_fill,
-                iconColor: const Color(0xFFAB47BC),
+                accentColor: AppColors.primary,
+                gradientColors: [
+                  const Color(0xFF1DB954).withValues(alpha: 0.28),
+                  const Color(0xFF222222),
+                ],
                 title: 'Playlists',
                 value: '${musicCtrl?.customPlaylists.length ?? 0}',
-                subtitle: 'Custom collections',
+                subtitle: 'Custom sets',
                 onTap: () {
+                  Get.back();
                   musicCtrl?.changeTab(2);
                 },
               ),
@@ -364,12 +500,17 @@ class ProfileView extends StatelessWidget {
             SizedBox(width: 12.w),
             Expanded(
               child: _buildActivityCard(
-                icon: CupertinoIcons.time,
-                iconColor: const Color(0xFFFFA726),
+                icon: CupertinoIcons.clock_fill,
+                accentColor: const Color(0xFFFFAB00),
+                gradientColors: [
+                  const Color(0xFFFF6F00).withValues(alpha: 0.28),
+                  const Color(0xFF222222),
+                ],
                 title: 'History',
                 value: '${musicCtrl?.listeningHistory.length ?? 0}',
-                subtitle: 'Recent plays',
+                subtitle: 'Recently played',
                 onTap: () {
+                  Get.back();
                   musicCtrl?.changeTab(2);
                 },
               ),
@@ -382,7 +523,8 @@ class ProfileView extends StatelessWidget {
 
   Widget _buildActivityCard({
     required IconData icon,
-    required Color iconColor,
+    required Color accentColor,
+    required List<Color> gradientColors,
     required String title,
     required String value,
     required String subtitle,
@@ -393,12 +535,23 @@ class ProfileView extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(14.w),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
-            width: 1,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
           ),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.35),
+            width: 1.2.w,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,7 +559,14 @@ class ProfileView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, color: iconColor, size: 22.sp),
+                Container(
+                  padding: EdgeInsets.all(6.w),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(icon, color: accentColor, size: 20.sp),
+                ),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: AppColors.textMuted,
@@ -414,22 +574,30 @@ class ProfileView extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             Text(
               value,
               style: TextStyle(
                 color: AppColors.textPrimary,
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
+                fontSize: 22.sp,
+                fontWeight: FontWeight.w800,
               ),
             ),
             SizedBox(height: 2.h),
             Text(
               title,
               style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+                fontSize: 12.5.sp,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: 1.h),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 10.5.sp,
               ),
             ),
           ],
@@ -446,16 +614,16 @@ class ProfileView extends StatelessWidget {
           'Settings & Audio',
           style: TextStyle(
             color: AppColors.textPrimary,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
+            fontSize: 17.sp,
+            fontWeight: FontWeight.w800,
             letterSpacing: -0.3,
           ),
         ),
         SizedBox(height: 12.h),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(14.r),
+            color: const Color(0xFF202020),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.08),
               width: 1,
@@ -472,13 +640,13 @@ class ProfileView extends StatelessWidget {
               _buildSettingTile(
                 icon: Icons.offline_pin_rounded,
                 title: 'Offline Storage',
-                subtitle: 'Sandbox encrypted .nomedia storage',
+                subtitle: 'Encrypted sandbox cache with no media scanner leaks',
               ),
               Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
               _buildSettingTile(
                 icon: Icons.music_note_rounded,
-                title: 'Audio Provider Sources',
-                subtitle: 'Official JioSaavn & Audius APIs',
+                title: 'Dual-Engine Audio',
+                subtitle: 'Official JioSaavn & decentralized Audius streams',
               ),
             ],
           ),
@@ -493,16 +661,16 @@ class ProfileView extends StatelessWidget {
     required String subtitle,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 13.h),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
+              color: AppColors.primary.withValues(alpha: 0.14),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: AppColors.primary, size: 18.sp),
+            child: Icon(icon, color: AppColors.primary, size: 20.sp),
           ),
           SizedBox(width: 14.w),
           Expanded(
@@ -513,8 +681,8 @@ class ProfileView extends StatelessWidget {
                   title,
                   style: TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 SizedBox(height: 2.h),
@@ -572,11 +740,11 @@ class ProfileView extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 13.h),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(12.r),
+          color: Colors.red.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(14.r),
           border: Border.all(
             color: Colors.red.withValues(alpha: 0.4),
-            width: 1,
+            width: 1.2.w,
           ),
         ),
         child: Row(
@@ -588,8 +756,8 @@ class ProfileView extends StatelessWidget {
               'Sign Out of Google',
               style: TextStyle(
                 color: Colors.redAccent,
-                fontSize: 13.5.sp,
-                fontWeight: FontWeight.w600,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -606,7 +774,7 @@ class ProfileView extends StatelessWidget {
           style: TextStyle(
             color: AppColors.textMuted,
             fontSize: 11.5.sp,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
         SizedBox(height: 3.h),

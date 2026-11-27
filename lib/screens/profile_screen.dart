@@ -11,26 +11,60 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        centerTitle: false,
-        titleSpacing: 0,
-        toolbarHeight: 56.h,
-        leading: const SpotifyBackButton(),
-        title: Text(
-          'Profile',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20.sp,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.3,
+      body: Stack(
+        children: [
+          // Ambient emerald/primary radial glow at top of screen
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 320.h,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF1DB954).withValues(alpha: 0.35),
+                    const Color(0xFF0F3E22).withValues(alpha: 0.16),
+                    AppColors.background,
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
-      body: const SafeArea(
-        top: false,
-        child: ProfileView(),
+
+          SafeArea(
+            child: Column(
+              children: [
+                // Custom Transparent Header with Spotify Back Button
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  child: Row(
+                    children: [
+                      const SpotifyBackButton(),
+                      SizedBox(width: 14.w),
+                      Text(
+                        'Profile & Account',
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Expanded Scrollable Profile View
+                const Expanded(
+                  child: ProfileView(),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -2391,64 +2391,109 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
       final userPhoto = auth.userPhotoUrl.value;
 
       return Container(
-        margin: EdgeInsets.only(bottom: 12.h),
+        margin: EdgeInsets.only(bottom: 14.h),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.06),
-            width: 1.w,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1DB954).withValues(alpha: isLoggedIn ? 0.22 : 0.16),
+              const Color(0xFF242424),
+              const Color(0xFF181818),
+            ],
           ),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: isLoggedIn
+                ? const Color(0xFF1DB954).withValues(alpha: 0.4)
+                : Colors.white.withValues(alpha: 0.12),
+            width: 1.2.w,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isLoggedIn
+                  ? const Color(0xFF1DB954).withValues(alpha: 0.12)
+                  : Colors.black.withValues(alpha: 0.25),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(10.r),
+            borderRadius: BorderRadius.circular(14.r),
             onTap: () => Get.toNamed(AppRoutes.profile),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
               child: Row(
                 children: [
-                  ClipOval(
-                    child: userPhoto.isNotEmpty
-                        ? Image.network(
-                            userPhoto,
-                            width: 36.w,
-                            height: 36.w,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                _buildAvatarFallback(isLoggedIn, userName),
-                          )
-                        : _buildAvatarFallback(isLoggedIn, userName),
+                  Container(
+                    padding: EdgeInsets.all(2.w),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary,
+                          AppColors.primary.withValues(alpha: 0.4),
+                        ],
+                      ),
+                    ),
+                    child: ClipOval(
+                      child: userPhoto.isNotEmpty
+                          ? Image.network(
+                              userPhoto,
+                              width: 38.w,
+                              height: 38.w,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildAvatarFallback(isLoggedIn, userName),
+                            )
+                          : _buildAvatarFallback(isLoggedIn, userName),
+                    ),
                   ),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: 12.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          isLoggedIn
-                              ? (userName.isNotEmpty ? userName : 'Music Lover')
-                              : 'Sign in to WhatsPlay',
-                          style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 13.5.sp,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.2,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                isLoggedIn
+                                    ? (userName.isNotEmpty ? userName : 'Music Lover')
+                                    : 'Sign in to WhatsPlay',
+                                style: TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 14.5.sp,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.2,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isLoggedIn) ...[
+                              SizedBox(width: 4.w),
+                              Icon(
+                                Icons.verified_rounded,
+                                color: AppColors.primary,
+                                size: 14.sp,
+                              ),
+                            ],
+                          ],
                         ),
-                        SizedBox(height: 1.h),
+                        SizedBox(height: 2.h),
                         Text(
                           isLoggedIn
                               ? (userEmail.isNotEmpty ? userEmail : 'View profile & statistics')
-                              : 'Sync your liked songs & playlists',
+                              : 'Sync your liked songs & playlists with Google',
                           style: TextStyle(
-                            color: AppColors.textMuted,
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.w400,
+                            color: AppColors.textSecondary,
+                            fontSize: 11.5.sp,
+                            fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -2456,28 +2501,67 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                       ],
                     ),
                   ),
-                  SizedBox(width: 6.w),
+                  SizedBox(width: 8.w),
                   if (!isLoggedIn)
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(14.r),
+                        borderRadius: BorderRadius.circular(18.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.35),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'Log in',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.login_rounded, size: 13.sp, color: Colors.black),
+                          SizedBox(width: 4.w),
+                          Text(
+                            'Sign In',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 11.5.sp,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
                       ),
                     )
                   else
-                    Icon(
-                      CupertinoIcons.chevron_right,
-                      color: AppColors.textMuted,
-                      size: 15.sp,
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 5.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(14.r),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Profile',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 2.w),
+                          Icon(
+                            CupertinoIcons.chevron_right,
+                            color: AppColors.primary,
+                            size: 12.sp,
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ),
@@ -2492,8 +2576,8 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
     if (isLoggedIn && name.trim().isNotEmpty) {
       final initial = name.trim()[0].toUpperCase();
       return Container(
-        width: 36.w,
-        height: 36.w,
+        width: 38.w,
+        height: 38.w,
         decoration: const BoxDecoration(
           color: AppColors.primary,
           shape: BoxShape.circle,
@@ -2503,23 +2587,23 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
           initial,
           style: TextStyle(
             color: Colors.black,
-            fontSize: 15.sp,
+            fontSize: 16.sp,
             fontWeight: FontWeight.w800,
           ),
         ),
       );
     }
     return Container(
-      width: 36.w,
-      height: 36.w,
+      width: 38.w,
+      height: 38.w,
       decoration: const BoxDecoration(
         color: AppColors.surfaceLight,
         shape: BoxShape.circle,
       ),
       child: Icon(
-        CupertinoIcons.person_crop_circle,
-        color: AppColors.textMuted,
-        size: 22.sp,
+        CupertinoIcons.person_crop_circle_fill,
+        color: AppColors.primary,
+        size: 24.sp,
       ),
     );
   }
