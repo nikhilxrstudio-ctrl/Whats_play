@@ -2423,7 +2423,13 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(14.r),
-            onTap: () => Get.toNamed(AppRoutes.profile),
+            onTap: () {
+              if (isLoggedIn) {
+                _showAccountBottomSheet(context, auth);
+              } else {
+                _showGoogleSignInBottomSheet(context);
+              }
+            },
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
               child: Row(
@@ -2488,7 +2494,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                         SizedBox(height: 2.h),
                         Text(
                           isLoggedIn
-                              ? (userEmail.isNotEmpty ? userEmail : 'View profile & statistics')
+                              ? (userEmail.isNotEmpty ? userEmail : 'Google Account Connected')
                               : 'Sync your liked songs & playlists with Google',
                           style: TextStyle(
                             color: AppColors.textSecondary,
@@ -2503,64 +2509,72 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                   ),
                   SizedBox(width: 8.w),
                   if (!isLoggedIn)
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(18.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.login_rounded, size: 13.sp, color: Colors.black),
-                          SizedBox(width: 4.w),
-                          Text(
-                            'Sign In',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 11.5.sp,
-                              fontWeight: FontWeight.w800,
+                    InkWell(
+                      borderRadius: BorderRadius.circular(18.r),
+                      onTap: () => _showGoogleSignInBottomSheet(context),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(18.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.35),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.login_rounded, size: 13.sp, color: Colors.black),
+                            SizedBox(width: 4.w),
+                            Text(
+                              'Sign In',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 11.5.sp,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     )
                   else
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 5.h),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(14.r),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          width: 1,
+                    InkWell(
+                      borderRadius: BorderRadius.circular(14.r),
+                      onTap: () => _showSignOutDialog(context, auth),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(14.r),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            width: 1,
+                          ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Profile',
-                            style: TextStyle(
-                              color: AppColors.textPrimary,
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w600,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.logout_rounded,
+                              color: Colors.white70,
+                              size: 13.sp,
                             ),
-                          ),
-                          SizedBox(width: 2.w),
-                          Icon(
-                            CupertinoIcons.chevron_right,
-                            color: AppColors.primary,
-                            size: 12.sp,
-                          ),
-                        ],
+                            SizedBox(width: 4.w),
+                            Text(
+                              'Sign out',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                 ],
@@ -2605,6 +2619,533 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
         color: AppColors.primary,
         size: 24.sp,
       ),
+    );
+  }
+
+  void _showGoogleSignInBottomSheet(
+    BuildContext context, {
+    String? subtitle,
+    VoidCallback? onSuccess,
+  }) {
+    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            systemNavigationBarColor: Color(0xFF191919),
+            systemNavigationBarIconBrightness: Brightness.light,
+            systemNavigationBarDividerColor: Colors.transparent,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF242424), Color(0xFF141414)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 1,
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                  SizedBox(height: 22.h),
+                  Container(
+                    width: 58.w,
+                    height: 58.w,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary.withValues(alpha: 0.25),
+                          AppColors.primary.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 18,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.group_add_rounded,
+                        color: AppColors.primary,
+                        size: 28.sp,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    'Sign in with Google',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    subtitle ??
+                        'Connect your Google account to sync playlists, liked songs, and create shared Blends with friends.',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13.sp,
+                      height: 1.4,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 20.h),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(14.r),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.06),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildSignInBenefit(
+                          Icons.merge_type_rounded,
+                          'Create & share Blend playlists with friends',
+                        ),
+                        SizedBox(height: 8.h),
+                        _buildSignInBenefit(
+                          Icons.cloud_sync_rounded,
+                          'Sync liked songs & history across devices',
+                        ),
+                        SizedBox(height: 8.h),
+                        _buildSignInBenefit(
+                          Icons.backup_rounded,
+                          'Securely back up your custom playlists',
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 22.h),
+                  if (auth != null)
+                    Obx(() {
+                      final isLoading = auth.isLoading.value;
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 48.h,
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  final success = await auth.signInWithGoogle();
+                                  if (success && sheetContext.mounted) {
+                                    Navigator.pop(sheetContext);
+                                    Get.snackbar(
+                                      'Welcome back!',
+                                      'Signed in as ${auth.userName.value}',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                      backgroundColor: AppColors.surfaceLight,
+                                      colorText: AppColors.textPrimary,
+                                      duration: const Duration(seconds: 2),
+                                    );
+                                    onSuccess?.call();
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.r),
+                            ),
+                          ),
+                          child: isLoading
+                              ? SizedBox(
+                                  width: 20.w,
+                                  height: 20.w,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 20.w,
+                                      height: 20.w,
+                                      alignment: Alignment.center,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Text(
+                                        'G',
+                                        style: TextStyle(
+                                          color: const Color(0xFF4285F4),
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 10.w),
+                                    Text(
+                                      'Continue with Google',
+                                      style: TextStyle(
+                                        fontSize: 14.5.sp,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      );
+                    }),
+                  SizedBox(height: 10.h),
+                  TextButton(
+                    onPressed: () => Navigator.pop(sheetContext),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.textSecondary,
+                    ),
+                    child: Text(
+                      'Not Now',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSignInBenefit(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16.sp, color: AppColors.primary),
+        SizedBox(width: 10.w),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: AppColors.textPrimary.withValues(alpha: 0.9),
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showAccountBottomSheet(BuildContext context, AuthService auth) {
+    final playerCtrl = Get.isRegistered<PlayerController>()
+        ? Get.find<PlayerController>()
+        : null;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            systemNavigationBarColor: Color(0xFF191919),
+            systemNavigationBarIconBrightness: Brightness.light,
+            systemNavigationBarDividerColor: Colors.transparent,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 18.h),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF242424), Color(0xFF141414)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 1,
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Obx(() {
+                final userName = auth.userName.value;
+                final userEmail = auth.userEmail.value;
+                final userPhoto = auth.userPhotoUrl.value;
+                final likedCount = playerCtrl?.likedTracks.length ?? 0;
+                final playlistCount = controller.customPlaylists.length;
+                final downloadCount = playerCtrl?.downloadedTracks.length ?? 0;
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    Container(
+                      padding: EdgeInsets.all(3.w),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primary.withValues(alpha: 0.3),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.25),
+                            blurRadius: 16,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: userPhoto.isNotEmpty
+                            ? Image.network(
+                                userPhoto,
+                                width: 56.w,
+                                height: 56.w,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildAvatarFallback(true, userName),
+                              )
+                            : _buildAvatarFallback(true, userName),
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            userName.isNotEmpty ? userName : 'Music Lover',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(width: 6.w),
+                        Icon(
+                          Icons.verified_rounded,
+                          color: AppColors.primary,
+                          size: 16.sp,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      userEmail.isNotEmpty ? userEmail : 'Google Account Connected',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12.5.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 20.h),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickStatTile(
+                            'Liked',
+                            likedCount.toString(),
+                            Icons.favorite_rounded,
+                            const Color(0xFFE91E63),
+                          ),
+                        ),
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: _buildQuickStatTile(
+                            'Playlists',
+                            playlistCount.toString(),
+                            Icons.playlist_play_rounded,
+                            AppColors.primary,
+                          ),
+                        ),
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: _buildQuickStatTile(
+                            'Downloads',
+                            downloadCount.toString(),
+                            Icons.download_done_rounded,
+                            const Color(0xFF00E5FF),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20.h),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 46.h,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(sheetContext);
+                          _showSignOutDialog(context, auth);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFFF5252),
+                          side: BorderSide(
+                            color: const Color(0xFFFF5252).withValues(alpha: 0.35),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(23.r),
+                          ),
+                        ),
+                        icon: Icon(Icons.logout_rounded, size: 16.sp),
+                        label: Text(
+                          'Sign Out of Google',
+                          style: TextStyle(
+                            fontSize: 13.5.sp,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    TextButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.textSecondary,
+                      ),
+                      child: Text(
+                        'Close',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickStatTile(
+    String label,
+    String value,
+    IconData icon,
+    Color accentColor,
+  ) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 8.w),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 18.sp, color: accentColor),
+          SizedBox(height: 6.h),
+          Text(
+            value,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          SizedBox(height: 2.h),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 10.5.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSignOutDialog(BuildContext context, AuthService auth) {
+    Get.defaultDialog(
+      title: 'Sign Out',
+      titleStyle: TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 17.sp,
+        fontWeight: FontWeight.w800,
+      ),
+      middleText: 'Are you sure you want to sign out of your Google account?',
+      middleTextStyle: TextStyle(
+        color: AppColors.textSecondary,
+        fontSize: 13.sp,
+      ),
+      backgroundColor: const Color(0xFF222222),
+      radius: 16.r,
+      textCancel: 'Cancel',
+      cancelTextColor: AppColors.textSecondary,
+      textConfirm: 'Sign Out',
+      confirmTextColor: Colors.white,
+      buttonColor: const Color(0xFFFF5252),
+      onConfirm: () async {
+        Get.back();
+        await auth.signOut();
+        Get.snackbar(
+          'Signed Out',
+          'You have signed out of Google.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppColors.surfaceLight,
+          colorText: AppColors.textPrimary,
+          duration: const Duration(seconds: 2),
+        );
+      },
     );
   }
 
@@ -3370,6 +3911,26 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                       ),
                       onTap: () async {
                         Navigator.pop(bottomSheetContext);
+                        final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
+                        if (auth != null && !auth.isLoggedIn.value) {
+                          _showGoogleSignInBottomSheet(
+                            context,
+                            subtitle:
+                                'Sign in with Google to create a Blend playlist and share music tastes with friends.',
+                            onSuccess: () async {
+                              await controller.createCustomPlaylist('Friends Blend', 'party');
+                              Get.snackbar(
+                                'Blend Created',
+                                'Your blend playlist is ready in Your Library!',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: AppColors.surfaceLight,
+                                colorText: AppColors.textPrimary,
+                                duration: const Duration(seconds: 2),
+                              );
+                            },
+                          );
+                          return;
+                        }
                         await controller.createCustomPlaylist('Friends Blend', 'party');
                         Get.snackbar(
                           'Blend Created',
