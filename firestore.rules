@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── USERS COLLECTION ─────────────────────────────────────────────
+    // Supports both signed-in Google users (uid) and guest listeners (device_*)
+    // Allows reading and updating profiles, guest display names, and joined blends.
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // ── BLENDS COLLECTION ────────────────────────────────────────────
+    // Collaborative real-time listening rooms (Blend)
+    match /blends/{blendId} {
+      // Anyone with the app can query by 6-digit code, join, or listen to playback
+      allow read: if true;
+
+      // Creating, joining, and updating live playback sync (current track, isPlaying, positionMs, members)
+      allow create, update: if true;
+
+      // Only host or signed-in users can delete
+      allow delete: if request.auth != null;
+
+      // ── BLEND TRACK QUEUE SUBCOLLECTION ───────────────────────────
+      // Tracks added to the shared room playlist
+      match /tracks/{trackId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}
