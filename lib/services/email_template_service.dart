@@ -38,14 +38,17 @@ class EmailTemplateService {
     return '$appUrl/blend.html?code=${blend.code}&name=$encodedName';
   }
 
-  /// Generates the subject line for the Blend invite email
-  static String getEmailSubject(BlendModel blend) {
-    return '🎵 Join my "${blend.name}" Blend on WhatsPlay! (Code: ${blend.code})';
+  // =========================================================================
+  // 1. CREATOR CONFIRMATION EMAIL TEMPLATES (Sent when user creates a Blend)
+  // =========================================================================
+
+  /// Subject line sent to the creator confirming their new Blend
+  static String getBlendCreatedSubject(BlendModel blend) {
+    return '🎉 Your WhatsPlay Blend is ready: "${blend.name}" (Code: ${blend.code})';
   }
 
-  /// Generates a structured, beautifully formatted plain-text email template
-  /// that looks professional in any mobile/desktop email client without broken HTML tags.
-  static String generateTextTemplate({
+  /// Plain text template sent to the creator confirming Blend creation
+  static String generateBlendCreatedTextTemplate({
     required BlendModel blend,
     required String creatorName,
   }) {
@@ -53,17 +56,176 @@ class EmailTemplateService {
 
     return '''
 ======================================================
-           🎵 WHATSPLAY SHARED BLEND INVITE
+         🎉 YOUR WHATSPLAY BLEND IS READY!
+======================================================
+
+Hi $creatorName! 👋
+
+Your new collaborative music Blend "${blend.name}" has been successfully created and is live on WhatsPlay!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🎧 BLEND NAME       :  "${blend.name}"
+  🔑 YOUR SHARE CODE  :  ${blend.code}
+  ✨ MOOD THEME       :  ${blend.icon} ${blend.name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📲 HOW TO INVITE YOUR FRIENDS:
+1. Share your 6-digit code with friends: ${blend.code}
+2. Friends can open WhatsPlay → "Your Library" → "Blends" → "Join Blend" and enter code: ${blend.code}
+
+👉 Or send them your direct magic invite link:
+$link
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHAT IS A BLEND?
+Blend is a real-time collaborative listening room on WhatsPlay.
+You and your friends can add your favorite tracks, compare music
+tastes, and listen together in real-time!
+
+Happy Listening! 🎶
+WhatsPlay Music Team
+======================================================''';
+  }
+
+  /// Modern dark-mode HTML template sent to creator confirming Blend creation
+  static String generateBlendCreatedHtmlTemplate({
+    required BlendModel blend,
+    required String creatorName,
+  }) {
+    final link = getBlendLink(blend);
+    final themeColorHex = blend.colorHex.isNotEmpty ? blend.colorHex : '#1DB954';
+
+    return '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Blend "${blend.name}" is Ready!</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F0F0F; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #FFFFFF;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0F0F0F; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table role="presentation" width="100%" style="max-width: 560px; background-color: #1A1A1A; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);" cellspacing="0" cellpadding="0">
+          
+          <!-- Header Banner -->
+          <tr>
+            <td style="background: linear-gradient(135deg, $themeColorHex, #121212); padding: 36px 30px; text-align: center;">
+              <div style="display: inline-block; background-color: rgba(0, 0, 0, 0.4); border-radius: 50%; width: 64px; height: 64px; line-height: 64px; font-size: 32px; margin-bottom: 12px; border: 2px solid rgba(255, 255, 255, 0.2);">
+                ${blend.icon}
+              </div>
+              <div style="font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: rgba(255, 255, 255, 0.85); margin-bottom: 6px;">
+                🎉 BLEND CREATED • WHATSPLAY
+              </div>
+              <h1 style="margin: 0; font-size: 26px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;">
+                ${blend.name}
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Content Body -->
+          <tr>
+            <td style="padding: 32px 30px;">
+              <p style="font-size: 16px; line-height: 1.5; color: #E0E0E0; margin-top: 0;">
+                Hi <strong style="color: #FFFFFF;">$creatorName</strong>! 👋
+              </p>
+              <p style="font-size: 15px; line-height: 1.6; color: #B0B0B0; margin: 0 0 24px 0;">
+                Your collaborative music Blend <strong style="color: #FFFFFF;">"${blend.name}"</strong> is live and ready! Share your unique code with friends so they can add tracks and listen with you in real-time.
+              </p>
+
+              <!-- Join Code Badge Box -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #121212; border: 2px dashed $themeColorHex; border-radius: 14px; margin-bottom: 28px;">
+                <tr>
+                  <td style="padding: 24px; text-align: center;">
+                    <span style="font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888888; display: block; margin-bottom: 8px;">
+                      Your Blend Share Code
+                    </span>
+                    <span style="font-family: 'Courier New', Courier, monospace; font-size: 40px; font-weight: 900; letter-spacing: 8px; color: $themeColorHex; display: block;">
+                      ${blend.code}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Action Button CTA -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td align="center">
+                    <a href="$link" style="display: inline-block; background-color: #1DB954; color: #000000; font-size: 15px; font-weight: 800; text-decoration: none; padding: 15px 36px; border-radius: 30px; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(29, 185, 84, 0.4);">
+                      Open & Manage Blend
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Steps Guide -->
+              <div style="background-color: rgba(255, 255, 255, 0.04); border-radius: 12px; padding: 18px 20px; margin-bottom: 24px;">
+                <div style="font-size: 12px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
+                  How to invite friends:
+                </div>
+                <div style="font-size: 13.5px; color: #CCCCCC; line-height: 1.6;">
+                  1. Share your code <strong style="color: $themeColorHex; font-family: monospace;">${blend.code}</strong> with your friends.<br>
+                  2. They open <strong>WhatsPlay</strong> &rarr; <strong>Blends</strong> &rarr; <strong>Join Blend</strong>.<br>
+                  3. They enter code <strong style="color: $themeColorHex; font-family: monospace;">${blend.code}</strong> to join instantly!
+                </div>
+              </div>
+
+              <!-- Explanation -->
+              <p style="font-size: 13px; color: #888888; line-height: 1.5; margin: 0; text-align: center;">
+                🎵 WhatsPlay Blend lets you and your friends blend music together in real-time, share favorite tracks, and enjoy synchronized playback.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 30px; background-color: #141414; border-top: 1px solid rgba(255, 255, 255, 0.06); text-align: center;">
+              <p style="font-size: 12px; color: #666666; margin: 0;">
+                WhatsPlay Music • Developed by Nikhil • Built for Music Lovers
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>''';
+  }
+
+  // =========================================================================
+  // 2. FRIEND INVITATION EMAIL TEMPLATES (Sent when inviting someone else)
+  // =========================================================================
+
+  /// Subject line sent to a friend invited to join a Blend
+  static String getBlendInviteSubject(BlendModel blend, {required String creatorName}) {
+    return '🎵 $creatorName invited you to join "${blend.name}" on WhatsPlay! (Code: ${blend.code})';
+  }
+
+  /// Plain text template sent to an invited friend
+  static String generateBlendInviteTextTemplate({
+    required BlendModel blend,
+    required String creatorName,
+  }) {
+    final link = getBlendLink(blend);
+
+    return '''
+======================================================
+            🎵 YOU'RE INVITED TO A BLEND!
 ======================================================
 
 Hey there! 👋
 
-$creatorName has invited you to join their exclusive music Blend on WhatsPlay!
+$creatorName has invited you to join their exclusive music Blend "${blend.name}" on WhatsPlay!
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  🎧 BLEND NAME :  "${blend.name}"
-  🔑 JOIN CODE  :  ${blend.code}
-  ✨ MOOD THEME :  ${blend.icon} ${blend.name}
+  🎧 BLEND NAME       :  "${blend.name}"
+  🔑 YOUR JOIN CODE   :  ${blend.code}
+  ✨ CREATED BY       :  $creatorName
+  ✨ MOOD THEME       :  ${blend.icon} ${blend.name}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🎵 HOW TO JOIN:
@@ -77,7 +239,7 @@ $link
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 WHAT IS A BLEND?
 Blend is a real-time collaborative listening room on WhatsPlay.
-You and your friends can add your favorite songs, compare music
+You and your friends can add your favorite tracks, compare music
 tastes, and listen together in real-time!
 
 Happy Listening! 🎶
@@ -85,8 +247,8 @@ WhatsPlay Music Team
 ======================================================''';
   }
 
-  /// Generates a responsive, modern HTML email template for Firebase Trigger Email
-  static String generateHtmlTemplate({
+  /// Modern dark-mode HTML template sent to an invited friend
+  static String generateBlendInviteHtmlTemplate({
     required BlendModel blend,
     required String creatorName,
   }) {
@@ -115,7 +277,7 @@ WhatsPlay Music Team
                 ${blend.icon}
               </div>
               <div style="font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: rgba(255, 255, 255, 0.85); margin-bottom: 6px;">
-                WHATSPLAY SHARED BLEND
+                💌 INVITATION • WHATSPLAY BLEND
               </div>
               <h1 style="margin: 0; font-size: 26px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;">
                 ${blend.name}
@@ -194,46 +356,48 @@ WhatsPlay Music Team
 </html>''';
   }
 
-  /// Sends the blend invitation email directly via Brevo SMTP,
-  /// and writes a backup/audit log to Firestore's 'mail' collection.
+  // =========================================================================
+  // 3. EMAIL DELIVERY SERVICES VIA BREVO & FIRESTORE
+  // =========================================================================
+
+  /// Sends the Blend Created confirmation email directly to the Blend creator
   static Future<bool> sendBlendCreatedEmail(
     BlendModel blend, {
     String? recipientEmail,
   }) async {
     final auth = AuthService.to;
-    final userEmail = recipientEmail ?? auth.userEmail.value;
+    final targetEmail = recipientEmail ?? auth.userEmail.value;
 
-    if (userEmail.isEmpty) {
+    if (targetEmail.isEmpty) {
       debugPrint('[EmailTemplateService] No recipient email specified, skipping automated email.');
       return false;
     }
 
     try {
-      final subject = getEmailSubject(blend);
-      final textTemplate = generateTextTemplate(
+      final subject = getBlendCreatedSubject(blend);
+      final textTemplate = generateBlendCreatedTextTemplate(
         blend: blend,
         creatorName: auth.effectiveUserName,
       );
-      final htmlTemplate = generateHtmlTemplate(
+      final htmlTemplate = generateBlendCreatedHtmlTemplate(
         blend: blend,
         creatorName: auth.effectiveUserName,
       );
 
-      // 1. Send directly via authenticated Brevo SMTP relay
       final message = Message()
         ..from = const Address(_brevoSenderEmail, _brevoSenderName)
-        ..recipients.add(userEmail)
+        ..recipients.add(targetEmail)
         ..subject = subject
         ..text = textTemplate
         ..html = htmlTemplate;
 
       final sendReport = await send(message, _smtpServer);
-      debugPrint('[EmailTemplateService] Email successfully delivered via Brevo to $userEmail: $sendReport');
+      debugPrint('[EmailTemplateService] Creator email delivered via Brevo to $targetEmail: $sendReport');
 
-      // 2. Also log to Firestore 'mail' collection for audit tracking
+      // Audit log to Firestore
       try {
         await FirebaseFirestore.instance.collection('mail').add({
-          'to': [userEmail],
+          'to': [targetEmail],
           'message': {
             'subject': subject,
             'text': textTemplate,
@@ -241,6 +405,7 @@ WhatsPlay Music Team
           },
           'blendId': blend.id,
           'blendCode': blend.code,
+          'type': 'CREATOR_CONFIRMATION',
           'provider': 'Brevo',
           'status': 'DELIVERED',
           'createdAt': FieldValue.serverTimestamp(),
@@ -251,17 +416,79 @@ WhatsPlay Music Team
 
       return true;
     } catch (e) {
-      debugPrint('[EmailTemplateService] Error delivering email via Brevo: $e');
+      debugPrint('[EmailTemplateService] Error delivering creator email via Brevo: $e');
       return false;
     }
   }
 
-  /// Launches the native share sheet with the full email template and subject
+  /// Sends a Blend Invitation email directly to an invited friend
+  static Future<bool> sendBlendInviteEmail(
+    BlendModel blend, {
+    required String recipientEmail,
+  }) async {
+    final auth = AuthService.to;
+    final targetEmail = recipientEmail.trim();
+
+    if (targetEmail.isEmpty || !targetEmail.contains('@')) {
+      debugPrint('[EmailTemplateService] Invalid recipient email: $targetEmail');
+      return false;
+    }
+
+    try {
+      final subject = getBlendInviteSubject(blend, creatorName: auth.effectiveUserName);
+      final textTemplate = generateBlendInviteTextTemplate(
+        blend: blend,
+        creatorName: auth.effectiveUserName,
+      );
+      final htmlTemplate = generateBlendInviteHtmlTemplate(
+        blend: blend,
+        creatorName: auth.effectiveUserName,
+      );
+
+      final message = Message()
+        ..from = const Address(_brevoSenderEmail, _brevoSenderName)
+        ..recipients.add(targetEmail)
+        ..subject = subject
+        ..text = textTemplate
+        ..html = htmlTemplate;
+
+      final sendReport = await send(message, _smtpServer);
+      debugPrint('[EmailTemplateService] Invite email delivered via Brevo to $targetEmail: $sendReport');
+
+      // Audit log to Firestore
+      try {
+        await FirebaseFirestore.instance.collection('mail').add({
+          'to': [targetEmail],
+          'message': {
+            'subject': subject,
+            'text': textTemplate,
+            'html': htmlTemplate,
+          },
+          'blendId': blend.id,
+          'blendCode': blend.code,
+          'type': 'FRIEND_INVITATION',
+          'senderName': auth.effectiveUserName,
+          'provider': 'Brevo',
+          'status': 'DELIVERED',
+          'createdAt': FieldValue.serverTimestamp(),
+        }).timeout(const Duration(seconds: 4));
+      } catch (logErr) {
+        debugPrint('[EmailTemplateService] Non-fatal Firestore log notice: $logErr');
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint('[EmailTemplateService] Error delivering invite email via Brevo: $e');
+      return false;
+    }
+  }
+
+  /// Launches the native share sheet with the invitation template and subject
   static Future<void> shareViaEmail(BlendModel blend) async {
     HapticFeedback.mediumImpact();
     final auth = AuthService.to;
-    final subject = getEmailSubject(blend);
-    final body = generateTextTemplate(
+    final subject = getBlendInviteSubject(blend, creatorName: auth.effectiveUserName);
+    final body = generateBlendInviteTextTemplate(
       blend: blend,
       creatorName: auth.effectiveUserName,
     );

@@ -134,7 +134,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                           }
 
                           setDlgState(() => isSending = true);
-                          final success = await EmailTemplateService.sendBlendCreatedEmail(
+                          final success = await EmailTemplateService.sendBlendInviteEmail(
                             blend,
                             recipientEmail: email,
                           );
