@@ -11,7 +11,8 @@ class AuthService extends GetxService {
   /// Web Client ID (serverClientId) from Firebase Console:
   /// Firebase Console -> Authentication -> Sign-in method -> Google -> Web SDK configuration -> Web client ID.
   /// Format: 658452739740-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
-  static String serverClientId = '';
+  static String serverClientId =
+      '658452739740-kq5u65eirbt472jrcbapq43bq8g4gvmo.apps.googleusercontent.com';
 
   FirebaseAuth? _auth;
   bool _googleSignInInitialized = false;
