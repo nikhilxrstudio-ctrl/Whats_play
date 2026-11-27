@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,10 +6,9 @@ import 'package:share_plus/share_plus.dart';
 import '../constants/app_colors.dart';
 import '../controllers/player_controller.dart';
 import '../models/blend_model.dart';
-import '../models/track_model.dart';
 import '../services/auth_service.dart';
 import '../services/blend_service.dart';
-import '../services/saavn_service.dart';
+import '../widgets/add_song_to_blend_sheet.dart';
 import '../widgets/mini_player_bar.dart';
 import '../widgets/music_wave_equalizer.dart';
 import '../widgets/spotify_back_button.dart';
@@ -336,7 +334,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
 
                             // "+ Add Songs" Button
                             OutlinedButton.icon(
-                              onPressed: () => _showAddSongToBlendSheet(context),
+                              onPressed: () => _showAddSongToBlendSheet(context, currentBlend, tracks),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.white,
                                 side: BorderSide(
@@ -414,7 +412,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                             ),
                             SizedBox(height: 20.h),
                             ElevatedButton.icon(
-                              onPressed: () => _showAddSongToBlendSheet(context),
+                              onPressed: () => _showAddSongToBlendSheet(context, currentBlend, tracks),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.black,
@@ -899,204 +897,12 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
     );
   }
 
-  void _showAddSongToBlendSheet(BuildContext context) {
-    final searchCtrl = TextEditingController();
-    final searchResults = <TrackModel>[].obs;
-    final isSearching = false.obs;
-    final saavn = Get.isRegistered<SaavnService>() ? Get.find<SaavnService>() : null;
-    Timer? debounceTimer;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 38.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2.r),
-                ),
-              ),
-              SizedBox(height: 14.h),
-              Text(
-                'Add Song to ${_blend.name}',
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              SizedBox(height: 12.h),
-
-              // Search Bar with instant debounce as user types
-              TextField(
-                controller: searchCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Search songs or artists...',
-                  hintStyle: const TextStyle(color: Colors.white54),
-                  prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.clear_rounded, color: Colors.white54),
-                    onPressed: () {
-                      debounceTimer?.cancel();
-                      searchCtrl.clear();
-                      searchResults.clear();
-                      isSearching.value = false;
-                    },
-                  ),
-                  filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.07),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.r),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                ),
-                onChanged: (query) {
-                  debounceTimer?.cancel();
-                  if (query.trim().isEmpty) {
-                    searchResults.clear();
-                    isSearching.value = false;
-                    return;
-                  }
-                  debounceTimer = Timer(const Duration(milliseconds: 350), () async {
-                    if (query.trim().isEmpty || saavn == null) return;
-                    isSearching.value = true;
-                    try {
-                      final tracks = await saavn.searchTracks(query: query.trim());
-                      searchResults.value = tracks;
-                    } catch (e) {
-                      debugPrint('Error searching tracks: $e');
-                    }
-                    isSearching.value = false;
-                  });
-                },
-                onSubmitted: (query) async {
-                  debounceTimer?.cancel();
-                  if (query.trim().isEmpty || saavn == null) return;
-                  isSearching.value = true;
-                  try {
-                    final tracks = await saavn.searchTracks(query: query.trim());
-                    searchResults.value = tracks;
-                  } catch (e) {
-                    debugPrint('Error searching tracks: $e');
-                  }
-                  isSearching.value = false;
-                },
-              ),
-              SizedBox(height: 12.h),
-
-              // Results List
-              Expanded(
-                child: Obx(() {
-                  if (isSearching.value) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                        strokeWidth: 2.5,
-                      ),
-                    );
-                  }
-
-                  if (searchResults.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.search_rounded, size: 40.sp, color: Colors.white30),
-                          SizedBox(height: 8.h),
-                          Text(
-                            'Search for songs to add to this Blend',
-                            style: TextStyle(
-                              color: Colors.white54,
-                              fontSize: 13.sp,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: searchResults.length,
-                    itemBuilder: (context, index) {
-                      final track = searchResults[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 0),
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(6.r),
-                          child: track.artworkUrl != null
-                              ? Image.network(
-                                  track.artworkUrl!,
-                                  width: 44.w,
-                                  height: 44.w,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    width: 44.w,
-                                    height: 44.w,
-                                    color: AppColors.surfaceLight,
-                                    child: const Icon(Icons.music_note, color: Colors.white30),
-                                  ),
-                                )
-                              : Container(
-                                  width: 44.w,
-                                  height: 44.w,
-                                  color: AppColors.surfaceLight,
-                                  child: const Icon(Icons.music_note, color: Colors.white30),
-                                ),
-                        ),
-                        title: Text(
-                          track.title,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13.5.sp,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          track.artistName,
-                          style: TextStyle(
-                            color: Colors.white60,
-                            fontSize: 11.5.sp,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.add_circle_rounded,
-                            color: AppColors.primary,
-                            size: 26.sp,
-                          ),
-                          onPressed: () async {
-                            final blendService = BlendService.to;
-                            await blendService.addTrackToBlend(_blend.id, track);
-                          },
-                        ),
-                      );
-                    },
-                  );
-                }),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  void _showAddSongToBlendSheet(
+    BuildContext context, [
+    BlendModel? blendOverride,
+    List<BlendTrack> currentTracks = const [],
+  ]) {
+    final targetBlend = blendOverride ?? _blend;
+    AddSongToBlendSheet.show(context, targetBlend, currentTracks);
   }
 }
