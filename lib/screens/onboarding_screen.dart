@@ -219,31 +219,41 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 44.h),
-          // Emoji hero
+          SizedBox(height: 36.h),
+          // 3D Musical Mascot Avatar
           Container(
-            width: 72.w,
-            height: 72.w,
+            width: 96.w,
+            height: 96.w,
+            padding: EdgeInsets.all(3.w),
             decoration: BoxDecoration(
+              shape: BoxShape.circle,
               gradient: const LinearGradient(
                 colors: [Color(0xFF1DB954), Color(0xFF00897B)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(20.r),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.primary.withValues(alpha: 0.4),
-                  blurRadius: 20,
+                  blurRadius: 24,
                   offset: const Offset(0, 6),
                 ),
               ],
             ),
-            child: Center(
-              child: Text('👋', style: TextStyle(fontSize: 34.sp)),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/mascot_avatar.png',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: AppColors.surfaceLight,
+                  child: const Center(
+                    child: Text('👋', style: TextStyle(fontSize: 34)),
+                  ),
+                ),
+              ),
             ),
           ),
-          SizedBox(height: 28.h),
+          SizedBox(height: 24.h),
           Text(
             "What's your name?",
             style: TextStyle(
