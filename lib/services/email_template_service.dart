@@ -20,7 +20,7 @@ class EmailTemplateService {
           'eHNtdHBzaWItZjA5NjYzODNkMmUyNmE3YWZmNDQxMGExZTZkNjQxZjkxZmRkZTIxNGI0MTNiNzUxMTEzOWM2MmNiMzg2MjRmYi1FNDRjSGFkRjJYUWNhRjE2',
         ),
       );
-  static const String _brevoSenderEmail = 'c570e4001@smtp-brevo.com';
+  static const String _brevoSenderEmail = 'xrstudio.dev@gmail.com';
   static const String _brevoSenderName = 'WhatsPlay';
 
   static SmtpServer get _smtpServer => SmtpServer(
