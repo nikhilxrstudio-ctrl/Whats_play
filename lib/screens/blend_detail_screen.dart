@@ -551,37 +551,60 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(24.r),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: currentBlend.themeColor.withValues(alpha: 0.35),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
+                                boxShadow: tracks.isNotEmpty
+                                    ? [
+                                        BoxShadow(
+                                          color: currentBlend.themeColor.withValues(alpha: 0.35),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ]
+                                    : null,
                               ),
                               child: ElevatedButton.icon(
                                 onPressed: tracks.isEmpty
-                                    ? null
+                                    ? () => _showAddSongToBlendSheet(context, currentBlend, tracks)
                                     : () {
                                         final trackModels = tracks.map((t) => t.toTrackModel()).toList();
                                         playerCtrl?.playTrack(trackModels.first, queue: trackModels);
                                       },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: currentBlend.themeColor,
-                                  foregroundColor: Colors.black,
+                                  backgroundColor: tracks.isNotEmpty
+                                      ? currentBlend.themeColor
+                                      : Colors.white.withValues(alpha: 0.08),
+                                  foregroundColor: tracks.isNotEmpty
+                                      ? (ThemeData.estimateBrightnessForColor(currentBlend.themeColor) == Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black)
+                                      : Colors.white54,
+                                  side: tracks.isEmpty
+                                      ? BorderSide(color: Colors.white.withValues(alpha: 0.15))
+                                      : BorderSide.none,
                                   padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 11.h),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(24.r),
                                   ),
                                   elevation: 0,
                                 ),
-                                icon: Icon(Icons.play_arrow_rounded, size: 22.sp, color: Colors.black),
+                                icon: Icon(
+                                  Icons.play_arrow_rounded,
+                                  size: 22.sp,
+                                  color: tracks.isNotEmpty
+                                      ? (ThemeData.estimateBrightnessForColor(currentBlend.themeColor) == Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black)
+                                      : Colors.white54,
+                                ),
                                 label: Text(
                                   'Play All',
                                   style: TextStyle(
                                     fontSize: 14.sp,
                                     fontWeight: FontWeight.w800,
-                                    color: Colors.black,
+                                    color: tracks.isNotEmpty
+                                        ? (ThemeData.estimateBrightnessForColor(currentBlend.themeColor) == Brightness.dark
+                                            ? Colors.white
+                                            : Colors.black)
+                                        : Colors.white54,
                                   ),
                                 ),
                               ),
