@@ -102,9 +102,9 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // Hero Header with Gradient & Join Code
+                // Hero Header with Gradient
                 SliverAppBar(
-                  expandedHeight: 280.h,
+                  expandedHeight: 235.h,
                   pinned: true,
                   stretch: true,
                   backgroundColor: const Color(0xFF191919),
@@ -113,6 +113,11 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                   centerTitle: false,
                   leading: const SpotifyBackButton(),
                   actions: [
+                    IconButton(
+                      icon: const Icon(Icons.share_rounded, color: Colors.white),
+                      tooltip: 'Share Blend Code',
+                      onPressed: _copyCode,
+                    ),
                     IconButton(
                       icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
                       onPressed: () => _showBlendOptionsMenu(context, blendService, currentUid),
@@ -197,67 +202,6 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               SizedBox(height: 10.h),
-
-                              // Prominent Join Code Badge with 1-Tap Copy
-                              InkWell(
-                                onTap: _copyCode,
-                                borderRadius: BorderRadius.circular(16.r),
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.55),
-                                    borderRadius: BorderRadius.circular(16.r),
-                                    border: Border.all(
-                                      color: AppColors.primary.withValues(alpha: 0.7),
-                                      width: 1.2,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.primary.withValues(alpha: 0.25),
-                                        blurRadius: 10,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        'CODE: ',
-                                        style: TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 11.5.sp,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                      Text(
-                                        _blend.code,
-                                        style: TextStyle(
-                                          color: AppColors.primary,
-                                          fontSize: 14.5.sp,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 1.5,
-                                        ),
-                                      ),
-                                      SizedBox(width: 8.w),
-                                      Icon(
-                                        Icons.copy_rounded,
-                                        size: 14.sp,
-                                        color: Colors.white70,
-                                      ),
-                                      SizedBox(width: 4.w),
-                                      Text(
-                                        'Tap to share',
-                                        style: TextStyle(
-                                          color: Colors.white60,
-                                          fontSize: 10.5.sp,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 12.h),
 
                               // Members and Stats row
                               Row(
