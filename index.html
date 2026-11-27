@@ -287,6 +287,101 @@
       line-height: 1.4;
     }
 
+    /* Changelog & Updates Section */
+    .changelog-container {
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 32px;
+      margin-bottom: 60px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .changelog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 24px;
+    }
+
+    .version-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .version-badge {
+      background: var(--primary);
+      color: #000;
+      font-size: 0.9rem;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    .release-date {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .arch-badge {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .changelog-body {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .changelog-item {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .changelog-icon {
+      font-size: 1.5rem;
+      background: rgba(255, 255, 255, 0.04);
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      flex-shrink: 0;
+    }
+
+    .changelog-content h4 {
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .changelog-content p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .btn-sm {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+    }
+
     footer {
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding: 30px 20px;
@@ -326,6 +421,9 @@
       </a>
       <a href="llms.txt" class="btn btn-secondary">
         llms.txt (AI Spec)
+      </a>
+      <a href="#changelog" class="btn btn-secondary">
+        ⚡ Updates & Changelog
       </a>
     </div>
 
@@ -380,6 +478,72 @@
         <div class="screenshot-info">
           <strong>6. Curated Charts & New Releases</strong>
           <p>Ranked India Superhits Top 50, Taaza Tunes, Romantic & Party collections</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Updates & What's New Changelog Section -->
+    <h2 class="section-title" id="changelog">What's New in Latest Release</h2>
+
+    <div class="changelog-container">
+      <div class="changelog-header">
+        <div class="version-meta">
+          <span class="version-badge">v1.2.0 • Latest Release</span>
+          <span class="release-date">November 2026</span>
+          <span class="arch-badge">Android 7.0+ (arm64-v8a)</span>
+        </div>
+        <a href="downloads/WhatsPlay.apk" class="btn btn-sm btn-primary" download="WhatsPlay.apk">
+          ⬇️ Download APK (23.3 MB)
+        </a>
+      </div>
+
+      <div class="changelog-body">
+        <div class="changelog-item">
+          <div class="changelog-icon">🔐</div>
+          <div class="changelog-content">
+            <h4>Google Sign-In & User Account Profile Integration</h4>
+            <p>Added modern Google Authentication powered by Google Credential Manager and Firebase Auth. Access your account via the responsive profile card inside <strong>Your Library</strong>, view synced stats (Liked Songs, Downloads, Custom Playlists, History), and enjoy persistent cross-device profile sessions.</p>
+          </div>
+        </div>
+
+        <div class="changelog-item">
+          <div class="changelog-icon">⚡</div>
+          <div class="changelog-content">
+            <h4>Smooth & Direct TabBar Transitions</h4>
+            <p>Upgraded bottom navigation with native Flutter <code>TabController</code> and <code>TabBarView</code> across 3 Spotify-inspired tabs (<strong>Home</strong>, <strong>Search</strong>, <strong>Your Library</strong>). Navigating between tabs transitions directly with zero intermediary page flashing.</p>
+          </div>
+        </div>
+
+        <div class="changelog-item">
+          <div class="changelog-icon">🎤</div>
+          <div class="changelog-content">
+            <h4>Real-Time Synchronized Lyrics</h4>
+            <p>Added interactive Lyrics support directly in the Player screen powered by JioSaavn and LRCLIB fallback engines, featuring dynamic Ambient Glassmorphism styling.</p>
+          </div>
+        </div>
+
+        <div class="changelog-item">
+          <div class="changelog-icon">🚀</div>
+          <div class="changelog-content">
+            <h4>Zero-Lag 60/120 FPS Performance & Scroll Optimization</h4>
+            <p>Completely eliminated UI micro-stutters by scoping GetX reactive observers (<code>Obx</code>) to discrete playback widgets, ensuring seamless 120 FPS scrolling across infinite track shelves.</p>
+          </div>
+        </div>
+
+        <div class="changelog-item">
+          <div class="changelog-icon">🎧</div>
+          <div class="changelog-content">
+            <h4>Artwork Carousel Sync & Auto-Play</h4>
+            <p>Selecting any song from similar categories or artist shelves immediately launches audio streaming and animates the high-resolution artwork carousel in real-time lockstep.</p>
+          </div>
+        </div>
+
+        <div class="changelog-item">
+          <div class="changelog-icon">📱</div>
+          <div class="changelog-content">
+            <h4>Crisp Android Media Notification & Lock Screen</h4>
+            <p>Resolved system media player icon scaling with a high-resolution transparent vector icon and updated ProGuard keep-rules for bulletproof background audio resilience.</p>
+          </div>
         </div>
       </div>
     </div>
