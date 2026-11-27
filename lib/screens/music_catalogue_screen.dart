@@ -301,22 +301,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
           parent: BouncingScrollPhysics(),
         ),
         slivers: [
-          // 1. Spotify-Style Featured Artist & Liked Songs Quick-Access Grid (Scrolls away)
-          SliverToBoxAdapter(
-            child: Obx(() => SpotifyArtistSelector(
-                  artists: controller.featuredArtists,
-                  selectedArtist: controller.selectedArtist.value,
-                  onArtistSelected: (artist) {
-                    Get.toNamed(AppRoutes.artist, arguments: artist);
-                  },
-                  onLikedSongsSelected: () {
-                    controller.changeTab(2);
-                    controller.openLikedSongs();
-                  },
-                )),
-          ),
-
-          // 2. Sticky Horizontal Genre / Category Filter Bar (Pins to top on scroll)
+          // 1. Sticky Horizontal Genre / Category Filter Bar (Pins to top right after App Bar!)
           SliverPersistentHeader(
             pinned: true,
             delegate: _StickyCategoryHeaderDelegate(
@@ -330,7 +315,27 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
             ),
           ),
 
-          // Suggested for You Shelf (Built from repeat listening & user history)
+          // 2. Spotify-Style Featured Artist & Liked Songs Quick-Access Grid (Shown on 'All')
+          Obx(() {
+            if (controller.selectedCategory.value != 'All') {
+              return const SliverToBoxAdapter(child: SizedBox.shrink());
+            }
+            return SliverToBoxAdapter(
+              child: SpotifyArtistSelector(
+                artists: controller.featuredArtists,
+                selectedArtist: controller.selectedArtist.value,
+                onArtistSelected: (artist) {
+                  Get.toNamed(AppRoutes.artist, arguments: artist);
+                },
+                onLikedSongsSelected: () {
+                  controller.changeTab(2);
+                  controller.openLikedSongs();
+                },
+              ),
+            );
+          }),
+
+          // Suggested for You Shelf (Built from repeat listening & user history, shown on 'All')
           Obx(() {
             if (controller.selectedCategory.value != 'All' ||
                 controller.suggestedTracks.isEmpty) {
@@ -374,20 +379,23 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
 
             final allTracks = controller.tracks;
             final isExpanded = controller.isAllSongsExpanded.value;
-            final displayCount = (isExpanded || allTracks.length <= 10)
+            final isFilteringCategory = controller.selectedCategory.value != 'All';
+            final displayCount = (isFilteringCategory || isExpanded || allTracks.length <= 10)
                 ? allTracks.length
                 : 10;
 
             return SliverMainAxisGroup(
               slivers: [
-                // All Songs Section Header
+                // Category / All Songs Section Header
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 6.h),
                     child: Row(
                       children: [
                         Text(
-                          'All Songs',
+                          isFilteringCategory
+                              ? '${controller.selectedCategory.value} Songs'
+                              : 'All Songs',
                           style: TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 15.sp,
@@ -409,7 +417,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                   ),
                 ),
 
-                // Songs List (max 10 initially, expands when See more is clicked)
+                // Songs List (max 10 initially on All, expands when See more is clicked; all shown when filtering)
                 SliverPadding(
                   padding: EdgeInsets.symmetric(vertical: 4.h),
                   sliver: SliverList(
@@ -445,8 +453,8 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                   ),
                 ),
 
-                // See more / Show less toggle button if more than 10 tracks
-                if (allTracks.length > 10)
+                // See more / Show less toggle button if more than 10 tracks on All view
+                if (allTracks.length > 10 && !isFilteringCategory)
                   SliverToBoxAdapter(
                     child: Center(
                       child: GestureDetector(
@@ -4216,10 +4224,6 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
     final codeController = TextEditingController();
     final blendService = Get.isRegistered<BlendService>() ? BlendService.to : Get.put(BlendService());
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
-    final isGuest = auth == null || !auth.isLoggedIn.value;
-    final nameController = TextEditingController(
-      text: isGuest ? (auth?.guestUserName.value.isNotEmpty == true ? auth!.guestUserName.value : 'Music Lover') : '',
-    );
     final isJoining = false.obs;
     final errorMessage = ''.obs;
 
@@ -4285,43 +4289,26 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 20.h),
-                    if (isGuest) ...[
-                      TextField(
-                        controller: nameController,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: 'Your Name (Guest)',
-                          labelStyle: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 13.sp,
-                          ),
-                          hintText: 'e.g. Nikhil',
-                          hintStyle: TextStyle(color: Colors.white30, fontSize: 13.sp),
-                          prefixIcon: const Icon(Icons.person_rounded, color: AppColors.primary, size: 20),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14.r),
-                            borderSide: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.1),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14.r),
-                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                    SizedBox(height: 12.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.person_rounded, size: 14, color: AppColors.primary),
+                        SizedBox(width: 5.w),
+                        Text(
+                          'Joining as ${auth?.effectiveUserName ?? "Music Lover"}',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                      SizedBox(height: 14.h),
-                    ],
+                      ],
+                    ),
+                    SizedBox(height: 16.h),
                     TextField(
                       controller: codeController,
-                      autofocus: !isGuest,
+                      autofocus: true,
                       textCapitalization: TextCapitalization.characters,
                       textAlign: TextAlign.center,
                       maxLength: 6,
@@ -4387,14 +4374,12 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                                     errorMessage.value = 'Please enter a valid 6-character code.';
                                     return;
                                   }
-                                  final guestName = isGuest ? nameController.text.trim() : null;
-                                  if (isGuest && guestName != null && guestName.isNotEmpty) {
-                                    auth?.updateGuestName(guestName);
-                                  }
                                   isJoining.value = true;
                                   final result = await blendService.joinBlendWithCode(
                                     code,
-                                    guestName: (guestName != null && guestName.isNotEmpty) ? guestName : null,
+                                    guestName: (auth != null && !auth.isLoggedIn.value)
+                                        ? auth.effectiveUserName
+                                        : null,
                                   );
                                   isJoining.value = false;
 

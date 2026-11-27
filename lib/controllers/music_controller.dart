@@ -8,6 +8,7 @@ import '../models/playlist_model.dart';
 import '../models/track_model.dart';
 import '../repositories/music_repository.dart';
 import '../services/local_database_service.dart';
+import '../services/onboarding_service.dart';
 
 enum ViewState {
   initial,
@@ -33,7 +34,19 @@ class MusicController extends GetxController {
 
   // Selected Category / Genre
   final RxString selectedCategory = 'All'.obs;
-  final List<String> categories = AppConstants.musicCategories;
+  final RxList<String> categories = <String>[
+    'All',
+    'Bollywood',
+    'Punjabi',
+    'Romantic',
+    'Party',
+    'Gujarati',
+    'Pop',
+    'Lo-Fi',
+    'Chill',
+    'Hip-Hop/Rap',
+    'Rock',
+  ].obs;
 
   // Selected Spotify-style Artist / Regional category
   final Rx<ArtistCategoryModel?> selectedArtist = Rx<ArtistCategoryModel?>(null);
@@ -339,6 +352,7 @@ class MusicController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    loadCategoryPreferences();
     fetchTracks();
     loadFollowedArtists();
     loadCustomPlaylists();
@@ -349,6 +363,41 @@ class MusicController extends GetxController {
     loadTopCharts();
     loadRomanticTracks();
     loadPartyTracks();
+  }
+
+  /// Loads favorite genres from onboarding and personalizes the category filter pills
+  Future<void> loadCategoryPreferences() async {
+    try {
+      final savedGenres = await OnboardingService().getSavedGenres();
+      final List<String> list = ['All'];
+      for (final g in savedGenres) {
+        if (g.isNotEmpty && !list.contains(g)) {
+          list.add(g);
+        }
+      }
+      const popular = [
+        'Bollywood',
+        'Punjabi',
+        'Romantic',
+        'Party',
+        'Gujarati',
+        'Pop',
+        'Lo-Fi',
+        'Chill',
+        'Hip-Hop/Rap',
+        'Rock',
+        'Electronic',
+        'Classical',
+      ];
+      for (final p in popular) {
+        if (!list.contains(p)) {
+          list.add(p);
+        }
+      }
+      categories.assignAll(list);
+    } catch (e) {
+      debugPrint('[MusicController] Error loading category preferences: $e');
+    }
   }
 
   // All Songs expansion state in Home (initial max 10, expandable via See more)

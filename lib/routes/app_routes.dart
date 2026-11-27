@@ -6,4 +6,5 @@ abstract class AppRoutes {
   static const category = '/category';
   static const profile = '/profile';
   static const blendDetail = '/blend-detail';
+  static const onboarding = '/onboarding';
 }

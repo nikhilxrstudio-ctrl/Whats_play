@@ -10,6 +10,7 @@ import '../screens/blend_detail_screen.dart';
 import '../screens/category_detail_screen.dart';
 import '../screens/music_catalogue_screen.dart';
 import '../screens/music_player_screen.dart';
+import '../screens/onboarding_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/section_tracks_screen.dart';
 import '../services/audius_service.dart';
@@ -85,6 +86,11 @@ class AppPages {
       page: () => const BlendDetailScreen(),
       transition: Transition.cupertino,
       popGesture: true,
+    ),
+    GetPage(
+      name: AppRoutes.onboarding,
+      page: () => const OnboardingScreen(),
+      transition: Transition.fadeIn,
     ),
   ];
 }

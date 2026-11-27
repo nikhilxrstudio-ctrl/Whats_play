@@ -14,6 +14,7 @@ import 'services/auth_service.dart';
 import 'services/blend_service.dart';
 import 'services/deep_link_service.dart';
 import 'services/local_database_service.dart';
+import 'services/onboarding_service.dart';
 
 late AudioPlayerHandler audioHandler;
 
@@ -53,11 +54,20 @@ Future<void> main() async {
     permanent: true,
   );
 
-  runApp(const WhatsPlayApp());
+  final onboardingDone = await OnboardingService().isOnboardingDone();
+
+  runApp(WhatsPlayApp(
+    initialRoute: onboardingDone ? AppRoutes.catalogue : AppRoutes.onboarding,
+  ));
 }
 
 class WhatsPlayApp extends StatelessWidget {
-  const WhatsPlayApp({super.key});
+  final String initialRoute;
+
+  const WhatsPlayApp({
+    super.key,
+    this.initialRoute = AppRoutes.catalogue,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +108,7 @@ class WhatsPlayApp extends StatelessWidget {
             useMaterial3: true,
             fontFamily: 'Roboto',
           ),
-          initialRoute: AppRoutes.catalogue,
+          initialRoute: initialRoute,
           getPages: AppPages.routes,
           defaultTransition: Transition.cupertino,
           transitionDuration: const Duration(milliseconds: 280),
