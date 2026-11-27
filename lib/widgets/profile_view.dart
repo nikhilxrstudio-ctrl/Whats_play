@@ -119,6 +119,11 @@ class ProfileView extends StatelessWidget {
               radius: 34.r,
               backgroundColor: const Color(0xFF242424),
               backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
+              onBackgroundImageError: photo.isNotEmpty
+                  ? (exception, stackTrace) {
+                      debugPrint('[ProfileView] Avatar load error: $exception');
+                    }
+                  : null,
               child: photo.isEmpty
                   ? Icon(
                       CupertinoIcons.person_fill,

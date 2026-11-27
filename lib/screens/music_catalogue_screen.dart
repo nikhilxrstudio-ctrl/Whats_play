@@ -3490,7 +3490,14 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                 width: 52.w,
                 height: 52.w,
                 child: artist.imageUrl != null
-                    ? Image.network(artist.imageUrl!, fit: BoxFit.cover)
+                    ? Image.network(
+                        artist.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: AppColors.surfaceLight,
+                          child: const Icon(CupertinoIcons.person_fill, color: AppColors.textMuted),
+                        ),
+                      )
                     : Container(color: AppColors.surfaceLight),
               ),
             ),
@@ -3572,7 +3579,14 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                   width: 52.w,
                   height: 52.w,
                   child: artist.imageUrl != null && artist.imageUrl!.isNotEmpty
-                      ? Image.network(artist.imageUrl!, fit: BoxFit.cover)
+                      ? Image.network(
+                          artist.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: AppColors.surfaceLight,
+                            child: const Icon(CupertinoIcons.person_fill, color: AppColors.textMuted),
+                          ),
+                        )
                       : Container(
                           color: AppColors.surfaceLight,
                           child: const Icon(CupertinoIcons.person_fill, color: AppColors.textMuted),

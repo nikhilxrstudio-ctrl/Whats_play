@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -24,7 +26,42 @@ Future<void> main() async {
   // Initialize Firebase (safely wrapped so offline / test environments don't throw)
   try {
     await Firebase.initializeApp();
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    // Catch framework-level errors (images, widgets, gestures)
+    FlutterError.onError = (FlutterErrorDetails details) {
+      // Benign network errors (image codec timeouts, 404s, offline sockets)
+      // or silent framework errors handled by errorBuilder / widgets
+      // must NOT be logged as fatal crashes in Crashlytics.
+      final isSilent = details.silent;
+      final isImageResource = details.library == 'image resource service' ||
+          details.context?.toString().contains('image codec') == true ||
+          details.context?.toString().contains('image resource') == true;
+      final isNetworkTimeout = details.exception is SocketException ||
+          details.exception is HttpException ||
+          details.exception.toString().contains('SocketException') ||
+          details.exception.toString().contains('Connection timed out');
+
+      if (isSilent || isImageResource || isNetworkTimeout) {
+        // Record as non-fatal warning so crash metrics stay accurate and app never registers a fatal crash
+        FirebaseCrashlytics.instance.recordFlutterError(details);
+      } else {
+        // Genuine fatal widget tree crashes
+        FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+      }
+    };
+
+    // Catch asynchronous / platform-level errors (e.g. background socket timeouts)
+    PlatformDispatcher.instance.onError = (error, stack) {
+      if (error is SocketException ||
+          error is HttpException ||
+          error.toString().contains('SocketException') ||
+          error.toString().contains('Connection timed out') ||
+          error.toString().contains('image codec')) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
+        return true; // Mark as handled
+      }
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
   } catch (e) {
     debugPrint('[Firebase] Initialization skipped or error: $e');
   }

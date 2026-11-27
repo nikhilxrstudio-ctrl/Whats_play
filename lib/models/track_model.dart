@@ -102,6 +102,17 @@ class TrackModel {
           artworkMap['1000x1000'];
     }
 
+    // Sanitize Audius decentralized artwork URL: upgrade to https and strip non-standard validator ports
+    if (artworkUrl != null && artworkUrl.isNotEmpty) {
+      if (artworkUrl.startsWith('http://')) {
+        artworkUrl = artworkUrl.replaceFirst('http://', 'https://');
+      }
+      final uri = Uri.tryParse(artworkUrl);
+      if (uri != null && uri.hasPort && uri.port != 80 && uri.port != 443 && uri.port != 8080 && uri.port != 8443) {
+        artworkUrl = uri.replace(port: null).toString();
+      }
+    }
+
     final String genre = json['genre'] != null && json['genre'].toString().isNotEmpty
         ? json['genre'].toString()
         : 'General';
