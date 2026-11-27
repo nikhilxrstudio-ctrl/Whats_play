@@ -3995,6 +3995,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
     final textController = TextEditingController(text: 'Our Blend');
     final blendService = Get.isRegistered<BlendService>() ? BlendService.to : Get.put(BlendService());
     final isCreating = false.obs;
+    final selectedPreset = kBlendPresets.first.obs;
 
     showModalBottomSheet(
       context: context,
@@ -4090,8 +4091,78 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                         prefixIcon: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary),
                       ),
                     ),
+                    SizedBox(height: 14.h),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Choose Blend Emoji & Color Mood',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    SizedBox(
+                      height: 48.h,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: kBlendPresets.length,
+                        separatorBuilder: (context, index) => SizedBox(width: 8.w),
+                        itemBuilder: (context, index) {
+                          final preset = kBlendPresets[index];
+                          final color = Color(int.parse('FF${preset.colorHex.replaceAll('#', '')}', radix: 16));
+                          return Obx(() {
+                            final isSelected = selectedPreset.value.icon == preset.icon;
+                            return GestureDetector(
+                              onTap: () => selectedPreset.value = preset,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? color.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(14.r),
+                                  border: Border.all(
+                                    color: isSelected ? color : Colors.white.withValues(alpha: 0.1),
+                                    width: isSelected ? 1.8 : 1,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: color.withValues(alpha: 0.4),
+                                            blurRadius: 10,
+                                            spreadRadius: 1,
+                                          )
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(preset.icon, style: TextStyle(fontSize: 18.sp)),
+                                    SizedBox(width: 6.w),
+                                    Text(
+                                      preset.label,
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.white : Colors.white60,
+                                        fontSize: 12.sp,
+                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          });
+                        },
+                      ),
+                    ),
                     SizedBox(height: 22.h),
                     Obx(() {
+                      final activePreset = selectedPreset.value;
+                      final activeColor = Color(int.parse('FF${activePreset.colorHex.replaceAll('#', '')}', radix: 16));
                       return SizedBox(
                         width: double.infinity,
                         height: 48.h,
@@ -4102,7 +4173,11 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                                   final name = textController.text.trim();
                                   if (name.isEmpty) return;
                                   isCreating.value = true;
-                                  final newBlend = await blendService.createBlend(name: name);
+                                  final newBlend = await blendService.createBlend(
+                                    name: name,
+                                    icon: activePreset.icon,
+                                    colorHex: activePreset.colorHex,
+                                  );
                                   isCreating.value = false;
                                   if (newBlend != null && sheetContext.mounted) {
                                     Navigator.pop(sheetContext);
@@ -4110,7 +4185,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: activeColor,
                             foregroundColor: Colors.black,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24.r),
@@ -4464,21 +4539,24 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                   width: 52.w,
                   height: 52.w,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12.r),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF8E24AA),
-                        Color(0xFF1DB954),
-                      ],
+                    borderRadius: BorderRadius.circular(14.r),
+                    gradient: LinearGradient(
+                      colors: blend.gradientColors,
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: blend.themeColor.withValues(alpha: 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: Center(
-                    child: Icon(
-                      Icons.auto_awesome_rounded,
-                      color: Colors.white,
-                      size: 24.sp,
+                    child: Text(
+                      blend.icon,
+                      style: TextStyle(fontSize: 24.sp),
                     ),
                   ),
                 ),

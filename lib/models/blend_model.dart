@@ -1,5 +1,33 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'track_model.dart';
+
+class BlendThemePreset {
+  final String icon;
+  final String colorHex;
+  final String label;
+
+  const BlendThemePreset({
+    required this.icon,
+    required this.colorHex,
+    required this.label,
+  });
+}
+
+const List<BlendThemePreset> kBlendPresets = [
+  BlendThemePreset(icon: '🎵', colorHex: '#1DB954', label: 'Classic'),
+  BlendThemePreset(icon: '🔥', colorHex: '#FF5722', label: 'Vibes'),
+  BlendThemePreset(icon: '💜', colorHex: '#9C27B0', label: 'Chill'),
+  BlendThemePreset(icon: '🎧', colorHex: '#00E5FF', label: 'Electro'),
+  BlendThemePreset(icon: '💖', colorHex: '#E91E63', label: 'Romance'),
+  BlendThemePreset(icon: '⚡', colorHex: '#FFC107', label: 'Party'),
+  BlendThemePreset(icon: '🌊', colorHex: '#0091EA', label: 'Waves'),
+  BlendThemePreset(icon: '☕', colorHex: '#8D6E63', label: 'Acoustic'),
+  BlendThemePreset(icon: '🌟', colorHex: '#FFB300', label: 'Stars'),
+  BlendThemePreset(icon: '🎸', colorHex: '#E64A19', label: 'Rock'),
+  BlendThemePreset(icon: '🌴', colorHex: '#26A69A', label: 'Tropics'),
+  BlendThemePreset(icon: '🎉', colorHex: '#7C4DFF', label: 'Fiesta'),
+];
 
 class BlendMember {
   final String uid;
@@ -47,6 +75,8 @@ class BlendModel {
   final List<String> memberUids;
   final List<BlendMember> members;
   final int tracksCount;
+  final String icon; // Emoji or custom icon, e.g. 🎵, 🔥, 💜
+  final String colorHex; // Hex string e.g. '#1DB954'
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -60,9 +90,34 @@ class BlendModel {
     required this.memberUids,
     required this.members,
     this.tracksCount = 0,
+    this.icon = '🎵',
+    this.colorHex = '#1DB954',
     this.createdAt,
     this.updatedAt,
   });
+
+  /// Parse the colorHex into a Flutter Color
+  Color get themeColor {
+    try {
+      final hex = colorHex.replaceAll('#', '').trim();
+      if (hex.length == 6) {
+        return Color(int.parse('FF$hex', radix: 16));
+      } else if (hex.length == 8) {
+        return Color(int.parse(hex, radix: 16));
+      }
+      return const Color(0xFF1DB954);
+    } catch (_) {
+      return const Color(0xFF1DB954);
+    }
+  }
+
+  /// Two-tone gradient matching the blend theme
+  List<Color> get gradientColors {
+    final primary = themeColor;
+    final hsl = HSLColor.fromColor(primary);
+    final dark = hsl.withLightness((hsl.lightness * 0.45).clamp(0.0, 1.0)).toColor();
+    return [primary, dark];
+  }
 
   factory BlendModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
@@ -94,6 +149,8 @@ class BlendModel {
       memberUids: memberUidsList,
       members: membersList,
       tracksCount: (data['tracksCount'] as num?)?.toInt() ?? 0,
+      icon: data['icon'] as String? ?? '🎵',
+      colorHex: data['colorHex'] as String? ?? '#1DB954',
       createdAt: created,
       updatedAt: updated,
     );
@@ -109,9 +166,43 @@ class BlendModel {
       'memberUids': memberUids,
       'members': members.map((m) => m.toMap()).toList(),
       'tracksCount': tracksCount,
+      'icon': icon,
+      'colorHex': colorHex,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
+  }
+
+  BlendModel copyWith({
+    String? id,
+    String? name,
+    String? code,
+    String? creatorUid,
+    String? creatorName,
+    String? creatorPhoto,
+    List<String>? memberUids,
+    List<BlendMember>? members,
+    int? tracksCount,
+    String? icon,
+    String? colorHex,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return BlendModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      code: code ?? this.code,
+      creatorUid: creatorUid ?? this.creatorUid,
+      creatorName: creatorName ?? this.creatorName,
+      creatorPhoto: creatorPhoto ?? this.creatorPhoto,
+      memberUids: memberUids ?? this.memberUids,
+      members: members ?? this.members,
+      tracksCount: tracksCount ?? this.tracksCount,
+      icon: icon ?? this.icon,
+      colorHex: colorHex ?? this.colorHex,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
 

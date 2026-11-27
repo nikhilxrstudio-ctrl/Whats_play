@@ -93,201 +93,252 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                 : const SizedBox.shrink(),
           ),
         ),
-        body: StreamBuilder<List<BlendTrack>>(
-          stream: blendService.getBlendTracksStream(_blend.id),
-          builder: (context, snapshot) {
-            final tracks = snapshot.data ?? [];
-            final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+        body: StreamBuilder<BlendModel?>(
+          stream: blendService.getBlendStream(_blend.id),
+          initialData: _blend,
+          builder: (context, blendSnapshot) {
+            final currentBlend = blendSnapshot.data ?? _blend;
 
-            return CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                // Hero Header with Gradient
-                SliverAppBar(
-                  expandedHeight: 235.h,
-                  pinned: true,
-                  stretch: true,
-                  backgroundColor: const Color(0xFF191919),
-                  leadingWidth: 52.w,
-                  titleSpacing: 8.w,
-                  centerTitle: false,
-                  leading: const SpotifyBackButton(),
-                  actions: [
-                    IconButton(
-                      icon: const Icon(Icons.share_rounded, color: Colors.white),
-                      tooltip: 'Share Blend Code',
-                      onPressed: _copyCode,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
-                      onPressed: () => _showBlendOptionsMenu(context, blendService, currentUid),
-                    ),
-                    SizedBox(width: 8.w),
-                  ],
-                  flexibleSpace: FlexibleSpaceBar(
-                    stretchModes: const [
-                      StretchMode.zoomBackground,
-                      StretchMode.blurBackground,
-                    ],
-                    background: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF8E24AA), // Magenta
-                            Color(0xFF1DB954), // Emerald
-                            Color(0xFF121212), // Dark base
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          stops: [0.0, 0.45, 1.0],
+            return StreamBuilder<List<BlendTrack>>(
+              stream: blendService.getBlendTracksStream(currentBlend.id),
+              builder: (context, snapshot) {
+                final tracks = snapshot.data ?? [];
+                final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
+
+                return CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
+                    // Hero Header with Dynamic Mood Gradient & Custom Emoji
+                    SliverAppBar(
+                      expandedHeight: 240.h,
+                      pinned: true,
+                      stretch: true,
+                      backgroundColor: const Color(0xFF191919),
+                      leadingWidth: 52.w,
+                      titleSpacing: 8.w,
+                      centerTitle: false,
+                      leading: const SpotifyBackButton(),
+                      actions: [
+                        IconButton(
+                          icon: const Icon(Icons.share_rounded, color: Colors.white),
+                          tooltip: 'Share Blend Code',
+                          onPressed: _copyCode,
                         ),
-                      ),
-                      child: SafeArea(
-                        bottom: false,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              // Badge
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.auto_awesome_rounded,
-                                      size: 13.sp,
-                                      color: AppColors.primary,
-                                    ),
-                                    SizedBox(width: 5.w),
-                                    Text(
-                                      'SHARED BLEND',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10.5.sp,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.8,
+                        IconButton(
+                          icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
+                          onPressed: () => _showBlendOptionsMenu(context, blendService, currentUid, currentBlend),
+                        ),
+                        SizedBox(width: 8.w),
+                      ],
+                      flexibleSpace: FlexibleSpaceBar(
+                        stretchModes: const [
+                          StretchMode.zoomBackground,
+                          StretchMode.blurBackground,
+                        ],
+                        background: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                currentBlend.gradientColors.first,
+                                currentBlend.gradientColors.length > 1
+                                    ? currentBlend.gradientColors[1]
+                                    : currentBlend.themeColor,
+                                const Color(0xFF121212),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              stops: const [0.0, 0.45, 1.0],
+                            ),
+                          ),
+                          child: SafeArea(
+                            bottom: false,
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  // Badge with Mood Icon
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.4),
+                                      borderRadius: BorderRadius.circular(12.r),
+                                      border: Border.all(
+                                        color: currentBlend.themeColor.withValues(alpha: 0.4),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-
-                              // Blend Title
-                              Text(
-                                _blend.name,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24.sp,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.5,
-                                  shadows: [
-                                    Shadow(
-                                      color: Colors.black.withValues(alpha: 0.7),
-                                      blurRadius: 8,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          currentBlend.icon,
+                                          style: TextStyle(fontSize: 12.sp),
+                                        ),
+                                        SizedBox(width: 5.w),
+                                        Text(
+                                          'SHARED BLEND',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10.5.sp,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 10.h),
+                                  ),
+                                  SizedBox(height: 10.h),
 
-                              // Members and Stats row
-                              Row(
-                                children: [
-                                  _buildMembersAvatarStack(_blend.members),
-                                  SizedBox(width: 10.w),
-                                  Text(
-                                    '${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'} • ${_blend.members.length} ${_blend.members.length == 1 ? 'friend' : 'friends'}',
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.85),
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  // Blend Emoji Avatar + Title with color shadow!
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 44.w,
+                                        height: 44.w,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.45),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: currentBlend.themeColor.withValues(alpha: 0.7),
+                                            width: 1.5,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: currentBlend.themeColor.withValues(alpha: 0.45),
+                                              blurRadius: 14,
+                                              spreadRadius: 1,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            currentBlend.icon,
+                                            style: TextStyle(fontSize: 22.sp),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 12.w),
+                                      Expanded(
+                                        child: Text(
+                                          currentBlend.name,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24.sp,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: -0.5,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black.withValues(alpha: 0.7),
+                                                blurRadius: 8,
+                                              ),
+                                            ],
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 10.h),
+
+                                  // Members and Stats row
+                                  Row(
+                                    children: [
+                                      _buildMembersAvatarStack(currentBlend.members),
+                                      SizedBox(width: 10.w),
+                                      Text(
+                                        '${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'} • ${currentBlend.members.length} ${currentBlend.members.length == 1 ? 'friend' : 'friends'}',
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(alpha: 0.85),
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 16.h),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Action Bar (Play All + Add Songs)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
+                        child: Row(
+                          children: [
+                            // Play Button with matching theme color & shadow
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(24.r),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: currentBlend.themeColor.withValues(alpha: 0.35),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 16.h),
-                            ],
-                          ),
+                              child: ElevatedButton.icon(
+                                onPressed: tracks.isEmpty
+                                    ? null
+                                    : () {
+                                        final trackModels = tracks.map((t) => t.toTrackModel()).toList();
+                                        playerCtrl?.playTrack(trackModels.first, queue: trackModels);
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: currentBlend.themeColor,
+                                  foregroundColor: Colors.black,
+                                  padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 11.h),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24.r),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                icon: Icon(Icons.play_arrow_rounded, size: 22.sp, color: Colors.black),
+                                label: Text(
+                                  'Play All',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+
+                            // "+ Add Songs" Button
+                            OutlinedButton.icon(
+                              onPressed: () => _showAddSongToBlendSheet(context),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                side: BorderSide(
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                ),
+                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 11.h),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24.r),
+                                ),
+                              ),
+                              icon: Icon(Icons.add_rounded, size: 18.sp, color: currentBlend.themeColor),
+                              label: Text(
+                                'Add Songs',
+                                style: TextStyle(
+                                  fontSize: 13.5.sp,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                ),
-
-                // Action Bar (Play All + Add Songs)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 14.h),
-                    child: Row(
-                      children: [
-                        // Big Green Play Button
-                        ElevatedButton.icon(
-                          onPressed: tracks.isEmpty
-                              ? null
-                              : () {
-                                  final trackModels = tracks.map((t) => t.toTrackModel()).toList();
-                                  playerCtrl?.playTrack(trackModels.first, queue: trackModels);
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.black,
-                            padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 11.h),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24.r),
-                            ),
-                            elevation: 0,
-                          ),
-                          icon: Icon(Icons.play_arrow_rounded, size: 22.sp, color: Colors.black),
-                          label: Text(
-                            'Play All',
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-
-                        // "+ Add Songs" Button
-                        OutlinedButton.icon(
-                          onPressed: () => _showAddSongToBlendSheet(context),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.25),
-                            ),
-                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 11.h),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24.r),
-                            ),
-                          ),
-                          icon: Icon(Icons.add_rounded, size: 18.sp, color: AppColors.primary),
-                          label: Text(
-                            'Add Songs',
-                            style: TextStyle(
-                              fontSize: 13.5.sp,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
 
                 // Tracks List or Empty State
                 if (isLoading)
@@ -382,9 +433,11 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
               ],
             );
           },
-        ),
-      ),
-    );
+        );
+      },
+    ),
+  ),
+);
   }
 
   Widget _buildMembersAvatarStack(List<BlendMember> members) {
@@ -620,6 +673,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
     BuildContext context,
     BlendService blendService,
     String currentUid,
+    BlendModel currentBlend,
   ) {
     showModalBottomSheet(
       context: context,
@@ -646,9 +700,27 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                 ),
                 SizedBox(height: 16.h),
                 ListTile(
-                  leading: const Icon(Icons.copy_rounded, color: AppColors.primary),
+                  leading: Text(
+                    currentBlend.icon,
+                    style: TextStyle(fontSize: 22.sp),
+                  ),
+                  title: const Text(
+                    'Customize Icon & Mood Color',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    'Change Blend emoji and ambient theme',
+                    style: TextStyle(color: Colors.white54, fontSize: 11.5.sp),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _showCustomizeThemeSheet(context, blendService, currentBlend);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.copy_rounded, color: currentBlend.themeColor),
                   title: Text(
-                    'Copy Join Code (${_blend.code})',
+                    'Copy Join Code (${currentBlend.code})',
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                   onTap: () {
@@ -666,7 +738,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                     Navigator.pop(sheetContext);
                     final confirmed = await Get.defaultDialog<bool>(
                       title: 'Leave Blend?',
-                      middleText: 'Are you sure you want to leave "${_blend.name}"?',
+                      middleText: 'Are you sure you want to leave "${currentBlend.name}"?',
                       textConfirm: 'Leave',
                       textCancel: 'Cancel',
                       confirmTextColor: Colors.white,
@@ -674,11 +746,126 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                       onConfirm: () => Get.back(result: true),
                     );
                     if (confirmed == true) {
-                      await blendService.leaveBlend(_blend.id);
+                      await blendService.leaveBlend(currentBlend.id);
                       Get.back();
                     }
                   },
                 ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showCustomizeThemeSheet(
+    BuildContext context,
+    BlendService blendService,
+    BlendModel currentBlend,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+          decoration: BoxDecoration(
+            color: const Color(0xFF222222),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22.r)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                Text(
+                  'Choose Blend Icon & Mood Color',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Changes update the ambient hero glow and icon in real-time.',
+                  style: TextStyle(color: Colors.white60, fontSize: 12.sp),
+                ),
+                SizedBox(height: 16.h),
+                Wrap(
+                  spacing: 10.w,
+                  runSpacing: 10.h,
+                  children: kBlendPresets.map((preset) {
+                    final color = Color(int.parse('FF${preset.colorHex.replaceAll('#', '')}', radix: 16));
+                    final isSelected = currentBlend.icon == preset.icon;
+
+                    return GestureDetector(
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        setState(() {
+                          _blend = _blend.copyWith(
+                            icon: preset.icon,
+                            colorHex: preset.colorHex,
+                          );
+                        });
+                        await blendService.updateBlendTheme(
+                          currentBlend.id,
+                          icon: preset.icon,
+                          colorHex: preset.colorHex,
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                        decoration: BoxDecoration(
+                          color: isSelected ? color.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(
+                            color: isSelected ? color : Colors.white.withValues(alpha: 0.12),
+                            width: isSelected ? 2 : 1,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: color.withValues(alpha: 0.4),
+                                    blurRadius: 10,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(preset.icon, style: TextStyle(fontSize: 18.sp)),
+                            SizedBox(width: 6.w),
+                            Text(
+                              preset.label,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.white70,
+                                fontSize: 12.sp,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height: 14.h),
               ],
             ),
           ),

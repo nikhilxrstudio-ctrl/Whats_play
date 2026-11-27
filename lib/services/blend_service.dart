@@ -99,8 +99,12 @@ class BlendService extends GetxService {
     return _generateRawCode();
   }
 
-  /// Create a new shared Blend
-  Future<BlendModel?> createBlend({required String name}) async {
+  /// Create a new shared Blend with customizable emoji icon and color theme
+  Future<BlendModel?> createBlend({
+    required String name,
+    String icon = '🎵',
+    String colorHex = '#1DB954',
+  }) async {
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
     final user = auth?.currentUser.value;
     if (user == null) {
@@ -142,6 +146,8 @@ class BlendService extends GetxService {
         'memberUids': [user.uid],
         'members': [creatorMember.toMap()],
         'tracksCount': 0,
+        'icon': icon,
+        'colorHex': colorHex,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
@@ -166,6 +172,8 @@ class BlendService extends GetxService {
         memberUids: [user.uid],
         members: [creatorMember],
         tracksCount: 0,
+        icon: icon,
+        colorHex: colorHex,
         createdAt: now,
         updatedAt: now,
       );
@@ -367,6 +375,37 @@ class BlendService extends GetxService {
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => BlendTrack.fromFirestore(doc)).toList());
+  }
+
+  /// Real-time stream of a Blend document itself for syncing theme & details
+  Stream<BlendModel?> getBlendStream(String blendId) {
+    return FirebaseFirestore.instance
+        .collection('blends')
+        .doc(blendId)
+        .snapshots()
+        .map((doc) {
+      if (!doc.exists) return null;
+      return BlendModel.fromFirestore(doc);
+    });
+  }
+
+  /// Update the blend's custom icon/emoji and color theme
+  Future<bool> updateBlendTheme(
+    String blendId, {
+    required String icon,
+    required String colorHex,
+  }) async {
+    try {
+      await FirebaseFirestore.instance.collection('blends').doc(blendId).update({
+        'icon': icon,
+        'colorHex': colorHex,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      debugPrint('[BlendService] updateBlendTheme error: $e');
+      return false;
+    }
   }
 
   /// Remove a song from a Blend
