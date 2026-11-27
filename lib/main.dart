@@ -149,35 +149,9 @@ Future<void> main() async {
 
   final onboardingDone = await OnboardingService().isOnboardingDone();
 
-  runZonedGuarded(() {
-    runApp(WhatsPlayApp(
-      initialRoute: onboardingDone ? AppRoutes.catalogue : AppRoutes.onboarding,
-    ));
-  }, (error, stack) {
-    final errStr = error.toString();
-    if (error is SocketException ||
-        error is HttpException ||
-        errStr.contains('SocketException') ||
-        errStr.contains('Connection timed out') ||
-        errStr.contains('image codec') ||
-        errStr.contains('UNAVAILABLE') ||
-        errStr.contains('Unable to resolve host') ||
-        errStr.contains('UnknownHostException') ||
-        errStr.contains('cloud_firestore/unavailable') ||
-        errStr.contains('network-request-failed') ||
-        errStr.contains('EAI_NODATA') ||
-        errStr.contains('android_getaddrinfo') ||
-        errStr.contains('GaiException') ||
-        errStr.contains('End of stream') ||
-        errStr.contains('Failed to resolve name')) {
-      debugPrint('[runZonedGuarded] Suppressed background offline network disconnect: $error');
-      return;
-    }
-    debugPrint('[runZonedGuarded] Uncaught async error: $error\n$stack');
-    if (!kDebugMode) {
-      FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
-    }
-  });
+  runApp(WhatsPlayApp(
+    initialRoute: onboardingDone ? AppRoutes.catalogue : AppRoutes.onboarding,
+  ));
 }
 
 class WhatsPlayApp extends StatelessWidget {
