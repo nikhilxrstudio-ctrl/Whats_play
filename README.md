@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk"><img src="https://img.shields.io/badge/Download_APK-WhatsPlay.apk_(23.3_MB)-1DB954?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
+  <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk"><img src="https://img.shields.io/badge/Download_APK-WhatsPlay.apk_(25.4_MB)-1DB954?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
   <a href="https://nikhilxrstudio-ctrl.github.io/Whats_play/"><img src="https://img.shields.io/badge/Official_Website-Live-00E5FF?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Website" /></a>
 </p>
 
@@ -53,6 +53,7 @@ Get the latest optimized release APK directly on your Android device:
   - [Background Audio & Lock Screen Notifications](#5-background-playback--system-media-notifications)
   - [Offline Music & SQLite Library](#6-offline-library--sqlite-persistence)
   - [Cross-Device Typography Scaling](#7-cross-device-typography-scaling)
+  - [Real-Time Shared Blend Music](#8-real-time-shared-blend-music)
 - [Architecture & Tech Stack](#-architecture--tech-stack)
 - [Screenshots & UI Walkthrough](#-screenshots--ui-walkthrough)
 - [Prerequisites & Development Setup](#-prerequisites--development-setup)
@@ -133,6 +134,13 @@ WhatsPlay integrates two independent music providers to ensure rich catalog dive
 ### 7. Cross-Device Typography Scaling
 - Configured using `flutter_screenutil` with custom non-scaling text scalers (`TextScaler.noScaling`) and a baseline 375x812 design viewport.
 - Ensures identical font sizes, proportions, and spacing across small phones, flagship devices, and tablets without system font distortion.
+
+### 8. Real-Time Shared Blend Music
+- **Unique Join Codes**: Generate unique 6-character uppercase codes for each Blend. Share code with friends to join effortlessly.
+- **Real-Time Collaboration**: Powered by Cloud Firestore real-time snapshot listeners. Tracks added by either user instantly reflect on both devices with creator attribution ("Added by [Name]").
+- **Real-Time Now-Playing Indicators**: Active songs display with Spotify green titles, animated audio wave equalizer overlays on artwork, and synced playback.
+- **Instant Search Debounce**: Fast 350ms debounced search when adding tracks to Blends without requiring software keyboard confirmation.
+- **User Activity & Telemetry**: Securely stores profiles, device telemetry, and blend history for future dashboard integration.
 
 ---
 
