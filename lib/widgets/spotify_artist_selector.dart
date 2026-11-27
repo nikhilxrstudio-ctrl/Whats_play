@@ -9,6 +9,9 @@ class SpotifyArtistSelector extends StatelessWidget {
   final ArtistCategoryModel? selectedArtist;
   final ValueChanged<ArtistCategoryModel> onArtistSelected;
   final VoidCallback? onLikedSongsSelected;
+  final List<String> favoriteCategories;
+  final ValueChanged<String>? onCategorySelected;
+  final String? selectedCategory;
 
   const SpotifyArtistSelector({
     super.key,
@@ -16,6 +19,9 @@ class SpotifyArtistSelector extends StatelessWidget {
     required this.selectedArtist,
     required this.onArtistSelected,
     this.onLikedSongsSelected,
+    this.favoriteCategories = const [],
+    this.onCategorySelected,
+    this.selectedCategory,
   });
 
   @override
@@ -80,15 +86,21 @@ class SpotifyArtistSelector extends StatelessWidget {
                 crossAxisSpacing: 6.h,
                 mainAxisExtent: 168.w,
               ),
-              itemCount: onLikedSongsSelected != null ? artists.length + 1 : artists.length,
+              itemCount: (onLikedSongsSelected != null ? 1 : 0) +
+                  favoriteCategories.length +
+                  artists.length,
               itemBuilder: (context, index) {
                 if (index == 0 && onLikedSongsSelected != null) {
                   return _buildLikedSongsTile();
                 }
 
-                final artist = onLikedSongsSelected != null
-                    ? artists[index - 1]
-                    : artists[index];
+                final catIndex = onLikedSongsSelected != null ? index - 1 : index;
+                if (catIndex < favoriteCategories.length) {
+                  return _buildCategoryTile(favoriteCategories[catIndex]);
+                }
+
+                final artistIndex = catIndex - favoriteCategories.length;
+                final artist = artists[artistIndex];
                 final isSelected = selectedArtist?.id == artist.id;
                 final isPlaylist = artist.categoryLabel == 'Playlist';
 
@@ -277,5 +289,135 @@ class SpotifyArtistSelector extends StatelessWidget {
         color: AppColors.textSecondary,
       ),
     );
+  }
+
+  Widget _buildCategoryTile(String category) {
+    final isSelected =
+        selectedCategory?.toLowerCase() == category.toLowerCase();
+    final gradient = _getCategoryGradient(category);
+    final icon = _getCategoryIcon(category);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onCategorySelected?.call(category),
+        borderRadius: BorderRadius.circular(6.r),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFF2C2C2C)
+                : const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(6.r),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : Colors.transparent,
+              width: 1.5.w,
+            ),
+          ),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.horizontal(
+                  left: Radius.circular(5.r),
+                ),
+                child: Container(
+                  width: 48.w,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: gradient,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      color: Colors.white,
+                      size: 20.sp,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                    fontSize: 11.5.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (isSelected)
+                Padding(
+                  padding: EdgeInsets.only(right: 6.w),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    size: 14.sp,
+                    color: AppColors.primary,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Color> _getCategoryGradient(String category) {
+    switch (category.toLowerCase()) {
+      case 'bollywood':
+        return [const Color(0xFFE91E63), const Color(0xFFFF9800)];
+      case 'punjabi':
+        return [const Color(0xFFFF5722), const Color(0xFFFFEB3B)];
+      case 'gujarati':
+        return [const Color(0xFF009688), const Color(0xFF4CAF50)];
+      case 'romantic':
+        return [const Color(0xFFE040FB), const Color(0xFFFF4081)];
+      case 'party':
+        return [const Color(0xFF7C4DFF), const Color(0xFF00E5FF)];
+      case 'pop':
+        return [const Color(0xFFFF4081), const Color(0xFFFFD54F)];
+      case 'lo-fi':
+      case 'chill':
+        return [const Color(0xFF3F51B5), const Color(0xFF00BCD4)];
+      case 'hip-hop/rap':
+        return [const Color(0xFFFF9800), const Color(0xFFF44336)];
+      case 'rock':
+        return [const Color(0xFF37474F), const Color(0xFFD32F2F)];
+      case 'electronic':
+        return [const Color(0xFF00E676), const Color(0xFF00B0FF)];
+      case 'classical':
+        return [const Color(0xFF795548), const Color(0xFFFFB74D)];
+      default:
+        return [const Color(0xFF1DB954), const Color(0xFF00897B)];
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'bollywood':
+        return CupertinoIcons.film;
+      case 'punjabi':
+        return CupertinoIcons.music_mic;
+      case 'gujarati':
+        return CupertinoIcons.sparkles;
+      case 'romantic':
+        return CupertinoIcons.heart_fill;
+      case 'party':
+        return CupertinoIcons.bolt_fill;
+      case 'pop':
+        return CupertinoIcons.star_fill;
+      case 'lo-fi':
+      case 'chill':
+        return CupertinoIcons.headphones;
+      default:
+        return CupertinoIcons.music_note_2;
+    }
   }
 }

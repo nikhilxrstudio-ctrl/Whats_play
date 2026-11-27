@@ -391,6 +391,10 @@ class MusicController extends GetxController {
     }
   }
 
+  /// Returns user's selected genres from onboarding (max 3, excluding 'All')
+  List<String> get userOnboardingGenres =>
+      userFavoriteCategories.where((c) => c != 'All').take(3).toList();
+
   // All Songs expansion state in Home (initial max 10, expandable via See more)
   final RxBool isAllSongsExpanded = false.obs;
 

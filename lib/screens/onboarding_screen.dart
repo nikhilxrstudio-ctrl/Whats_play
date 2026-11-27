@@ -376,7 +376,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               ),
               SizedBox(height: 10.h),
               Text(
-                'Pick your favourites and we\'ll personalise your Home feed. You can always change this later.',
+                'Pick up to 3 of your favourites (${_selectedGenres.length}/3) and we\'ll personalise your Home feed.',
                 style: TextStyle(
                   color: Colors.white60,
                   fontSize: 14.sp,
@@ -412,6 +412,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         if (selected) {
                           _selectedGenres.remove(g.label);
                         } else {
+                          if (_selectedGenres.length >= 3) {
+                            Get.snackbar(
+                              'Maximum 3 Genres',
+                              'You can choose up to 3 favorite genres.',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: const Color(0xFF242424),
+                              colorText: Colors.white,
+                              duration: const Duration(seconds: 2),
+                              margin: EdgeInsets.all(16.w),
+                              borderRadius: 12.r,
+                            );
+                            return;
+                          }
                           _selectedGenres.add(g.label);
                         }
                       });
