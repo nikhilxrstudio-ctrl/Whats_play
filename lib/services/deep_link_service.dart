@@ -4,7 +4,6 @@ import 'package:app_links/app_links.dart';
 import 'package:get/get.dart';
 import '../models/blend_model.dart';
 import '../routes/app_routes.dart';
-import 'auth_service.dart';
 import 'blend_service.dart';
 
 class DeepLinkService extends GetxService {
@@ -62,17 +61,6 @@ class DeepLinkService extends GetxService {
     final blendService = Get.isRegistered<BlendService>()
         ? BlendService.to
         : Get.put(BlendService());
-    final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
-
-    if (auth == null || !auth.isLoggedIn.value) {
-      Get.snackbar(
-        'Shared Blend Code: $code',
-        'Sign in with Google to join this Blend playlist.',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 4),
-      );
-      return;
-    }
 
     final result = await blendService.joinBlendWithCode(code);
     if (result['success'] == true) {

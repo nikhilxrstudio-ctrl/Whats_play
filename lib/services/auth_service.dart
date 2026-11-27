@@ -26,6 +26,16 @@ class AuthService extends GetxService {
   final RxString userName = ''.obs;
   final RxString userEmail = ''.obs;
   final RxString userPhotoUrl = ''.obs;
+  final RxString currentDeviceId = ''.obs;
+  final RxString effectiveUid = ''.obs;
+  final RxString guestUserName = 'Music Lover'.obs;
+
+  String get effectiveUserName {
+    if (isLoggedIn.value && userName.value.isNotEmpty) {
+      return userName.value;
+    }
+    return guestUserName.value.isNotEmpty ? guestUserName.value : 'Guest';
+  }
 
   @override
   void onInit() {
@@ -46,16 +56,78 @@ class AuthService extends GetxService {
         debugPrint('[AuthService] GoogleSignIn.initialize deferred or platform-handled: $gErr');
       }
 
+      // Fetch device ID immediately
+      final devInfo = await _getDeviceInfo();
+      currentDeviceId.value = devInfo['deviceId'] ?? 'device_unknown';
+
+      // Load cached profile data in case offline or starting up
+      await _loadCachedProfile();
+
+      _updateEffectiveUid();
+
       // Listen to Firebase Auth state
       _auth?.authStateChanges().listen((user) {
         _syncUserState(user);
       });
 
-      // Load cached profile data in case offline or starting up
-      await _loadCachedProfile();
+      // If user is not logged in, ensure guest device is tracked in Firestore 'users' collection
+      if (_auth?.currentUser == null) {
+        await _syncGuestDeviceToFirestore();
+      }
     } catch (e) {
       debugPrint('[AuthService] Firebase initialization skipped/fallback: $e');
       await _loadCachedProfile();
+      _updateEffectiveUid();
+    }
+  }
+
+  void _updateEffectiveUid() {
+    if (currentUser.value != null) {
+      effectiveUid.value = currentUser.value!.uid;
+    } else {
+      final devId = currentDeviceId.value.isNotEmpty ? currentDeviceId.value : 'guest_device';
+      effectiveUid.value = 'device_$devId';
+    }
+  }
+
+  Future<void> updateGuestName(String name) async {
+    final clean = name.trim();
+    if (clean.isEmpty) return;
+    guestUserName.value = clean;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('guest_user_name', clean);
+      await _syncGuestDeviceToFirestore();
+    } catch (_) {}
+  }
+
+  Future<void> _syncGuestDeviceToFirestore() async {
+    try {
+      final devInfo = await _getDeviceInfo();
+      final deviceId = devInfo['deviceId'] ?? currentDeviceId.value;
+      if (deviceId.isEmpty || deviceId == 'unknown') return;
+
+      final docId = 'device_$deviceId';
+      final userDoc = FirebaseFirestore.instance.collection('users').doc(docId);
+
+      final data = <String, dynamic>{
+        'uid': docId,
+        'deviceId': deviceId,
+        'deviceModel': devInfo['deviceModel'] ?? 'unknown',
+        'deviceBrand': devInfo['deviceBrand'] ?? 'unknown',
+        'osVersion': devInfo['osVersion'] ?? 'unknown',
+        'displayName': guestUserName.value,
+        'email': '',
+        'photoUrl': '',
+        'isLoggedIn': false,
+        'authType': 'guest',
+        'lastActive': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      await userDoc.set(data, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('[AuthService] Error syncing guest device to Firestore: $e');
     }
   }
 
@@ -98,6 +170,7 @@ class AuthService extends GetxService {
       );
       userEmail.value = user.email ?? '';
       userPhotoUrl.value = user.photoURL ?? '';
+      _updateEffectiveUid();
       _cacheProfile(userName.value, userEmail.value, userPhotoUrl.value);
       _syncUserToFirestore(user);
     } else {
@@ -105,12 +178,15 @@ class AuthService extends GetxService {
       userName.value = '';
       userEmail.value = '';
       userPhotoUrl.value = '';
+      _updateEffectiveUid();
+      _syncGuestDeviceToFirestore();
     }
   }
 
   Future<void> _syncUserToFirestore(User user) async {
     try {
       final devInfo = await _getDeviceInfo();
+      final deviceId = devInfo['deviceId'] ?? currentDeviceId.value;
       final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
 
       final cleanName = formatCleanDisplayName(
@@ -123,15 +199,35 @@ class AuthService extends GetxService {
         'email': user.email ?? '',
         'displayName': cleanName,
         'photoUrl': user.photoURL ?? userPhotoUrl.value,
-        'deviceId': devInfo['deviceId'] ?? 'unknown',
+        'deviceId': deviceId,
         'deviceModel': devInfo['deviceModel'] ?? 'unknown',
         'deviceBrand': devInfo['deviceBrand'] ?? 'unknown',
         'osVersion': devInfo['osVersion'] ?? 'unknown',
+        'isLoggedIn': true,
+        'authType': 'google',
         'lastActive': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
       await userDoc.set(data, SetOptions(merge: true));
+
+      // Also link the guest device record in 'users/device_{deviceId}' for unified dashboard tracking
+      if (deviceId.isNotEmpty && deviceId != 'unknown') {
+        try {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc('device_$deviceId')
+              .set({
+            'linkedUid': user.uid,
+            'isLoggedIn': true,
+            'authType': 'google',
+            'email': user.email ?? '',
+            'displayName': cleanName,
+            'lastActive': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        } catch (_) {}
+      }
     } catch (e) {
       debugPrint('[AuthService] Error syncing user to Firestore: $e');
     }
@@ -181,6 +277,7 @@ class AuthService extends GetxService {
   Future<void> _loadCachedProfile() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      guestUserName.value = prefs.getString('guest_user_name') ?? 'Music Lover';
       final loggedIn = prefs.getBool('auth_is_logged_in') ?? false;
       if (loggedIn) {
         userName.value = prefs.getString('auth_user_name') ?? 'Music Lover';

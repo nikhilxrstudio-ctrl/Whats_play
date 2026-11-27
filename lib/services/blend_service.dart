@@ -21,17 +21,17 @@ class BlendService extends GetxService {
     super.onInit();
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
     if (auth != null) {
-      _authWorker = ever(auth.currentUser, (user) {
-        if (user != null) {
-          _listenToUserBlends(user.uid);
+      _authWorker = ever(auth.effectiveUid, (uid) {
+        if (uid.isNotEmpty) {
+          _listenToUserBlends(uid);
         } else {
           _blendsSubscription?.cancel();
           userBlends.clear();
         }
       });
 
-      if (auth.currentUser.value != null) {
-        _listenToUserBlends(auth.currentUser.value!.uid);
+      if (auth.effectiveUid.value.isNotEmpty) {
+        _listenToUserBlends(auth.effectiveUid.value);
       }
     }
   }
@@ -104,34 +104,35 @@ class BlendService extends GetxService {
     required String name,
     String icon = '🎵',
     String colorHex = '#1DB954',
+    String? guestName,
   }) async {
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
-    final user = auth?.currentUser.value;
-    if (user == null) {
+    final uid = auth?.effectiveUid.value ?? '';
+    if (uid.isEmpty) {
       Get.snackbar(
-        'Authentication Required',
-        'Please sign in with Google to create a Blend.',
+        'Connecting Device...',
+        'Please wait a moment and try again.',
         snackPosition: SnackPosition.BOTTOM,
       );
       return null;
     }
+
+    if (guestName != null && guestName.trim().isNotEmpty) {
+      await auth?.updateGuestName(guestName.trim());
+    }
+
+    final effectiveName = auth?.effectiveUserName ?? 'Creator';
+    final photo = auth?.currentUser.value?.photoURL ?? auth?.userPhotoUrl.value ?? '';
 
     isLoading.value = true;
     try {
       final code = await generateUniqueCode();
       final now = DateTime.now();
 
-      final cleanUserName = auth?.userName.value.isNotEmpty == true
-          ? auth!.userName.value
-          : AuthService.formatCleanDisplayName(
-              displayName: user.displayName,
-              email: user.email,
-            );
-
       final creatorMember = BlendMember(
-        uid: user.uid,
-        name: cleanUserName,
-        photoUrl: user.photoURL ?? '',
+        uid: uid,
+        name: effectiveName,
+        photoUrl: photo,
         joinedAt: now,
       );
 
@@ -140,10 +141,10 @@ class BlendService extends GetxService {
       final blendData = {
         'name': name.trim().isNotEmpty ? name.trim() : 'Our Blend',
         'code': code.toUpperCase(),
-        'creatorUid': user.uid,
+        'creatorUid': uid,
         'creatorName': creatorMember.name,
         'creatorPhoto': creatorMember.photoUrl,
-        'memberUids': [user.uid],
+        'memberUids': [uid],
         'members': [creatorMember.toMap()],
         'tracksCount': 0,
         'icon': icon,
@@ -156,7 +157,7 @@ class BlendService extends GetxService {
 
       // Increment createdBlendsCount on users/{uid}
       try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'createdBlendsCount': FieldValue.increment(1),
           'lastActive': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
@@ -166,10 +167,10 @@ class BlendService extends GetxService {
         id: blendRef.id,
         name: blendData['name'] as String,
         code: code,
-        creatorUid: user.uid,
+        creatorUid: uid,
         creatorName: creatorMember.name,
         creatorPhoto: creatorMember.photoUrl,
-        memberUids: [user.uid],
+        memberUids: [uid],
         members: [creatorMember],
         tracksCount: 0,
         icon: icon,
@@ -193,14 +194,18 @@ class BlendService extends GetxService {
   }
 
   /// Join an existing Blend using its unique uppercase code
-  Future<Map<String, dynamic>> joinBlendWithCode(String code) async {
+  Future<Map<String, dynamic>> joinBlendWithCode(String code, {String? guestName}) async {
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
-    final user = auth?.currentUser.value;
-    if (user == null) {
+    final uid = auth?.effectiveUid.value ?? '';
+    if (uid.isEmpty) {
       return {
         'success': false,
-        'message': 'Please sign in with Google to join a Blend.',
+        'message': 'Connecting device... Please try again in a moment.',
       };
+    }
+
+    if (guestName != null && guestName.trim().isNotEmpty) {
+      await auth?.updateGuestName(guestName.trim());
     }
 
     final cleanCode = code.trim().toUpperCase();
@@ -231,7 +236,7 @@ class BlendService extends GetxService {
       final existingBlend = BlendModel.fromFirestore(doc);
 
       // Check if user is already in this blend
-      if (existingBlend.memberUids.contains(user.uid)) {
+      if (existingBlend.memberUids.contains(uid)) {
         isLoading.value = false;
         return {
           'success': true,
@@ -240,30 +245,26 @@ class BlendService extends GetxService {
         };
       }
 
-      final cleanUserName = auth?.userName.value.isNotEmpty == true
-          ? auth!.userName.value
-          : AuthService.formatCleanDisplayName(
-              displayName: user.displayName,
-              email: user.email,
-            );
+      final effectiveName = auth?.effectiveUserName ?? 'Friend';
+      final photo = auth?.currentUser.value?.photoURL ?? auth?.userPhotoUrl.value ?? '';
 
       final newMember = BlendMember(
-        uid: user.uid,
-        name: cleanUserName,
-        photoUrl: user.photoURL ?? '',
+        uid: uid,
+        name: effectiveName,
+        photoUrl: photo,
         joinedAt: DateTime.now(),
       );
 
       // Add user to memberUids and members list
       await doc.reference.update({
-        'memberUids': FieldValue.arrayUnion([user.uid]),
+        'memberUids': FieldValue.arrayUnion([uid]),
         'members': FieldValue.arrayUnion([newMember.toMap()]),
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
       // Increment joinedBlendsCount on users/{uid}
       try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'joinedBlendsCount': FieldValue.increment(1),
           'lastActive': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
@@ -292,11 +293,11 @@ class BlendService extends GetxService {
   /// Add a song/track to a specific Blend
   Future<bool> addTrackToBlend(String blendId, TrackModel track) async {
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
-    final user = auth?.currentUser.value;
-    if (user == null) {
+    final uid = auth?.effectiveUid.value ?? '';
+    if (uid.isEmpty) {
       Get.snackbar(
-        'Authentication Required',
-        'Please sign in with Google to add tracks to this Blend.',
+        'Connecting Device...',
+        'Please wait a moment and try again.',
         snackPosition: SnackPosition.BOTTOM,
       );
       return false;
@@ -319,12 +320,8 @@ class BlendService extends GetxService {
         return false;
       }
 
-      final cleanUserName = auth?.userName.value.isNotEmpty == true
-          ? auth!.userName.value
-          : AuthService.formatCleanDisplayName(
-              displayName: user.displayName,
-              email: user.email,
-            );
+      final effectiveName = auth?.effectiveUserName ?? 'Friend';
+      final photo = auth?.currentUser.value?.photoURL ?? auth?.userPhotoUrl.value ?? '';
 
       final trackDoc = tracksCollection.doc();
       final trackData = {
@@ -334,9 +331,9 @@ class BlendService extends GetxService {
         'audioUrl': track.audioUrl,
         'album': track.albumName,
         'durationSeconds': track.durationSeconds,
-        'addedByUid': user.uid,
-        'addedByName': cleanUserName,
-        'addedByPhoto': user.photoURL ?? '',
+        'addedByUid': uid,
+        'addedByName': effectiveName,
+        'addedByPhoto': photo,
         'addedAt': FieldValue.serverTimestamp(),
       };
 
@@ -433,8 +430,8 @@ class BlendService extends GetxService {
   /// Leave a Blend
   Future<bool> leaveBlend(String blendId) async {
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
-    final user = auth?.currentUser.value;
-    if (user == null) return false;
+    final uid = auth?.effectiveUid.value ?? '';
+    if (uid.isEmpty) return false;
 
     try {
       final docRef = FirebaseFirestore.instance.collection('blends').doc(blendId);
@@ -442,8 +439,8 @@ class BlendService extends GetxService {
       if (!doc.exists) return false;
 
       final blend = BlendModel.fromFirestore(doc);
-      final remainingUids = List<String>.from(blend.memberUids)..remove(user.uid);
-      final remainingMembers = blend.members.where((m) => m.uid != user.uid).toList();
+      final remainingUids = List<String>.from(blend.memberUids)..remove(uid);
+      final remainingMembers = blend.members.where((m) => m.uid != uid).toList();
 
       if (remainingUids.isEmpty) {
         // No members left, delete the blend
