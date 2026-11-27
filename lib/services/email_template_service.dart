@@ -1,12 +1,36 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/blend_model.dart';
 import 'auth_service.dart';
 
 class EmailTemplateService {
   static const String appUrl = 'https://nikhilxrstudio-ctrl.github.io/Whats_play';
+
+  // Brevo SMTP Relay configuration
+  static const String _brevoSmtpHost = 'smtp-relay.brevo.com';
+  static const int _brevoSmtpPort = 587;
+  static const String _brevoUsername = 'c570e4001@smtp-brevo.com';
+  static String get _brevoPassword => utf8.decode(
+        base64.decode(
+          'eHNtdHBzaWItZjA5NjYzODNkMmUyNmE3YWZmNDQxMGExZTZkNjQxZjkxZmRkZTIxNGI0MTNiNzUxMTEzOWM2MmNiMzg2MjRmYi1FNDRjSGFkRjJYUWNhRjE2',
+        ),
+      );
+  static const String _brevoSenderEmail = 'c570e4001@smtp-brevo.com';
+  static const String _brevoSenderName = 'WhatsPlay';
+
+  static SmtpServer get _smtpServer => SmtpServer(
+        _brevoSmtpHost,
+        port: _brevoSmtpPort,
+        username: _brevoUsername,
+        password: _brevoPassword,
+        allowInsecure: true,
+        ignoreBadCertificate: true,
+      );
 
   /// Generates the magic link for joining a Blend
   static String getBlendLink(BlendModel blend) {
@@ -170,14 +194,17 @@ WhatsPlay Music Team
 </html>''';
   }
 
-  /// Automatically records an email task to Firestore's 'mail' collection
-  /// when a logged-in user creates a Blend
-  static Future<bool> sendBlendCreatedEmail(BlendModel blend) async {
+  /// Sends the blend invitation email directly via Brevo SMTP,
+  /// and writes a backup/audit log to Firestore's 'mail' collection.
+  static Future<bool> sendBlendCreatedEmail(
+    BlendModel blend, {
+    String? recipientEmail,
+  }) async {
     final auth = AuthService.to;
-    final userEmail = auth.userEmail.value;
+    final userEmail = recipientEmail ?? auth.userEmail.value;
 
-    if (!auth.isLoggedIn.value || userEmail.isEmpty) {
-      debugPrint('[EmailTemplateService] User not logged in with email, skipping automated email.');
+    if (userEmail.isEmpty) {
+      debugPrint('[EmailTemplateService] No recipient email specified, skipping automated email.');
       return false;
     }
 
@@ -192,28 +219,39 @@ WhatsPlay Music Team
         creatorName: auth.effectiveUserName,
       );
 
-      await FirebaseFirestore.instance.collection('mail').add({
-        'to': [userEmail],
-        'message': {
-          'subject': subject,
-          'text': textTemplate,
-          'html': htmlTemplate,
-        },
-        'blendId': blend.id,
-        'blendCode': blend.code,
-        'createdAt': FieldValue.serverTimestamp(),
-      }).timeout(
-        const Duration(seconds: 8),
-        onTimeout: () {
-          debugPrint('[EmailTemplateService] Writing to mail collection timed out (offline cached).');
-          return FirebaseFirestore.instance.collection('mail').doc();
-        },
-      );
+      // 1. Send directly via authenticated Brevo SMTP relay
+      final message = Message()
+        ..from = const Address(_brevoSenderEmail, _brevoSenderName)
+        ..recipients.add(userEmail)
+        ..subject = subject
+        ..text = textTemplate
+        ..html = htmlTemplate;
 
-      debugPrint('[EmailTemplateService] Successfully queued blend confirmation email for $userEmail');
+      final sendReport = await send(message, _smtpServer);
+      debugPrint('[EmailTemplateService] Email successfully delivered via Brevo to $userEmail: $sendReport');
+
+      // 2. Also log to Firestore 'mail' collection for audit tracking
+      try {
+        await FirebaseFirestore.instance.collection('mail').add({
+          'to': [userEmail],
+          'message': {
+            'subject': subject,
+            'text': textTemplate,
+            'html': htmlTemplate,
+          },
+          'blendId': blend.id,
+          'blendCode': blend.code,
+          'provider': 'Brevo',
+          'status': 'DELIVERED',
+          'createdAt': FieldValue.serverTimestamp(),
+        }).timeout(const Duration(seconds: 4));
+      } catch (logErr) {
+        debugPrint('[EmailTemplateService] Non-fatal Firestore log notice: $logErr');
+      }
+
       return true;
     } catch (e) {
-      debugPrint('[EmailTemplateService] Error queuing blend created email: $e');
+      debugPrint('[EmailTemplateService] Error delivering email via Brevo: $e');
       return false;
     }
   }
