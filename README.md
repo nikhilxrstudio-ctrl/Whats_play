@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk"><img src="https://img.shields.io/badge/Download_APK-WhatsPlay.apk_(23.0_MB)-1DB954?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
+  <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk"><img src="https://img.shields.io/badge/Download_APK-WhatsPlay.apk_(23.3_MB)-1DB954?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
   <a href="https://nikhilxrstudio-ctrl.github.io/Whats_play/"><img src="https://img.shields.io/badge/Official_Website-Live-00E5FF?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Website" /></a>
 </p>
 
