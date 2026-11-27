@@ -639,14 +639,17 @@ class _AddSongToBlendSheetState extends State<AddSongToBlendSheet> {
                             width: isSelected ? 1.5 : 1.0,
                           ),
                         ),
-                        child: Text(
-                          tab,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontSize: 12.sp,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                            height: 1.0,
+                        child: Center(
+                          child: Text(
+                            tab,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.white70,
+                              fontSize: 12.sp,
+                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                              height: 1.0,
+                              leadingDistribution: TextLeadingDistribution.even,
+                            ),
                           ),
                         ),
                       ),
