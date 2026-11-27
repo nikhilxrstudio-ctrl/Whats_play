@@ -8,6 +8,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService extends GetxService {
   static AuthService get to => Get.find<AuthService>();
 
+  /// Web Client ID (serverClientId) from Firebase Console:
+  /// Firebase Console -> Authentication -> Sign-in method -> Google -> Web SDK configuration -> Web client ID.
+  /// Format: 658452739740-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
+  static String serverClientId = '';
+
   FirebaseAuth? _auth;
   bool _googleSignInInitialized = false;
 
@@ -29,7 +34,9 @@ class AuthService extends GetxService {
       _auth = FirebaseAuth.instance;
 
       try {
-        await GoogleSignIn.instance.initialize();
+        await GoogleSignIn.instance.initialize(
+          serverClientId: serverClientId.isNotEmpty ? serverClientId : null,
+        );
         _googleSignInInitialized = true;
       } catch (gErr) {
         debugPrint('[AuthService] GoogleSignIn.initialize deferred or platform-handled: $gErr');
@@ -90,9 +97,11 @@ class AuthService extends GetxService {
   Future<bool> signInWithGoogle() async {
     isLoading.value = true;
     try {
-      if (!_googleSignInInitialized) {
+      if (!_googleSignInInitialized || serverClientId.isNotEmpty) {
         try {
-          await GoogleSignIn.instance.initialize();
+          await GoogleSignIn.instance.initialize(
+            serverClientId: serverClientId.isNotEmpty ? serverClientId : null,
+          );
           _googleSignInInitialized = true;
         } catch (_) {}
       }
@@ -115,6 +124,15 @@ class AuthService extends GetxService {
       }
     } catch (e) {
       debugPrint('[AuthService] Google Sign-In error: $e');
+      if (e.toString().contains('serverClientId must be provided') ||
+          e.toString().contains('clientConfigurationError')) {
+        Get.snackbar(
+          'Google Sign-In Configuration Required',
+          'Please provide the Web Client ID (serverClientId) from Firebase Console under Authentication > Sign-in method > Google.',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+        );
+      }
     }
     isLoading.value = false;
     return false;
