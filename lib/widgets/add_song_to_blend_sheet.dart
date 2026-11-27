@@ -580,6 +580,7 @@ class _AddSongToBlendSheetState extends State<AddSongToBlendSheet> {
 
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
+      itemExtent: 56.h,
       padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 4.h),
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
@@ -601,49 +602,58 @@ class _AddSongToBlendSheetState extends State<AddSongToBlendSheet> {
       children: [
         // Category Filter Chips
         if (_categoryTabs.isNotEmpty)
-          SizedBox(
-            height: 36.h,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 18.w),
-              itemCount: _categoryTabs.length,
-              separatorBuilder: (context, index) => SizedBox(width: 8.w),
-              itemBuilder: (context, index) {
-                final tab = _categoryTabs[index];
-                final isSelected = index == _selectedCategoryIndex;
+          RepaintBoundary(
+            child: SizedBox(
+              height: 38.h,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 18.w),
+                itemCount: _categoryTabs.length,
+                separatorBuilder: (context, index) => SizedBox(width: 8.w),
+                itemBuilder: (context, index) {
+                  final tab = _categoryTabs[index];
+                  final isSelected = index == _selectedCategoryIndex;
 
-                return GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _selectedCategoryIndex = index);
-                    _loadCategoryTracks(tab);
-                  },
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 7.h),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? widget.blend.themeColor.withValues(alpha: 0.25)
-                          : Colors.white.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(18.r),
-                      border: Border.all(
-                        color: isSelected
-                            ? widget.blend.themeColor
-                            : Colors.white.withValues(alpha: 0.12),
-                        width: isSelected ? 1.5 : 1.0,
+                  return Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selectedCategoryIndex = index);
+                        _loadCategoryTracks(tab);
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: 32.h,
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.symmetric(horizontal: 14.w),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? widget.blend.themeColor.withValues(alpha: 0.25)
+                              : Colors.white.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(
+                            color: isSelected
+                                ? widget.blend.themeColor
+                                : Colors.white.withValues(alpha: 0.12),
+                            width: isSelected ? 1.5 : 1.0,
+                          ),
+                        ),
+                        child: Text(
+                          tab,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.white70,
+                            fontSize: 12.sp,
+                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                            height: 1.0,
+                          ),
+                        ),
                       ),
                     ),
-                    child: Text(
-                      tab,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white70,
-                        fontSize: 12.sp,
-                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         SizedBox(height: 10.h),
@@ -692,6 +702,7 @@ class _AddSongToBlendSheetState extends State<AddSongToBlendSheet> {
                     )
                   : ListView.builder(
                       physics: const BouncingScrollPhysics(),
+                      itemExtent: 56.h,
                       padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 4.h),
                       itemCount: tracks.length,
                       itemBuilder: (context, index) {
@@ -709,138 +720,144 @@ class _AddSongToBlendSheetState extends State<AddSongToBlendSheet> {
     final isAdded = _isTrackAdded(track);
     final isInFlight = _inFlightTrackIds.contains(track.trackId);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6.h),
-      child: Row(
-        children: [
-          // 44x44 Artwork
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.r),
-            child: SizedBox(
-              width: 44.w,
-              height: 44.w,
-              child: track.artworkUrl != null && track.artworkUrl!.isNotEmpty
-                  ? Image.network(
-                      track.artworkUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
+    return RepaintBoundary(
+      child: SizedBox(
+        height: 56.h,
+        child: Row(
+          children: [
+            // 44x44 Artwork with memory cache limit for smooth 60fps scrolling
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.r),
+              child: SizedBox(
+                width: 44.w,
+                height: 44.w,
+                child: track.artworkUrl != null && track.artworkUrl!.isNotEmpty
+                    ? Image.network(
+                        track.artworkUrl!,
+                        fit: BoxFit.cover,
+                        cacheWidth: 132,
+                        cacheHeight: 132,
+                        filterQuality: FilterQuality.low,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: AppColors.surfaceLight,
+                          child: const Icon(Icons.music_note_rounded, color: Colors.white38),
+                        ),
+                      )
+                    : Container(
                         color: AppColors.surfaceLight,
                         child: const Icon(Icons.music_note_rounded, color: Colors.white38),
                       ),
-                    )
-                  : Container(
-                      color: AppColors.surfaceLight,
-                      child: const Icon(Icons.music_note_rounded, color: Colors.white38),
-                    ),
-            ),
-          ),
-          SizedBox(width: 12.w),
-
-          // Title & Artist
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  track.title,
-                  style: TextStyle(
-                    color: isAdded ? Colors.white60 : Colors.white,
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 3.h),
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        track.artistName,
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 11.5.sp,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (track.genre.isNotEmpty &&
-                        track.genre.toLowerCase() != 'general' &&
-                        track.genre.toLowerCase() != 'all') ...[
-                      SizedBox(width: 6.w),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(6.r),
-                        ),
-                        child: Text(
-                          track.genre,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 9.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 10.w),
-
-          // Action Button: "Added" checkmark or "+" Add Button
-          if (isInFlight)
-            SizedBox(
-              width: 24.w,
-              height: 24.w,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: widget.blend.themeColor,
               ),
-            )
-          else if (isAdded)
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1DB954).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: const Color(0xFF1DB954).withValues(alpha: 0.4),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            ),
+            SizedBox(width: 12.w),
+
+            // Title & Artist
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.check_rounded, color: const Color(0xFF1DB954), size: 14.sp),
-                  SizedBox(width: 3.w),
                   Text(
-                    'Added',
+                    track.title,
                     style: TextStyle(
-                      color: const Color(0xFF1DB954),
-                      fontSize: 10.5.sp,
+                      color: isAdded ? Colors.white60 : Colors.white,
+                      fontSize: 13.5.sp,
                       fontWeight: FontWeight.w700,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 3.h),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          track.artistName,
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 11.5.sp,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (track.genre.isNotEmpty &&
+                          track.genre.toLowerCase() != 'general' &&
+                          track.genre.toLowerCase() != 'all') ...[
+                        SizedBox(width: 6.w),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(6.r),
+                          ),
+                          child: Text(
+                            track.genre,
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 9.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
-            )
-          else
-            IconButton(
-              icon: Icon(
-                Icons.add_circle_rounded,
-                color: widget.blend.themeColor,
-                size: 26.sp,
-              ),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              tooltip: 'Add to Blend',
-              onPressed: () => _handleAddTrack(track),
             ),
-        ],
+            SizedBox(width: 10.w),
+
+            // Action Button: "Added" checkmark or "+" Add Button
+            if (isInFlight)
+              SizedBox(
+                width: 24.w,
+                height: 24.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: widget.blend.themeColor,
+                ),
+              )
+            else if (isAdded)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1DB954).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(
+                    color: const Color(0xFF1DB954).withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_rounded, color: const Color(0xFF1DB954), size: 14.sp),
+                    SizedBox(width: 3.w),
+                    Text(
+                      'Added',
+                      style: TextStyle(
+                        color: const Color(0xFF1DB954),
+                        fontSize: 10.5.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              IconButton(
+                icon: Icon(
+                  Icons.add_circle_rounded,
+                  color: widget.blend.themeColor,
+                  size: 26.sp,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: 'Add to Blend',
+                onPressed: () => _handleAddTrack(track),
+              ),
+          ],
+        ),
       ),
     );
   }
