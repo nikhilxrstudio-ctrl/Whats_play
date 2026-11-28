@@ -200,6 +200,79 @@
       box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
     }
 
+    .btn-open-pill {
+      border: 1px solid rgba(29, 185, 84, 0.4);
+      color: #1DB954 !important;
+    }
+
+    .btn-open-pill:hover {
+      border-color: #1DB954;
+      background-color: rgba(29, 185, 84, 0.12);
+    }
+
+    .install-guide-card {
+      display: none;
+      max-width: 540px;
+      margin: 16px auto 0;
+      padding: 18px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(29, 185, 84, 0.3);
+      border-radius: 16px;
+      text-align: left;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .guide-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #1DB954;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #1DB954;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(29, 185, 84, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(29, 185, 84, 0); }
+    }
+
+    .guide-text {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .btn-open-installed {
+      width: 100%;
+      justify-content: center;
+      font-size: 0.95rem;
+      padding: 10px 16px;
+      border-radius: 20px;
+    }
+
+    .changelog-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
     .badges {
       display: flex;
       justify-content: center;
@@ -451,9 +524,13 @@
     
     <div class="hero-actions-container">
       <div class="btn-group">
-        <!-- Smart App Launch / Download Button -->
-        <a href="downloads/WhatsPlay.apk" id="main-action-btn" class="btn btn-primary" download="WhatsPlay.apk">
+        <!-- Download APK Button -->
+        <a href="downloads/WhatsPlay.apk" id="main-download-btn" class="btn btn-primary" download="WhatsPlay.apk" onclick="onDownloadClick()">
           ⬇️ Download WhatsPlay.apk (28.1 MB)
+        </a>
+        <!-- Quick Open App Pill (Opens native app if already installed on phone) -->
+        <a href="javascript:void(0)" id="main-open-btn" onclick="launchAppWithFallback()" class="btn btn-secondary btn-open-pill">
+          📱 Open App
         </a>
         <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play" class="btn btn-secondary">
           ★ Star on GitHub
@@ -469,6 +546,22 @@
         </a>
       </div>
       <div id="hero-subtext" class="action-subtext"></div>
+
+      <!-- Installation Guide Card (Appears while downloading) -->
+      <div id="install-guide" class="install-guide-card">
+        <div class="guide-header">
+          <span class="pulse-dot"></span>
+          <strong>Downloading WhatsPlay.apk in browser...</strong>
+        </div>
+        <div class="guide-text">
+          1. Wait for the download to complete in your notification panel.<br>
+          2. Tap the downloaded file and select <strong>Install</strong>.<br>
+          3. Once installed, tap below to launch:
+        </div>
+        <button type="button" class="btn btn-primary btn-open-installed" onclick="markAsInstalledAndOpen()">
+          ▶️ I Have Installed the App • Open WhatsPlay
+        </button>
+      </div>
     </div>
 
     <div class="badges">
@@ -536,9 +629,14 @@
           <span class="release-date">November 2026</span>
           <span class="arch-badge">Android 7.0+ (arm64-v8a)</span>
         </div>
-        <a href="downloads/WhatsPlay.apk" id="changelog-action-btn" class="btn btn-sm btn-primary" download="WhatsPlay.apk">
-          ⬇️ Download APK (28.1 MB)
-        </a>
+        <div class="changelog-actions">
+          <a href="downloads/WhatsPlay.apk" id="changelog-download-btn" class="btn btn-sm btn-primary" download="WhatsPlay.apk" onclick="onDownloadClick()">
+            ⬇️ Download APK (28.1 MB)
+          </a>
+          <a href="javascript:void(0)" id="changelog-open-btn" onclick="launchAppWithFallback()" class="btn btn-sm btn-secondary btn-open-pill">
+            📱 Open App
+          </a>
+        </div>
       </div>
 
       <div class="changelog-body">
@@ -676,11 +774,33 @@ flutter run
       return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
 
-    function launchAppWithFallback() {
-      // Mark as installed since user is opening app
+    function onDownloadClick() {
+      const guide = document.getElementById('install-guide');
+      const dlBtn = document.getElementById('main-download-btn');
+      const changelogDlBtn = document.getElementById('changelog-download-btn');
+
+      if (dlBtn) {
+        dlBtn.innerHTML = '⏳ Downloading APK (' + APK_SIZE + ')...';
+      }
+      if (changelogDlBtn) {
+        changelogDlBtn.innerHTML = '⏳ Downloading APK...';
+      }
+      if (guide) {
+        guide.style.display = 'block';
+        guide.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      // Note: We deliberately do NOT mark app as installed yet,
+      // because the APK is downloading in the browser and not yet installed!
+    }
+
+    function markAsInstalledAndOpen() {
       localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
       localStorage.setItem('whatsplay_app_installed', 'true');
+      updateAppButtons();
+      launchAppWithFallback();
+    }
 
+    function launchAppWithFallback() {
       const start = Date.now();
       let appOpened = false;
 
@@ -688,6 +808,10 @@ flutter run
       const onVisibilityChange = () => {
         if (document.hidden) {
           appOpened = true;
+          // Successfully opened native app!
+          localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
+          localStorage.setItem('whatsplay_app_installed', 'true');
+          updateAppButtons();
         }
       };
       document.addEventListener('visibilitychange', onVisibilityChange, { once: true });
@@ -707,113 +831,81 @@ flutter run
             localStorage.removeItem('whatsplay_installed_version');
             localStorage.removeItem('whatsplay_app_installed');
             window.location.href = APK_URL;
-            updateAppButtons();
+            onDownloadClick();
           }
         }
       }, 1500);
     }
 
     function updateAppButtons() {
-      const mainBtn = document.getElementById('main-action-btn');
-      const changelogBtn = document.getElementById('changelog-action-btn');
+      const dlBtn = document.getElementById('main-download-btn');
+      const openBtn = document.getElementById('main-open-btn');
+      const changelogDlBtn = document.getElementById('changelog-download-btn');
+      const changelogOpenBtn = document.getElementById('changelog-open-btn');
       const subtext = document.getElementById('hero-subtext');
+      const guide = document.getElementById('install-guide');
 
       const installedVersion = localStorage.getItem('whatsplay_installed_version');
-      const isInstalled = localStorage.getItem('whatsplay_app_installed') === 'true' || installedVersion === LATEST_VERSION;
+      const isInstalled = localStorage.getItem('whatsplay_app_installed') === 'true' && installedVersion === LATEST_VERSION;
 
-      if (isInstalled && installedVersion === LATEST_VERSION) {
-        // User has latest version installed -> SHOW "OPEN APP"
-        if (mainBtn) {
-          mainBtn.innerHTML = '▶️ Open WhatsPlay App';
-          mainBtn.className = 'btn btn-primary btn-open-app';
-          mainBtn.removeAttribute('download');
-          mainBtn.href = 'javascript:void(0)';
-          mainBtn.onclick = (e) => {
-            e.preventDefault();
-            launchAppWithFallback();
-          };
+      if (isInstalled) {
+        // App is verified installed by user -> highlight "Open App" as primary!
+        if (openBtn) {
+          openBtn.className = 'btn btn-primary btn-open-app';
+          openBtn.innerHTML = '▶️ Open WhatsPlay App';
         }
-        if (changelogBtn) {
-          changelogBtn.innerHTML = '▶️ Open App';
-          changelogBtn.className = 'btn btn-sm btn-primary btn-open-app';
-          changelogBtn.removeAttribute('download');
-          changelogBtn.href = 'javascript:void(0)';
-          changelogBtn.onclick = (e) => {
-            e.preventDefault();
-            launchAppWithFallback();
-          };
+        if (dlBtn) {
+          dlBtn.className = 'btn btn-secondary';
+          dlBtn.innerHTML = '⬇️ Re-download APK (' + APK_SIZE + ')';
+        }
+        if (changelogOpenBtn) {
+          changelogOpenBtn.className = 'btn btn-sm btn-primary btn-open-app';
+          changelogOpenBtn.innerHTML = '▶️ Open App';
+        }
+        if (changelogDlBtn) {
+          changelogDlBtn.className = 'btn btn-sm btn-secondary';
+          changelogDlBtn.innerHTML = '⬇️ Re-download APK';
         }
         if (subtext) {
           subtext.innerHTML = `
-            <span style="color: #1DB954; font-weight: 600;">✓ Latest version (${LATEST_VERSION}) installed</span> • 
-            <a href="${APK_URL}" download="WhatsPlay.apk" onclick="onDownloadClick()" style="color: #B3B3B3; text-decoration: underline;">Re-download APK (${APK_SIZE})</a> • 
+            <span style="color: #1DB954; font-weight: 600;">✓ Latest version (${LATEST_VERSION}) installed on your device</span> • 
             <a href="javascript:void(0)" onclick="resetInstallState()" style="color: #727272; text-decoration: underline;">Reset</a>
           `;
         }
-      } else if (installedVersion && installedVersion !== LATEST_VERSION) {
-        // User has older version installed -> SHOW "UPDATE TO LATEST"
-        if (mainBtn) {
-          mainBtn.innerHTML = `⚡ Update to ${LATEST_VERSION} (${APK_SIZE})`;
-          mainBtn.className = 'btn btn-primary';
-          mainBtn.setAttribute('download', 'WhatsPlay.apk');
-          mainBtn.href = APK_URL;
-          mainBtn.onclick = onDownloadClick;
-        }
-        if (changelogBtn) {
-          changelogBtn.innerHTML = `⚡ Update APK`;
-          changelogBtn.className = 'btn btn-sm btn-primary';
-          changelogBtn.setAttribute('download', 'WhatsPlay.apk');
-          changelogBtn.href = APK_URL;
-          changelogBtn.onclick = onDownloadClick;
-        }
-        if (subtext) {
-          subtext.innerHTML = `
-            <span style="color: #FFB74D; font-weight: 600;">⚠️ New update available!</span> Installed: ${installedVersion} &rarr; Latest: ${LATEST_VERSION} • 
-            <a href="javascript:void(0)" onclick="launchAppWithFallback()" style="color: #1DB954; text-decoration: underline;">Open old version</a>
-          `;
+        if (guide) {
+          guide.style.display = 'none';
         }
       } else {
-        // App not installed / first visit -> SHOW "DOWNLOAD APK"
-        if (mainBtn) {
-          mainBtn.innerHTML = `⬇️ Download WhatsPlay.apk (28.1 MB)`;
-          mainBtn.className = 'btn btn-primary';
-          mainBtn.setAttribute('download', 'WhatsPlay.apk');
-          mainBtn.href = APK_URL;
-          mainBtn.onclick = onDownloadClick;
+        // First visit or downloading state
+        if (dlBtn) {
+          dlBtn.className = 'btn btn-primary';
+          dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (' + APK_SIZE + ')';
         }
-        if (changelogBtn) {
-          changelogBtn.innerHTML = `⬇️ Download APK (28.1 MB)`;
-          changelogBtn.className = 'btn btn-sm btn-primary';
-          changelogBtn.setAttribute('download', 'WhatsPlay.apk');
-          changelogBtn.href = APK_URL;
-          changelogBtn.onclick = onDownloadClick;
+        if (openBtn) {
+          openBtn.className = 'btn btn-secondary btn-open-pill';
+          openBtn.innerHTML = '📱 Open App';
+        }
+        if (changelogDlBtn) {
+          changelogDlBtn.className = 'btn btn-sm btn-primary';
+          changelogDlBtn.innerHTML = '⬇️ Download APK (' + APK_SIZE + ')';
+        }
+        if (changelogOpenBtn) {
+          changelogOpenBtn.className = 'btn btn-sm btn-secondary btn-open-pill';
+          changelogOpenBtn.innerHTML = '📱 Open App';
         }
         if (subtext) {
           subtext.innerHTML = `
-            <a href="javascript:void(0)" onclick="markAsInstalledAndOpen()" style="color: #1DB954; font-size: 0.9rem; text-decoration: underline;">
-              Already have WhatsPlay installed? Tap here to Open App
-            </a>
+            <span style="color: #B3B3B3;">New to WhatsPlay? Download APK above • Already installed? Tap <strong>Open App</strong></span>
           `;
         }
       }
     }
 
-    function onDownloadClick() {
-      localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
-      localStorage.setItem('whatsplay_app_installed', 'true');
-      setTimeout(updateAppButtons, 1200);
-    }
-
-    function markAsInstalledAndOpen() {
-      localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
-      localStorage.setItem('whatsplay_app_installed', 'true');
-      updateAppButtons();
-      launchAppWithFallback();
-    }
-
     function resetInstallState() {
       localStorage.removeItem('whatsplay_installed_version');
       localStorage.removeItem('whatsplay_app_installed');
+      const guide = document.getElementById('install-guide');
+      if (guide) guide.style.display = 'none';
       updateAppButtons();
     }
 
