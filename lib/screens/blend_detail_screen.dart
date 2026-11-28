@@ -599,34 +599,73 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   // Badge with Mood Icon
-                                  Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.4),
-                                      borderRadius: BorderRadius.circular(12.r),
-                                      border: Border.all(
-                                        color: currentBlend.themeColor.withValues(alpha: 0.4),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          currentBlend.icon,
-                                          style: TextStyle(fontSize: 12.sp),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.4),
+                                          borderRadius: BorderRadius.circular(12.r),
+                                          border: Border.all(
+                                            color: currentBlend.themeColor.withValues(alpha: 0.4),
+                                          ),
                                         ),
-                                        SizedBox(width: 5.w),
-                                        Text(
-                                          'SHARED BLEND',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10.5.sp,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.8,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              currentBlend.icon,
+                                              style: TextStyle(fontSize: 12.sp),
+                                            ),
+                                            SizedBox(width: 5.w),
+                                            Text(
+                                              currentBlend.isOfficialBlend ? 'OFFICIAL BLEND' : 'SHARED BLEND',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10.5.sp,
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.8,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (currentBlend.isOfficialBlend) ...[
+                                        SizedBox(width: 8.w),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
+                                          decoration: BoxDecoration(
+                                            color: currentBlend.themeColor.withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(12.r),
+                                            border: Border.all(
+                                              color: currentBlend.themeColor,
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.verified_rounded,
+                                                color: currentBlend.themeColor,
+                                                size: 13.sp,
+                                              ),
+                                              SizedBox(width: 4.w),
+                                              Text(
+                                                '✓ Official',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10.5.sp,
+                                                  fontWeight: FontWeight.w800,
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
-                                    ),
+                                    ],
                                   ),
                                   SizedBox(height: 10.h),
 

@@ -12,14 +12,17 @@ class BlendService extends GetxService {
   static BlendService get to => Get.find<BlendService>();
 
   final RxList<BlendModel> userBlends = <BlendModel>[].obs;
+  final RxList<BlendModel> officialBlends = <BlendModel>[].obs;
   final RxBool isLoading = false.obs;
 
   StreamSubscription<QuerySnapshot>? _blendsSubscription;
+  StreamSubscription<QuerySnapshot>? _officialBlendsSubscription;
   Worker? _authWorker;
 
   @override
   void onInit() {
     super.onInit();
+    _listenToOfficialBlends();
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;
     if (auth != null) {
       _authWorker = ever(auth.effectiveUid, (uid) {
@@ -27,7 +30,7 @@ class BlendService extends GetxService {
           _listenToUserBlends(uid);
         } else {
           _blendsSubscription?.cancel();
-          userBlends.clear();
+          _recombineBlends([]);
         }
       });
 
@@ -41,7 +44,71 @@ class BlendService extends GetxService {
   void onClose() {
     _authWorker?.dispose();
     _blendsSubscription?.cancel();
+    _officialBlendsSubscription?.cancel();
     super.onClose();
+  }
+
+  List<BlendModel> _latestUserJoinedBlends = [];
+  List<BlendModel> _latestOfficialRooms = [];
+
+  /// Real-time stream for Admin-created Official Blends (available to all users)
+  void _listenToOfficialBlends() {
+    try {
+      _officialBlendsSubscription = FirebaseFirestore.instance
+          .collection('blends')
+          .where('isOfficial', isEqualTo: true)
+          .snapshots()
+          .handleError((error) {
+            debugPrint('[BlendService] Handled stream error in _listenToOfficialBlends: $error');
+          })
+          .listen(
+        (snapshot) {
+          _latestOfficialRooms = snapshot.docs
+              .map((doc) => BlendModel.fromFirestore(doc))
+              .toList();
+          _recombineBlends(_latestUserJoinedBlends);
+        },
+        onError: (err) {
+          debugPrint('[BlendService] Error listening to official blends: $err');
+        },
+        cancelOnError: false,
+      );
+    } catch (e) {
+      debugPrint('[BlendService] Official blends listen error: $e');
+    }
+  }
+
+  void _recombineBlends(List<BlendModel> userJoined) {
+    _latestUserJoinedBlends = userJoined;
+
+    // Deduplicate by ID
+    final Map<String, BlendModel> map = {};
+
+    // 1. First add Official Rooms (Priority 1)
+    for (final off in _latestOfficialRooms) {
+      map[off.id] = off;
+    }
+
+    // 2. Add User Joined/Created Rooms
+    for (final u in userJoined) {
+      map[u.id] = u;
+    }
+
+    final combined = map.values.toList();
+
+    // Priority Ordering:
+    // 1. Official Blends (isOfficialBlend == true) pinned to the very top
+    // 2. Then sorted by updatedAt / createdAt descending
+    combined.sort((a, b) {
+      if (a.isOfficialBlend && !b.isOfficialBlend) return -1;
+      if (!a.isOfficialBlend && b.isOfficialBlend) return 1;
+
+      final aTime = a.updatedAt ?? a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bTime = b.updatedAt ?? b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime);
+    });
+
+    userBlends.value = combined;
   }
 
   void _listenToUserBlends(String uid) {
@@ -60,13 +127,7 @@ class BlendService extends GetxService {
           final list = snapshot.docs
               .map((doc) => BlendModel.fromFirestore(doc))
               .toList();
-          // Sort by updatedAt descending
-          list.sort((a, b) {
-            final aTime = a.updatedAt ?? a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            final bTime = b.updatedAt ?? b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-            return bTime.compareTo(aTime);
-          });
-          userBlends.value = list;
+          _recombineBlends(list);
         },
         onError: (err) {
           debugPrint('[BlendService] Error listening to user blends: $err');

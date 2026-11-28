@@ -82,6 +82,7 @@ class BlendModel {
   final int tracksCount;
   final String icon; // Emoji or custom icon, e.g. 🎵, 🔥, 💜
   final String colorHex; // Hex string e.g. '#1DB954'
+  final bool isOfficial; // Official Blend created from Admin panel
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -98,9 +99,21 @@ class BlendModel {
     this.tracksCount = 0,
     this.icon = '🎵',
     this.colorHex = '#1DB954',
+    this.isOfficial = false,
     this.createdAt,
     this.updatedAt,
   });
+
+  /// Official room verification helper:
+  /// Returns true if marked as official by Admin or matches official creator UID / email
+  bool get isOfficialBlend {
+    return isOfficial == true ||
+        creatorUid == 'official_whatsplay_admin' ||
+        creatorEmail.trim().toLowerCase() == 'whatsplay.official@gmail.com';
+  }
+
+  /// Global static helper to check if a Blend room is official
+  static bool checkIsOfficial(BlendModel blend) => blend.isOfficialBlend;
 
   /// Parse the colorHex into a Flutter Color
   Color get themeColor {
@@ -145,6 +158,10 @@ class BlendModel {
     final rawMemberUids = data['memberUids'] as List<dynamic>? ?? [];
     final memberUidsList = rawMemberUids.map((u) => u.toString()).toList();
 
+    final isOfficialRaw = data['isOfficial'] == true ||
+        data['creatorUid'] == 'official_whatsplay_admin' ||
+        (data['creatorEmail'] as String? ?? '').trim().toLowerCase() == 'whatsplay.official@gmail.com';
+
     return BlendModel(
       id: doc.id,
       name: data['name'] as String? ?? 'Our Blend',
@@ -158,6 +175,7 @@ class BlendModel {
       tracksCount: (data['tracksCount'] as num?)?.toInt() ?? 0,
       icon: data['icon'] as String? ?? '🎵',
       colorHex: data['colorHex'] as String? ?? '#1DB954',
+      isOfficial: isOfficialRaw,
       createdAt: created,
       updatedAt: updated,
     );
@@ -176,6 +194,7 @@ class BlendModel {
       'tracksCount': tracksCount,
       'icon': icon,
       'colorHex': colorHex,
+      'isOfficial': isOfficial,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -194,6 +213,7 @@ class BlendModel {
     int? tracksCount,
     String? icon,
     String? colorHex,
+    bool? isOfficial,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -210,6 +230,7 @@ class BlendModel {
       tracksCount: tracksCount ?? this.tracksCount,
       icon: icon ?? this.icon,
       colorHex: colorHex ?? this.colorHex,
+      isOfficial: isOfficial ?? this.isOfficial,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.14] - 2026-11-28 (Build: 1.0.14+15)
+
+### ⚡ What's New
+- Support Admin-created Official Blends with verification helper, priority pinning, and official badges
+
 ## [v1.0.13] - 2026-11-28 (Build: 1.0.13+14)
 
 ### ⚡ What's New

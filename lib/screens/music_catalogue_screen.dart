@@ -4743,23 +4743,65 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        blend.name,
-                        style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              blend.name,
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (blend.isOfficialBlend) ...[
+                            SizedBox(width: 6.w),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
+                              decoration: BoxDecoration(
+                                color: blend.themeColor.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(10.r),
+                                border: Border.all(
+                                  color: blend.themeColor.withValues(alpha: 0.6),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.verified_rounded,
+                                    size: 11.sp,
+                                    color: blend.themeColor,
+                                  ),
+                                  SizedBox(width: 3.w),
+                                  Text(
+                                    'Official',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9.5.sp,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       SizedBox(height: 4.h),
                       Text(
-                        '${blend.tracksCount} ${blend.tracksCount == 1 ? 'song' : 'songs'} • ${blend.members.length} ${blend.members.length == 1 ? 'member' : 'members'}',
+                        blend.isOfficialBlend
+                            ? '★ What\'s Play Official • ${blend.tracksCount} ${blend.tracksCount == 1 ? 'song' : 'songs'}'
+                            : '${blend.tracksCount} ${blend.tracksCount == 1 ? 'song' : 'songs'} • ${blend.members.length} ${blend.members.length == 1 ? 'member' : 'members'}',
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: blend.isOfficialBlend ? blend.themeColor : AppColors.textSecondary,
                           fontSize: 12.sp,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: blend.isOfficialBlend ? FontWeight.w600 : FontWeight.w500,
                         ),
                       ),
                     ],
