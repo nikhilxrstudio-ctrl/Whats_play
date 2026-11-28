@@ -4,7 +4,7 @@ service cloud.firestore {
 
     // ── USERS COLLECTION ─────────────────────────────────────────────
     // Supports both signed-in Google users (uid) and guest listeners (device_*)
-    // Allows reading and updating profiles, guest display names, and joined blends.
+    // Allows reading and updating profiles, guest display names, and FCM tokens.
     match /users/{userId} {
       allow read, write: if true;
     }
@@ -15,7 +15,7 @@ service cloud.firestore {
       // Anyone with the app can query by 6-digit code, join, or listen to playback
       allow read: if true;
 
-      // Creating, joining, and updating live playback sync (current track, isPlaying, positionMs, members)
+      // Creating, joining, and updating live playback sync
       allow create, update: if true;
 
       // Only host or signed-in users can delete
@@ -35,15 +35,29 @@ service cloud.firestore {
       allow read: if false;
     }
 
-    // ── APK DOWNLOADS COLLECTION ───────────────────────────────────────
-    // Visitor download telemetry & dashboard analytics
-    match /apk_downloads/{downloadId} {
-      allow create, read: if true;
+    // ── EMAIL LOGS COLLECTION ────────────────────────────────────────
+    // Dispatched email audit logs, delivery status, and history for Admin Panel
+    match /email_logs/{logId} {
+      allow read, write: if true;
     }
 
-    // ── EMAIL LOGS COLLECTION ─────────────────────────────────────────
-    match /email_logs/{logId} {
-      allow create, read: if true;
+    // ── EMAIL TEMPLATES COLLECTION ───────────────────────────────────
+    // Saved email templates (New Releases, Changelogs, Announcements)
+    match /email_templates/{templateId} {
+      allow read, write: if true;
     }
+
+    // ── PUSH NOTIFICATION LOGS COLLECTION ────────────────────────────
+    // Dispatched push alerts, topic broadcasts, and FCM delivery logs for Admin Panel
+    match /notification_logs/{notifId} {
+      allow read, write: if true;
+    }
+
+    // ── APK DOWNLOADS COLLECTION ─────────────────────────────────────
+    // Download telemetry, visitor geolocation, device model, and OS analytics
+    match /apk_downloads/{downloadId} {
+      allow read, write: if true;
+    }
+
   }
 }
