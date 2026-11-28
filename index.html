@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WhatsPlay – Free Open-Source Flutter Music Streaming & Discovery App</title>
-  
+
   <!-- Primary Meta Tags -->
   <meta name="title" content="WhatsPlay – Free Open-Source Flutter Music Streaming & Discovery App">
-  <meta name="description" content="WhatsPlay is a free open-source Flutter music streaming player featuring dual-engine audio (JioSaavn & Audius), Bollywood, Punjabi, and Gujarati music, background playback, and offline caching.">
-  <meta name="keywords" content="flutter music player, music streaming app, open source music player, jiosaavn music app, bollywood music streaming, punjabi songs app, gujarati music player, free music app github, spotify alternative, audio player flutter">
+  <meta name="description"
+    content="WhatsPlay is a free open-source Flutter music streaming player featuring dual-engine audio (JioSaavn & Audius), Bollywood, Punjabi, and Gujarati music, background playback, and offline caching.">
+  <meta name="keywords"
+    content="flutter music player, music streaming app, open source music player, jiosaavn music app, bollywood music streaming, punjabi songs app, gujarati music player, free music app github, spotify alternative, audio player flutter">
   <meta name="author" content="Nikhil">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
@@ -24,15 +27,19 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
   <meta property="og:title" content="WhatsPlay – Free Open-Source Flutter Music Streaming App">
-  <meta property="og:description" content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
-  <meta property="og:image" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
+  <meta property="og:description"
+    content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
+  <meta property="og:image"
+    content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
   <meta property="twitter:title" content="WhatsPlay – Free Open-Source Flutter Music Streaming App">
-  <meta property="twitter:description" content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
-  <meta property="twitter:image" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
+  <meta property="twitter:description"
+    content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
+  <meta property="twitter:image"
+    content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
 
   <!-- Schema.org Structured Data for AI & Search Engines -->
   <script type="application/ld+json">
@@ -165,6 +172,130 @@
     .btn-secondary:hover {
       background-color: #383838;
       transform: scale(1.03);
+    }
+
+    .hero-actions-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .hero-actions-container .btn-group {
+      margin-bottom: 12px;
+    }
+
+    .action-subtext {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      min-height: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .action-subtext a {
+      transition: color 0.2s ease;
+    }
+
+    .action-subtext a:hover {
+      color: var(--text-primary);
+    }
+
+    .btn-open-app {
+      background: linear-gradient(135deg, #1DB954, #1aa34a);
+      color: #000 !important;
+      box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
+    }
+
+    .btn-open-pill {
+      border: 1px solid rgba(29, 185, 84, 0.4);
+      color: #1DB954 !important;
+    }
+
+    .btn-open-pill:hover {
+      border-color: #1DB954;
+      background-color: rgba(29, 185, 84, 0.12);
+    }
+
+    .install-guide-card {
+      display: none;
+      max-width: 540px;
+      margin: 16px auto 0;
+      padding: 18px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(29, 185, 84, 0.3);
+      border-radius: 16px;
+      text-align: left;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .guide-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: #FFFFFF;
+      margin-bottom: 8px;
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #1DB954;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #1DB954;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7);
+      }
+
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(29, 185, 84, 0);
+      }
+
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(29, 185, 84, 0);
+      }
+    }
+
+    .guide-text {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .btn-open-installed {
+      width: 100%;
+      justify-content: center;
+      font-size: 0.95rem;
+      padding: 10px 16px;
+      border-radius: 20px;
+    }
+
+    .changelog-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
     .badges {
@@ -407,35 +538,65 @@
     }
   </style>
 </head>
+
 <body>
 
   <header>
     <div class="logo-container">
-      <img src="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/icons/app_logo.png" alt="WhatsPlay Music App" class="logo">
+      <img src="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/icons/app_logo.png"
+        alt="WhatsPlay Music App" class="logo">
     </div>
     <h1>WhatsPlay</h1>
-    <p class="tagline">An open-source, Spotify-inspired music streaming application built in Flutter with dual-engine playback, regional Indian music discovery, background audio, and offline caching.</p>
-    
-    <div class="btn-group">
-      <a href="downloads/WhatsPlay.apk" class="btn btn-primary" download="WhatsPlay.apk">
-        ⬇️ Download WhatsPlay.apk (25.4 MB)
-      </a>
-      <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play" class="btn btn-secondary">
-        ★ Star on GitHub
-      </a>
-      <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play#readme" class="btn btn-secondary">
-        Documentation
-      </a>
-      <a href="llms.txt" class="btn btn-secondary">
-        llms.txt (AI Spec)
-      </a>
-      <a href="#changelog" class="btn btn-secondary">
-        ⚡ Updates & Changelog
-      </a>
+    <p class="tagline">An open-source, Spotify-inspired music streaming application built in Flutter with dual-engine
+      playback, regional Indian music discovery, background audio, and offline caching.</p>
+
+    <div class="hero-actions-container">
+      <div class="btn-group">
+        <!-- Download APK Button -->
+        <a href="downloads/WhatsPlay.apk" id="main-download-btn" class="btn btn-primary" download="WhatsPlay.apk"
+          onclick="onDownloadClick('Website Hero Download')">
+          ⬇️ Download WhatsPlay.apk (29.4 MB)
+        </a>
+        <!-- Quick Open App Pill (Opens native app if already installed on phone) -->
+        <a href="javascript:void(0)" id="main-open-btn" onclick="launchAppWithFallback()"
+          class="btn btn-secondary btn-open-pill">
+          📱 Open App
+        </a>
+        <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play" class="btn btn-secondary">
+          ★ Star on GitHub
+        </a>
+        <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play#readme" class="btn btn-secondary">
+          Documentation
+        </a>
+        <a href="llms.txt" class="btn btn-secondary">
+          llms.txt (AI Spec)
+        </a>
+        <a href="#changelog" class="btn btn-secondary">
+          ⚡ Updates & Changelog
+        </a>
+      </div>
+      <div id="hero-subtext" class="action-subtext"></div>
+
+      <!-- Installation Guide Card (Appears while downloading) -->
+      <div id="install-guide" class="install-guide-card">
+        <div class="guide-header">
+          <span class="pulse-dot"></span>
+          <strong>Downloading WhatsPlay.apk in browser...</strong>
+        </div>
+        <div class="guide-text">
+          1. Wait for the download to complete in your notification panel.<br>
+          2. Tap the downloaded file and select <strong>Install</strong>.<br>
+          3. Once installed, tap below to launch:
+        </div>
+        <button type="button" class="btn btn-primary btn-open-installed" onclick="markAsInstalledAndOpen()">
+          ▶️ I Have Installed the App • Open WhatsPlay
+        </button>
+      </div>
     </div>
 
     <div class="badges">
-      <img src="https://img.shields.io/github/stars/nikhilxrstudio-ctrl/Whats_play?style=flat-square&color=1DB954" alt="GitHub Stars">
+      <img src="https://img.shields.io/github/stars/nikhilxrstudio-ctrl/Whats_play?style=flat-square&color=1DB954"
+        alt="GitHub Stars">
       <img src="https://img.shields.io/badge/Flutter-3.41.8-02569B?style=flat-square" alt="Flutter">
       <img src="https://img.shields.io/badge/Dart-3.11+-0175C2?style=flat-square" alt="Dart">
       <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License">
@@ -495,21 +656,40 @@
     <div class="changelog-container">
       <div class="changelog-header">
         <div class="version-meta">
-          <span class="version-badge">v1.2.0 • Latest Release</span>
+          <span class="version-badge">v1.0.14 • Latest Release</span>
           <span class="release-date">November 2026</span>
           <span class="arch-badge">Android 7.0+ (arm64-v8a)</span>
         </div>
-        <a href="downloads/WhatsPlay.apk" class="btn btn-sm btn-primary" download="WhatsPlay.apk">
-          ⬇️ Download APK (25.4 MB)
-        </a>
+        <div class="changelog-actions">
+          <a href="downloads/WhatsPlay.apk" id="changelog-download-btn" class="btn btn-sm btn-primary"
+            download="WhatsPlay.apk" onclick="onDownloadClick('Website Changelog Download')">
+            ⬇️ Download APK (29.4 MB)
+          </a>
+          <a href="javascript:void(0)" id="changelog-open-btn" onclick="launchAppWithFallback()"
+            class="btn btn-sm btn-secondary btn-open-pill">
+            📱 Open App
+          </a>
+        </div>
       </div>
 
       <div class="changelog-body">
         <div class="changelog-item">
+          <div class="changelog-icon">💌</div>
+          <div class="changelog-content">
+            <h4>Automated Dark-Themed Email Templates for Blends</h4>
+            <p>Automatic delivery of responsive, modern dark-themed HTML emails via Brevo SMTP relay. Creators receive a
+              dedicated confirmation email with their unique 6-digit Join Code and management link upon creating a
+              Blend, and can directly send tailored invitation cards with custom join codes to friends via email.</p>
+          </div>
+        </div>
+        <div class="changelog-item">
           <div class="changelog-icon">✨</div>
           <div class="changelog-content">
             <h4>Real-Time Shared Blend Music with Unique Join Codes</h4>
-            <p>Connect with friends and blend music in real-time powered by Cloud Firestore. Each Blend features a unique 6-character uppercase code. User A can share their code with User B to join. Any song added by User A or User B immediately syncs in real-time across both devices with user attribution ("Added by [Name]"). Also integrates device telemetry and user activity logging into Firestore for future dashboards.</p>
+            <p>Connect with friends and blend music in real-time powered by Cloud Firestore. Each Blend features a
+              unique 6-character uppercase code. User A can share their code with User B to join. Any song added by User
+              A or User B immediately syncs in real-time across both devices with user attribution ("Added by [Name]").
+              Also integrates device telemetry and user activity logging into Firestore for future dashboards.</p>
           </div>
         </div>
 
@@ -517,7 +697,10 @@
           <div class="changelog-icon">⚡</div>
           <div class="changelog-content">
             <h4>Smooth & Direct TabBar Transitions</h4>
-            <p>Upgraded bottom navigation with native Flutter <code>TabController</code> and <code>TabBarView</code> across 3 Spotify-inspired tabs (<strong>Home</strong>, <strong>Search</strong>, <strong>Your Library</strong>). Navigating between tabs transitions directly with zero intermediary page flashing.</p>
+            <p>Upgraded bottom navigation with native Flutter <code>TabController</code> and <code>TabBarView</code>
+              across 3 Spotify-inspired tabs (<strong>Home</strong>, <strong>Search</strong>, <strong>Your
+                Library</strong>). Navigating between tabs transitions directly with zero intermediary page flashing.
+            </p>
           </div>
         </div>
 
@@ -525,7 +708,8 @@
           <div class="changelog-icon">🎤</div>
           <div class="changelog-content">
             <h4>Real-Time Synchronized Lyrics</h4>
-            <p>Added interactive Lyrics support directly in the Player screen powered by JioSaavn and LRCLIB fallback engines, featuring dynamic Ambient Glassmorphism styling.</p>
+            <p>Added interactive Lyrics support directly in the Player screen powered by JioSaavn and LRCLIB fallback
+              engines, featuring dynamic Ambient Glassmorphism styling.</p>
           </div>
         </div>
 
@@ -533,7 +717,8 @@
           <div class="changelog-icon">🚀</div>
           <div class="changelog-content">
             <h4>Zero-Lag 60/120 FPS Performance & Scroll Optimization</h4>
-            <p>Completely eliminated UI micro-stutters by scoping GetX reactive observers (<code>Obx</code>) to discrete playback widgets, ensuring seamless 120 FPS scrolling across infinite track shelves.</p>
+            <p>Completely eliminated UI micro-stutters by scoping GetX reactive observers (<code>Obx</code>) to discrete
+              playback widgets, ensuring seamless 120 FPS scrolling across infinite track shelves.</p>
           </div>
         </div>
 
@@ -541,7 +726,8 @@
           <div class="changelog-icon">🎧</div>
           <div class="changelog-content">
             <h4>Artwork Carousel Sync & Auto-Play</h4>
-            <p>Selecting any song from similar categories or artist shelves immediately launches audio streaming and animates the high-resolution artwork carousel in real-time lockstep.</p>
+            <p>Selecting any song from similar categories or artist shelves immediately launches audio streaming and
+              animates the high-resolution artwork carousel in real-time lockstep.</p>
           </div>
         </div>
 
@@ -549,7 +735,8 @@
           <div class="changelog-icon">📱</div>
           <div class="changelog-content">
             <h4>Crisp Android Media Notification & Lock Screen</h4>
-            <p>Resolved system media player icon scaling with a high-resolution transparent vector icon and updated ProGuard keep-rules for bulletproof background audio resilience.</p>
+            <p>Resolved system media player icon scaling with a high-resolution transparent vector icon and updated
+              ProGuard keep-rules for bulletproof background audio resilience.</p>
           </div>
         </div>
       </div>
@@ -561,58 +748,492 @@
       <div class="card">
         <div class="card-icon">🎧</div>
         <h3>Dual-Engine Music Streaming</h3>
-        <p>Integrates legitimate JioSaavn regional streaming endpoints and decentralized Audius protocol REST streams for full-length, high-bitrate playback.</p>
+        <p>Integrates legitimate JioSaavn regional streaming endpoints and decentralized Audius protocol REST streams
+          for full-length, high-bitrate playback.</p>
       </div>
 
       <div class="card">
         <div class="card-icon">🇮🇳</div>
         <h3>Regional Indian Discovery</h3>
-        <p>Rich catalogs dedicated to Bollywood chartbusters, Punjabi hits, and Gujarati melodies, plus artist spotlights (Diljit, Honey Singh, Arijit, Sidhu, Badshah).</p>
+        <p>Rich catalogs dedicated to Bollywood chartbusters, Punjabi hits, and Gujarati melodies, plus artist
+          spotlights (Diljit, Honey Singh, Arijit, Sidhu, Badshah).</p>
       </div>
 
       <div class="card">
         <div class="card-icon">📊</div>
         <h3>Ranked Top 50 Charts</h3>
-        <p>Real-time India Superhits Top 50 ranked list featuring #1 through #50 ranking badges, Taaza Tunes (New Releases), and curated Romantic and Party shelves.</p>
+        <p>Real-time India Superhits Top 50 ranked list featuring #1 through #50 ranking badges, Taaza Tunes (New
+          Releases), and curated Romantic and Party shelves.</p>
       </div>
 
       <div class="card">
         <div class="card-icon">📱</div>
         <h3>Lock Screen & Background Audio</h3>
-        <p>Uninterrupted playback powered by <code>audio_service</code> and <code>just_audio</code> with native OS notification drawer and lock screen controls.</p>
+        <p>Uninterrupted playback powered by <code>audio_service</code> and <code>just_audio</code> with native OS
+          notification drawer and lock screen controls.</p>
       </div>
 
       <div class="card">
         <div class="card-icon">💾</div>
         <h3>Offline SQLite Library</h3>
-        <p>Client-side SQLite database for Liked Songs, Custom Playlists, 10-second Listening History, and sandboxed offline MP3 downloads without an internet connection.</p>
+        <p>Client-side SQLite database for Liked Songs, Custom Playlists, 10-second Listening History, and sandboxed
+          offline MP3 downloads without an internet connection.</p>
       </div>
 
       <div class="card">
         <div class="card-icon">🎨</div>
         <h3>Ambient Gradient Visuals</h3>
-        <p>Spotify-style dark mode interface featuring dynamic background color extraction from album artwork and live animated sound wave equalizers.</p>
+        <p>Spotify-style dark mode interface featuring dynamic background color extraction from album artwork and live
+          animated sound wave equalizers.</p>
       </div>
     </div>
 
     <h2 class="section-title">Quick Installation</h2>
     <div class="code-block">
-# Clone the repository<br>
-git clone https://github.com/nikhilxrstudio-ctrl/Whats_play.git<br>
-cd Whats_play<br><br>
-# Fetch dependencies<br>
-flutter pub get<br><br>
-# Run static analysis & test suite<br>
-flutter analyze<br>
-flutter test test/controllers/ test/widget_test.dart<br><br>
-# Launch WhatsPlay<br>
-flutter run
+      # Clone the repository<br>
+      git clone https://github.com/nikhilxrstudio-ctrl/Whats_play.git<br>
+      cd Whats_play<br><br>
+      # Fetch dependencies<br>
+      flutter pub get<br><br>
+      # Run static analysis & test suite<br>
+      flutter analyze<br>
+      flutter test test/controllers/ test/widget_test.dart<br><br>
+      # Launch WhatsPlay<br>
+      flutter run
     </div>
   </main>
 
   <footer>
-    <p>&copy; 2026 WhatsPlay • Distributed under the <a href="https://opensource.org/licenses/MIT">MIT License</a> • Maintained by <a href="https://github.com/nikhilxrstudio-ctrl">Nikhil</a></p>
+    <p>&copy; 2026 WhatsPlay • Distributed under the <a href="https://opensource.org/licenses/MIT">MIT License</a> •
+      Maintained by <a href="https://github.com/nikhilxrstudio-ctrl">Nikhil</a></p>
   </footer>
 
+  <script>
+    // =========================================================================
+    // WhatsPlay Smart App Detection & Deep Link Launcher
+    // =========================================================================
+    const LATEST_VERSION = 'v1.0.14';
+    const APK_URL = 'downloads/WhatsPlay.apk';
+    const APK_SIZE = '29.4 MB';
+    const APP_SCHEME = 'whatsplay://open';
+    const APP_SCHEME_ALT = 'whatsplay://blend';
+    const ANDROID_PACKAGE = 'com.whatsplay.music.app';
+    const ANDROID_INTENT = 'intent://open#Intent;scheme=whatsplay;package=com.whatsplay.music.app;S.browser_fallback_url=' + encodeURIComponent(window.location.href) + ';end';
+
+    function isAndroid() {
+      return /Android/i.test(navigator.userAgent);
+    }
+
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    // =========================================================================
+    // Geolocation & Device Telemetry Capture
+    // =========================================================================
+    const geoInfo = {
+      ip: '',
+      country: '',
+      countryCode: '',
+      city: '',
+      region: '',
+      timezone: (Intl.DateTimeFormat && Intl.DateTimeFormat().resolvedOptions().timeZone) || ''
+    };
+
+    function getFallbackCountryFromTimezone(tz) {
+      if (!tz) return { country: 'Unknown', countryCode: 'XX' };
+      if (/Kolkata|Calcutta/i.test(tz)) return { country: 'India', countryCode: 'IN' };
+      if (/Karachi/i.test(tz)) return { country: 'Pakistan', countryCode: 'PK' };
+      if (/Dhaka/i.test(tz)) return { country: 'Bangladesh', countryCode: 'BD' };
+      if (/Dubai/i.test(tz)) return { country: 'United Arab Emirates', countryCode: 'AE' };
+      if (/London/i.test(tz)) return { country: 'United Kingdom', countryCode: 'GB' };
+      if (/New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Honolulu/i.test(tz)) return { country: 'United States', countryCode: 'US' };
+      if (/Toronto|Vancouver|Montreal/i.test(tz)) return { country: 'Canada', countryCode: 'CA' };
+      if (/Sydney|Melbourne|Brisbane/i.test(tz)) return { country: 'Australia', countryCode: 'AU' };
+      if (/Berlin|Paris|Rome|Madrid|Amsterdam/i.test(tz)) return { country: 'Europe', countryCode: 'EU' };
+      return { country: tz.split('/')[0] || 'Unknown', countryCode: 'XX' };
+    }
+
+    const tzInit = getFallbackCountryFromTimezone(geoInfo.timezone);
+    geoInfo.country = tzInit.country;
+    geoInfo.countryCode = tzInit.countryCode;
+
+    function fetchGeoLocation() {
+      // 1. Try ipwho.is (CORS supported, detailed geolocation)
+      fetch('https://ipwho.is/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data && data.success !== false) {
+            if (data.ip) geoInfo.ip = data.ip;
+            if (data.country) geoInfo.country = data.country;
+            if (data.country_code) geoInfo.countryCode = data.country_code;
+            if (data.city) geoInfo.city = data.city;
+            if (data.region) geoInfo.region = data.region;
+            if (data.timezone && data.timezone.id) geoInfo.timezone = data.timezone.id;
+          }
+        })
+        .catch(function() {
+          // 2. Fallback to ipapi.co
+          fetch('https://ipapi.co/json/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              if (data && !data.error) {
+                if (data.ip) geoInfo.ip = data.ip;
+                if (data.country_name) geoInfo.country = data.country_name;
+                if (data.country_code) geoInfo.countryCode = data.country_code;
+                if (data.city) geoInfo.city = data.city;
+                if (data.region) geoInfo.region = data.region;
+                if (data.timezone) geoInfo.timezone = data.timezone;
+              }
+            })
+            .catch(function() {
+              // 3. Fallback to api.country.is
+              fetch('https://api.country.is')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                  if (data) {
+                    if (data.ip) geoInfo.ip = data.ip;
+                    if (data.country) geoInfo.countryCode = data.country;
+                  }
+                })
+                .catch(function() {});
+            });
+        });
+    }
+    fetchGeoLocation();
+
+    // Client Hints for modern Android Chromium browsers
+    let clientHintModel = '';
+    let clientHintPlatform = '';
+    let clientHintPlatformVersion = '';
+
+    if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
+      navigator.userAgentData.getHighEntropyValues(['model', 'platform', 'platformVersion', 'architecture', 'mobile'])
+        .then(function(hints) {
+          if (hints.model) clientHintModel = hints.model;
+          if (hints.platform) clientHintPlatform = hints.platform;
+          if (hints.platformVersion) clientHintPlatformVersion = hints.platformVersion;
+        })
+        .catch(function() {});
+    }
+
+    function getDeviceTelemetry() {
+      const ua = navigator.userAgent || '';
+
+      // 1. OS & Version Detection
+      let osName = 'Unknown OS';
+      let osVersion = 'Unknown';
+      let androidVersion = 'Not Android';
+
+      if (/Android/i.test(ua)) {
+        osName = 'Android';
+        const match = ua.match(/Android\s+([0-9.]+)/i);
+        androidVersion = match ? ('Android ' + match[1]) : (clientHintPlatformVersion ? ('Android ' + clientHintPlatformVersion) : 'Android');
+        osVersion = androidVersion;
+      } else if (/iPhone|iPad|iPod/i.test(ua)) {
+        osName = 'iOS';
+        const match = ua.match(/OS\s+([0-9_]+)/i);
+        osVersion = match ? ('iOS ' + match[1].replace(/_/g, '.')) : 'iOS';
+      } else if (/Macintosh|Mac OS X/i.test(ua)) {
+        osName = 'macOS';
+        const match = ua.match(/Mac OS X\s+([0-9_]+)/i);
+        osVersion = match ? ('macOS ' + match[1].replace(/_/g, '.')) : 'macOS';
+      } else if (/Windows NT/i.test(ua)) {
+        osName = 'Windows';
+        if (/Windows NT 10.0/i.test(ua)) osVersion = 'Windows 10/11';
+        else if (/Windows NT 6.3/i.test(ua)) osVersion = 'Windows 8.1';
+        else if (/Windows NT 6.1/i.test(ua)) osVersion = 'Windows 7';
+        else osVersion = 'Windows';
+      } else if (/Linux/i.test(ua)) {
+        osName = 'Linux';
+        osVersion = 'Linux';
+      }
+
+      // 2. Device Model Detection (Phone Model)
+      let rawModel = clientHintModel || '';
+      if (!rawModel) {
+        if (/Android/i.test(ua)) {
+          const modelMatch = ua.match(/Android[^;)]+;\s*([^;)]+?)(?:\s+Build|\))/i);
+          if (modelMatch && modelMatch[1]) {
+            rawModel = modelMatch[1].replace(/;\s*wv$/, '').trim();
+          }
+        } else if (/iPhone/i.test(ua)) {
+          rawModel = 'Apple iPhone';
+        } else if (/iPad/i.test(ua)) {
+          rawModel = 'Apple iPad';
+        } else if (/Macintosh/i.test(ua)) {
+          rawModel = 'Apple Mac';
+        } else if (/Windows/i.test(ua)) {
+          rawModel = 'Windows PC';
+        } else {
+          rawModel = 'Generic Device';
+        }
+      }
+
+      // Friendly Brand Label
+      let deviceModel = rawModel;
+      if (/^SM-[A-Z0-9]+/i.test(rawModel)) {
+        deviceModel = 'Samsung ' + rawModel;
+      } else if (/^Pixel/i.test(rawModel)) {
+        deviceModel = 'Google ' + rawModel;
+      } else if (/^CPH|^RMX/i.test(rawModel)) {
+        deviceModel = 'OPPO/Realme ' + rawModel;
+      } else if (/^V2[0-9]+/i.test(rawModel)) {
+        deviceModel = 'Vivo ' + rawModel;
+      } else if (/^2[0-9]{3}[A-Z0-9]+/i.test(rawModel) || /^M2[0-9]+/i.test(rawModel)) {
+        deviceModel = 'Xiaomi/Redmi ' + rawModel;
+      }
+
+      // 3. Device Type (Mobile / Tablet / Desktop)
+      let deviceType = 'Desktop';
+      if (/iPad|Tablet|(Android(?!.*Mobile))/i.test(ua)) {
+        deviceType = 'Tablet';
+      } else if (/Mobile|Android|iPhone|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+        deviceType = 'Mobile';
+      }
+
+      // 4. Browser Detection
+      let browser = 'Browser';
+      let browserVersion = '';
+      if (/SamsungBrowser\/([0-9.]+)/i.test(ua)) {
+        browser = 'Samsung Internet';
+        browserVersion = RegExp.$1;
+      } else if (/Chrome\/([0-9.]+)/i.test(ua) && !/Edg|OPR/i.test(ua)) {
+        browser = 'Chrome';
+        browserVersion = RegExp.$1;
+      } else if (/Firefox\/([0-9.]+)/i.test(ua)) {
+        browser = 'Firefox';
+        browserVersion = RegExp.$1;
+      } else if (/Edg\/([0-9.]+)/i.test(ua)) {
+        browser = 'Edge';
+        browserVersion = RegExp.$1;
+      } else if (/OPR\/([0-9.]+)/i.test(ua)) {
+        browser = 'Opera';
+        browserVersion = RegExp.$1;
+      } else if (/Version\/([0-9.]+).*Safari/i.test(ua)) {
+        browser = 'Safari';
+        browserVersion = RegExp.$1;
+      } else if (/Safari/i.test(ua)) {
+        browser = 'Safari';
+      }
+
+      // 5. Screen & Network & Language
+      const screenResolution = `${window.screen.width || 0}x${window.screen.height || 0}`;
+      const language = navigator.language || (navigator.languages && navigator.languages[0]) || 'en';
+      const networkType = (navigator.connection && (navigator.connection.effectiveType || navigator.connection.type)) || 'unknown';
+
+      return {
+        osName: osName,
+        osVersion: osVersion,
+        androidVersion: androidVersion,
+        deviceModel: deviceModel || 'Unknown Device',
+        phoneModel: rawModel || 'Unknown Device',
+        deviceType: deviceType,
+        browser: browser,
+        browserVersion: browserVersion || 'Unknown',
+        screenResolution: screenResolution,
+        language: language,
+        networkType: networkType
+      };
+    }
+
+    function logApkDownload(sourceName) {
+      try {
+        const dev = getDeviceTelemetry();
+        const source = sourceName || 'Website Landing Page';
+        const isAndroidMobile = dev.osName === 'Android' && dev.deviceType === 'Mobile';
+        const platform = isAndroidMobile ? 'Android Mobile' : (dev.osName + ' ' + dev.deviceType);
+
+        const payload = {
+          fields: {
+            apkVersion: { stringValue: LATEST_VERSION },
+            source: { stringValue: source },
+            platform: { stringValue: platform },
+            status: { stringValue: 'Completed' },
+            fileSize: { stringValue: APK_SIZE },
+            downloadDate: { timestampValue: new Date().toISOString() },
+
+            // Geolocation & Network
+            country: { stringValue: geoInfo.country || 'Unknown' },
+            countryCode: { stringValue: geoInfo.countryCode || 'Unknown' },
+            city: { stringValue: geoInfo.city || 'Unknown' },
+            region: { stringValue: geoInfo.region || 'Unknown' },
+            ip: { stringValue: geoInfo.ip || 'Unknown' },
+            timezone: { stringValue: geoInfo.timezone || 'Unknown' },
+            networkType: { stringValue: dev.networkType || 'unknown' },
+
+            // Device & OS Telemetry
+            device: { stringValue: dev.deviceModel },
+            deviceModel: { stringValue: dev.deviceModel },
+            phoneModel: { stringValue: dev.phoneModel },
+            deviceType: { stringValue: dev.deviceType },
+            androidVersion: { stringValue: dev.androidVersion },
+            osVersion: { stringValue: dev.osVersion },
+            deviceVersion: { stringValue: dev.osVersion },
+
+            // Browser & Display
+            browser: { stringValue: dev.browser },
+            browserVersion: { stringValue: dev.browserVersion || 'Unknown' },
+            screenResolution: { stringValue: dev.screenResolution },
+            language: { stringValue: dev.language },
+            userAgent: { stringValue: (navigator.userAgent || 'Unknown').substring(0, 250) }
+          }
+        };
+
+        fetch('https://firestore.googleapis.com/v1/projects/whats-play/databases/(default)/documents/apk_downloads?key=AIzaSyAcD-T_MwdgdVd2NAp4dj9wGDM9AcKolhY', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(function(err) {
+          console.debug('[WhatsPlay] APK download log notice:', err);
+        });
+      } catch (e) {
+        console.debug('[WhatsPlay] Failed to log APK download:', e);
+      }
+    }
+
+    function onDownloadClick(sourceName) {
+      logApkDownload(sourceName || 'Website Landing Page');
+      const guide = document.getElementById('install-guide');
+      const dlBtn = document.getElementById('main-download-btn');
+      const changelogDlBtn = document.getElementById('changelog-download-btn');
+
+      if (dlBtn) {
+        dlBtn.innerHTML = '⏳ Downloading APK (' + APK_SIZE + ')...';
+      }
+      if (changelogDlBtn) {
+        changelogDlBtn.innerHTML = '⏳ Downloading APK...';
+      }
+      if (guide) {
+        guide.style.display = 'block';
+        guide.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function markAsInstalledAndOpen() {
+      localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
+      localStorage.setItem('whatsplay_app_installed', 'true');
+      updateAppButtons();
+      launchAppWithFallback();
+    }
+
+    function launchAppWithFallback() {
+      const start = Date.now();
+      let appOpened = false;
+
+      // When the native app opens, browser goes to background
+      const onVisibilityChange = () => {
+        if (document.hidden) {
+          appOpened = true;
+          localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
+          localStorage.setItem('whatsplay_app_installed', 'true');
+          updateAppButtons();
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange, { once: true });
+
+      // First try custom scheme directly to avoid Play Store redirection
+      window.location.href = APP_SCHEME;
+
+      // If that didn't immediately launch after 400ms, try alternate scheme or Intent
+      setTimeout(() => {
+        if (!document.hidden && !appOpened) {
+          if (isAndroid()) {
+            window.location.href = ANDROID_INTENT;
+          } else {
+            window.location.href = APP_SCHEME_ALT;
+          }
+        }
+      }, 400);
+
+      // Check if browser remained visible (app is not installed)
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        if (!appOpened && !document.hidden && Date.now() - start < 2600) {
+          if (confirm("WhatsPlay is not installed on this device yet. Would you like to download the latest APK (" + APK_SIZE + ")?")) {
+            localStorage.removeItem('whatsplay_installed_version');
+            localStorage.removeItem('whatsplay_app_installed');
+            window.location.href = APK_URL;
+            onDownloadClick('Fallback Download Prompt');
+          }
+        }
+      }, 1600);
+    }
+
+    function updateAppButtons() {
+      const dlBtn = document.getElementById('main-download-btn');
+      const openBtn = document.getElementById('main-open-btn');
+      const changelogDlBtn = document.getElementById('changelog-download-btn');
+      const changelogOpenBtn = document.getElementById('changelog-open-btn');
+      const subtext = document.getElementById('hero-subtext');
+      const guide = document.getElementById('install-guide');
+
+      const installedVersion = localStorage.getItem('whatsplay_installed_version');
+      const isInstalled = localStorage.getItem('whatsplay_app_installed') === 'true' && installedVersion === LATEST_VERSION;
+
+      if (isInstalled) {
+        // App is verified installed by user -> highlight "Open App" as primary!
+        if (openBtn) {
+          openBtn.className = 'btn btn-primary btn-open-app';
+          openBtn.innerHTML = '▶️ Open WhatsPlay App';
+        }
+        if (dlBtn) {
+          dlBtn.className = 'btn btn-secondary';
+          dlBtn.innerHTML = '⬇️ Re-download APK (' + APK_SIZE + ')';
+        }
+        if (changelogOpenBtn) {
+          changelogOpenBtn.className = 'btn btn-sm btn-primary btn-open-app';
+          changelogOpenBtn.innerHTML = '▶️ Open App';
+        }
+        if (changelogDlBtn) {
+          changelogDlBtn.className = 'btn btn-sm btn-secondary';
+          changelogDlBtn.innerHTML = '⬇️ Re-download APK';
+        }
+        if (subtext) {
+          subtext.innerHTML = `
+            <span style="color: #1DB954; font-weight: 600;">✓ Latest version (${LATEST_VERSION}) installed on your device</span> • 
+            <a href="javascript:void(0)" onclick="resetInstallState()" style="color: #727272; text-decoration: underline;">Reset</a>
+          `;
+        }
+        if (guide) {
+          guide.style.display = 'none';
+        }
+      } else {
+        // First visit or downloading state
+        if (dlBtn) {
+          dlBtn.className = 'btn btn-primary';
+          dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (29.4 MB)';
+        }
+        if (openBtn) {
+          openBtn.className = 'btn btn-secondary btn-open-pill';
+          openBtn.innerHTML = '📱 Open App';
+        }
+        if (changelogDlBtn) {
+          changelogDlBtn.className = 'btn btn-sm btn-primary';
+          changelogDlBtn.innerHTML = '⬇️ Download APK (29.4 MB)';
+        }
+        if (changelogOpenBtn) {
+          changelogOpenBtn.className = 'btn btn-sm btn-secondary btn-open-pill';
+          changelogOpenBtn.innerHTML = '📱 Open App';
+        }
+        if (subtext) {
+          subtext.innerHTML = `
+            <span style="color: #B3B3B3;">New to WhatsPlay? Download APK above • Already installed? Tap <strong>Open App</strong></span>
+          `;
+        }
+      }
+    }
+
+    function resetInstallState() {
+      localStorage.removeItem('whatsplay_installed_version');
+      localStorage.removeItem('whatsplay_app_installed');
+      const guide = document.getElementById('install-guide');
+      if (guide) guide.style.display = 'none';
+      updateAppButtons();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateAppButtons);
+  </script>
 </body>
+
 </html>
