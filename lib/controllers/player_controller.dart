@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' as io;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../models/track_model.dart';
 import '../services/audio_player_handler.dart';
+import '../services/auth_service.dart';
 import '../services/local_database_service.dart';
 import 'music_controller.dart';
 
@@ -66,6 +68,7 @@ class PlayerController extends GetxController {
             await file.delete();
           }
         }
+        _syncDownloadEventToFirestore(track, isAdded: false);
         debugPrint('[PlayerController] Removed "${track.title}" from downloads.');
         if (Get.overlayContext != null) {
           Get.rawSnackbar(
@@ -81,6 +84,7 @@ class PlayerController extends GetxController {
       downloadingTrackIds.add(track.trackId);
       try {
         String? localFilePath;
+        String? fileSizeString;
         if (track.audioUrl.isNotEmpty) {
           try {
             final appDir = await getApplicationDocumentsDirectory();
@@ -103,7 +107,9 @@ class PlayerController extends GetxController {
               await tempFile.writeAsBytes(response.bodyBytes);
               await tempFile.rename(destinationPath);
               localFilePath = destinationPath;
-              debugPrint('[PlayerController] Saved offline audio to app sandbox: $destinationPath');
+              final sizeInMb = response.bodyBytes.length / (1024 * 1024);
+              fileSizeString = '${sizeInMb.toStringAsFixed(1)} MB';
+              debugPrint('[PlayerController] Saved offline audio to app sandbox: $destinationPath ($fileSizeString)');
             }
           } catch (ioErr) {
             debugPrint('[PlayerController] Offline file save error/fallback: $ioErr');
@@ -118,6 +124,13 @@ class PlayerController extends GetxController {
         downloadedTrackIds.add(track.trackId);
         downloadedTracks.removeWhere((t) => t.trackId == track.trackId);
         downloadedTracks.insert(0, downloadedTrack);
+
+        _syncDownloadEventToFirestore(
+          downloadedTrack,
+          isAdded: true,
+          fileSize: fileSizeString ?? '3.5 MB',
+        );
+
         debugPrint('[PlayerController] Saved "${track.title}" to downloads.');
         if (Get.overlayContext != null) {
           Get.rawSnackbar(
@@ -131,6 +144,63 @@ class PlayerController extends GetxController {
         debugPrint('[PlayerController] Error saving downloaded song: $e');
       }
     }
+  }
+
+  void _syncDownloadEventToFirestore(
+    TrackModel track, {
+    required bool isAdded,
+    String? fileSize,
+  }) {
+    Future.microtask(() async {
+      try {
+        final authService = Get.isRegistered<AuthService>() ? Get.find<AuthService>() : null;
+        final uid = authService?.currentUser.value?.uid;
+        final deviceId = authService?.currentDeviceId.value;
+        final userName = authService?.effectiveUserName ?? 'WhatsPlay User';
+        final userEmail = authService?.userEmail.value ?? '';
+
+        final firestore = FirebaseFirestore.instance;
+
+        // 1. Update user document download counters for admin dashboard
+        final updateMap = <String, dynamic>{
+          'totalDownloads': FieldValue.increment(isAdded ? 1 : -1),
+          'downloadCount': FieldValue.increment(isAdded ? 1 : -1),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        };
+
+        if (isAdded) {
+          updateMap['lastDownloadAt'] = FieldValue.serverTimestamp();
+          updateMap['lastDownloadedSong'] = track.title;
+        }
+
+        if (uid != null && uid.isNotEmpty) {
+          await firestore.collection('users').doc(uid).set(updateMap, SetOptions(merge: true));
+        }
+
+        if (deviceId != null && deviceId.isNotEmpty && deviceId != 'unknown') {
+          await firestore.collection('users').doc('device_$deviceId').set(updateMap, SetOptions(merge: true));
+        }
+
+        // 2. If newly added, log individual download record into 'song_downloads'
+        if (isAdded) {
+          await firestore.collection('song_downloads').add({
+            'songId': track.trackId,
+            'songName': track.title,
+            'artist': track.artistName,
+            'user': userName.isNotEmpty ? userName : 'WhatsPlay User',
+            'userEmail': userEmail,
+            'userId': uid ?? (deviceId != null ? 'device_$deviceId' : 'anonymous'),
+            'status': 'Success',
+            'fileSize': fileSize ?? '3.5 MB',
+            'artwork': track.artworkUrl ?? '',
+            'source': 'WhatsPlay App',
+            'downloadDate': FieldValue.serverTimestamp(),
+          });
+        }
+      } catch (e) {
+        debugPrint('[PlayerController] Download Firestore sync error: $e');
+      }
+    });
   }
 
   Future<void> toggleLike(TrackModel track) async {

@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.4] - 2026-11-28 (Build: 1.0.4+5)
+
+### ⚡ What's New
+- Add Cloud Firestore song_downloads tracking and APK distribution telemetry
+
 ## [v1.0.3] - 2026-11-28 (Build: 1.0.3+4)
 
 ### ⚡ What's New
