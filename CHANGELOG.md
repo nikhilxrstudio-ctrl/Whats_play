@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.5] - 2026-11-28 (Build: 1.0.5+6)
+
+### ⚡ What's New
+- Secure API endpoints and credentials into protected vault with zero-leak git template
+
 ## [v1.0.4] - 2026-11-28 (Build: 1.0.4+5)
 
 ### ⚡ What's New
