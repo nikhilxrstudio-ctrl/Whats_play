@@ -1767,6 +1767,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                 Expanded(
                   child: TextField(
                     controller: controller.searchTextController,
+                    focusNode: controller.searchFocusNode,
                     onChanged: (val) => controller.onSearchQueryChanged(val),
                     onSubmitted: (val) => controller.performSearch(val),
                     textAlignVertical: TextAlignVertical.center,
@@ -1804,7 +1805,9 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
             ),
           ),
           Obx(() {
-            if (controller.searchQuery.value.trim().isEmpty) {
+            final isFocused = controller.isSearchFieldFocused.value;
+            final hasQuery = controller.searchQuery.value.trim().isNotEmpty;
+            if (!isFocused && !hasQuery) {
               return const SizedBox.shrink();
             }
             return Padding(
@@ -1825,7 +1828,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
             );
           }),
           SizedBox(height: 10.h),
-          // Content: Search Results or Browse Categories
+          // Content: Search Results, Suggested Songs on Focus, or Browse Categories
           Expanded(
             child: Obx(() {
               if (controller.isSearching.value) {
@@ -1879,6 +1882,73 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                       },
                     );
                   },
+                );
+              }
+
+              // When keyboard / search field is active and query is empty: show suggested songs from Home!
+              if (controller.isSearchFieldFocused.value) {
+                final suggestions = controller.suggestedTracks.isNotEmpty
+                    ? controller.suggestedTracks
+                    : (controller.trendingTracks.isNotEmpty
+                        ? controller.trendingTracks
+                        : controller.tracks);
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 4.h, bottom: 8.h),
+                      child: Row(
+                        children: [
+                          Icon(
+                            CupertinoIcons.sparkles,
+                            color: AppColors.primary,
+                            size: 16.sp,
+                          ),
+                          SizedBox(width: 6.w),
+                          Text(
+                            'Suggested for you',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: suggestions.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Type to search songs or artists',
+                                style: TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 13.5.sp,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: suggestions.length,
+                              itemBuilder: (context, index) {
+                                final track = suggestions[index];
+                                return MusicTrackCard(
+                                  track: track,
+                                  onTap: () {
+                                    if (Get.isRegistered<PlayerController>()) {
+                                      final playerCtrl = Get.find<PlayerController>();
+                                      playerCtrl.playTrack(
+                                        track,
+                                        queue: suggestions,
+                                      );
+                                    }
+                                    Get.toNamed(AppRoutes.player, arguments: track);
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 );
               }
 

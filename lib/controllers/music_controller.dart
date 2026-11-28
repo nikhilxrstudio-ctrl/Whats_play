@@ -289,8 +289,10 @@ class MusicController extends GetxController {
   final RxList<TrackModel> rawSearchResults = <TrackModel>[].obs;
   final RxList<TrackModel> searchResults = <TrackModel>[].obs;
   final RxBool isSearching = false.obs;
+  final RxBool isSearchFieldFocused = false.obs;
   final RxString searchFilter = 'All'.obs; // 'All', 'Songs', 'Artists'
   final TextEditingController searchTextController = TextEditingController();
+  final FocusNode searchFocusNode = FocusNode();
   Timer? _searchDebounceTimer;
 
   void setSearchFilter(String filter) {
@@ -436,6 +438,7 @@ class MusicController extends GetxController {
   void onClose() {
     _searchDebounceTimer?.cancel();
     searchTextController.dispose();
+    searchFocusNode.dispose();
     pageController.dispose();
     super.onClose();
   }
@@ -453,6 +456,9 @@ class MusicController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    searchFocusNode.addListener(() {
+      isSearchFieldFocused.value = searchFocusNode.hasFocus;
+    });
     loadCategoryPreferences();
     fetchTracks();
     loadFollowedArtists();
