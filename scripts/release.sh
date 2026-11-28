@@ -105,54 +105,93 @@ cp "$SOURCE_APK" docs/downloads/WhatsPlay.apk
 APK_SIZE_BYTES="$(stat -f%z downloads/WhatsPlay.apk 2>/dev/null || stat -c%s downloads/WhatsPlay.apk)"
 APK_SHA256="$(shasum -a 256 downloads/WhatsPlay.apk | awk '{print $1}')"
 
-# 4. Update README.md and docs with Python
-echo "📄 3. Updating README.md, docs/index.html & docs/blend.html..."
-python3 - "$TAG_NAME" "$APK_SIZE_BYTES" << 'EOF'
-import sys, re
+# 4. Update README.md, CHANGELOG.md, and docs with Python
+echo "📄 3. Updating README.md, CHANGELOG.md, docs/index.html & docs/blend.html..."
+python3 - "$TAG_NAME" "$FULL_VERSION" "$APK_SIZE_BYTES" "$SUMMARY" << 'EOF'
+import sys, re, datetime
 
 tag = sys.argv[1]
-size_bytes = int(sys.argv[2])
+full_ver = sys.argv[2]
+size_bytes = int(sys.argv[3])
+summary = sys.argv[4] if len(sys.argv) > 4 else f"Release {tag}"
+
 size_mb = f"{size_bytes / (1024 * 1024):.1f} MB"
 badge_size = size_mb.replace(" ", "_")
+today_date = datetime.date.today().strftime("%Y-%m-%d")
+month_year = datetime.date.today().strftime("%B %Y")
 
-# Update README.md
+# 1. Update README.md
 try:
     with open('README.md', 'r') as f:
         readme = f.read()
-    readme = re.sub(r'Download_APK-WhatsPlay\.apk_\([^)]+\)-1DB954', f'Download_APK-WhatsPlay.apk_({badge_size})-1DB954', readme)
+    # Update release version badge
     readme = re.sub(
-        r'\|\s*\*\*WhatsPlay\.apk \(Recommended\)\*\*\s*\|\s*`arm64-v8a`[^\n]*',
-        f'| **WhatsPlay.apk (Recommended)** | `arm64-v8a` (99% Modern Android Phones) | **{size_mb}** | [⬇️ **Download WhatsPlay.apk**](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk) |',
+        r'Release-[^)]+-blue\.svg\?style=for-the-badge&logo=git',
+        f'Release-{tag}_({full_ver})-blue.svg?style=for-the-badge&logo=git',
+        readme
+    )
+    # Update APK size badge
+    readme = re.sub(r'Download_APK-WhatsPlay\.apk_\([^)]+\)-1DB954', f'Download_APK-WhatsPlay.apk_({badge_size})-1DB954', readme)
+    # Update table row
+    readme = re.sub(
+        r'\|\s*\*\*WhatsPlay\.apk[^\n]*',
+        f'| **WhatsPlay.apk (Latest {tag})** | `arm64-v8a` (99% Modern Android Phones) | **{size_mb}** | [⬇️ **Download WhatsPlay.apk**](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk) |',
         readme
     )
     with open('README.md', 'w') as f:
         f.write(readme)
+    print("✓ Updated README.md (Version badge, APK size, download link)")
 except Exception as e:
     print(f"Notice updating README: {e}")
 
-# Update docs/index.html
+# 2. Update CHANGELOG.md if this version is not yet recorded
+try:
+    with open('CHANGELOG.md', 'r') as f:
+        changelog = f.read()
+    if f"## [{tag}]" not in changelog:
+        new_entry = f"\n## [{tag}] - {today_date} (Build: {full_ver})\n\n### ⚡ What's New\n- {summary}\n"
+        # Insert after header separator
+        if "---\n" in changelog:
+            parts = changelog.split("---\n", 1)
+            changelog = parts[0] + "---\n" + new_entry + parts[1]
+        else:
+            changelog += new_entry
+        with open('CHANGELOG.md', 'w') as f:
+            f.write(changelog)
+        print(f"✓ Added {tag} entry to CHANGELOG.md")
+except Exception as e:
+    print(f"Notice updating CHANGELOG.md: {e}")
+
+# 3. Update docs/index.html
 try:
     with open('docs/index.html', 'r') as f:
         html = f.read()
+    # Update hero button
     html = re.sub(r'⬇️ Download WhatsPlay\.apk \([^)]+\)', f'⬇️ Download WhatsPlay.apk ({size_mb})', html)
+    # Update changelog download button
     html = re.sub(r'⬇️ Download APK \([^)]+\)', f'⬇️ Download APK ({size_mb})', html)
+    # Update version badge
     html = re.sub(r'<span class=\"version-badge\">[^<]+</span>', f'<span class=\"version-badge\">{tag} • Latest Release</span>', html)
+    # Update release date
+    html = re.sub(r'<span class=\"release-date\">[^<]+</span>', f'<span class=\"release-date\">{month_year}</span>', html)
     with open('docs/index.html', 'w') as f:
         f.write(html)
+    print("✓ Updated docs/index.html (Version badge, Release date, APK size)")
 except Exception as e:
     print(f"Notice updating docs/index.html: {e}")
 
-# Update docs/blend.html
+# 4. Update docs/blend.html
 try:
     with open('docs/blend.html', 'r') as f:
         b_html = f.read()
     b_html = re.sub(r'⬇️ Download WhatsPlay APK \([^)]+\)', f'⬇️ Download WhatsPlay APK ({size_mb})', b_html)
     with open('docs/blend.html', 'w') as f:
         f.write(b_html)
+    print("✓ Updated docs/blend.html (APK size)")
 except Exception as e:
     print(f"Notice updating docs/blend.html: {e}")
 
-print(f"Updated docs with APK Size: {size_mb}")
+print(f"Artifact sync complete for {tag} ({size_mb})")
 EOF
 
 APK_SIZE_MB="$(python3 -c "print(f'{$APK_SIZE_BYTES / (1024 * 1024):.1f} MB')")"
