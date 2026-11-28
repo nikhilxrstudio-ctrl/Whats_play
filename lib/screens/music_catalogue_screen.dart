@@ -1803,7 +1803,28 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
               ],
             ),
           ),
-          SizedBox(height: 14.h),
+          Obx(() {
+            if (controller.searchQuery.value.trim().isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: EdgeInsets.only(top: 10.h, bottom: 4.h),
+              child: SizedBox(
+                height: 34.h,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _buildSearchFilterChip(controller, 'All', 'All'),
+                    SizedBox(width: 8.w),
+                    _buildSearchFilterChip(controller, 'Songs', 'Songs'),
+                    SizedBox(width: 8.w),
+                    _buildSearchFilterChip(controller, 'Artists', 'Artists'),
+                  ],
+                ),
+              ),
+            );
+          }),
+          SizedBox(height: 10.h),
           // Content: Search Results or Browse Categories
           Expanded(
             child: Obx(() {
@@ -1947,6 +1968,37 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
         ],
       ),
     );
+  }
+
+  Widget _buildSearchFilterChip(MusicController controller, String label, String filterKey) {
+    return Obx(() {
+      final isSelected = controller.searchFilter.value == filterKey;
+      return GestureDetector(
+        onTap: () => controller.setSearchFilter(filterKey),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.cardBorder,
+              width: 1,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.black : AppColors.textPrimary,
+                fontSize: 12.5.sp,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildBrowseCard({

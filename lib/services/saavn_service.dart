@@ -348,24 +348,14 @@ class SaavnService implements IApiService {
       }
 
       // Merge & Deduplicate
+      // Strict Priority Requirement: Song name matching query takes priority 1, artist matches priority 2
       final Map<String, TrackModel> deduplicated = {};
 
-      if (isStrongArtistMatch) {
-        // User searched for an artist: prioritize artist's top hit songs first
-        for (final t in artistTracks) {
-          deduplicated[t.trackId] = t;
-        }
-        for (final t in songTracks) {
-          deduplicated.putIfAbsent(t.trackId, () => t);
-        }
-      } else {
-        // User searched for song title or genre: prioritize song results first
-        for (final t in songTracks) {
-          deduplicated[t.trackId] = t;
-        }
-        for (final t in artistTracks) {
-          deduplicated.putIfAbsent(t.trackId, () => t);
-        }
+      for (final t in songTracks) {
+        deduplicated[t.trackId] = t;
+      }
+      for (final t in artistTracks) {
+        deduplicated.putIfAbsent(t.trackId, () => t);
       }
 
       final results = deduplicated.values.take(limit).toList();

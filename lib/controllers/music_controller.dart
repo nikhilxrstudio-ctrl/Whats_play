@@ -286,16 +286,103 @@ class MusicController extends GetxController {
 
   // Search tab state
   final RxString searchQuery = ''.obs;
+  final RxList<TrackModel> rawSearchResults = <TrackModel>[].obs;
   final RxList<TrackModel> searchResults = <TrackModel>[].obs;
   final RxBool isSearching = false.obs;
+  final RxString searchFilter = 'All'.obs; // 'All', 'Songs', 'Artists'
   final TextEditingController searchTextController = TextEditingController();
   Timer? _searchDebounceTimer;
+
+  void setSearchFilter(String filter) {
+    if (searchFilter.value == filter) return;
+    searchFilter.value = filter;
+    _applySearchFilterAndPriority();
+  }
+
+  void _applySearchFilterAndPriority() {
+    final query = searchQuery.value.trim().toLowerCase();
+    if (rawSearchResults.isEmpty) {
+      searchResults.clear();
+      return;
+    }
+
+    final filter = searchFilter.value;
+    final List<TrackModel> filtered = [];
+
+    // Prioritize and filter:
+    // Priority 1: Direct song title match (contains query)
+    // Priority 2: Artist name match (contains query)
+    // Priority 3: Other results
+
+    final songMatches = <TrackModel>[];
+    final artistMatches = <TrackModel>[];
+    final otherMatches = <TrackModel>[];
+
+    for (final track in rawSearchResults) {
+      final title = track.title.toLowerCase();
+      final artist = track.artistName.toLowerCase();
+
+      final matchesTitle = query.isNotEmpty && (title.contains(query) || query.split(' ').any((w) => w.length > 2 && title.contains(w)));
+      final matchesArtist = query.isNotEmpty && (artist.contains(query) || query.split(' ').any((w) => w.length > 2 && artist.contains(w)));
+
+      if (filter == 'Songs') {
+        if (matchesTitle || (!matchesArtist && query.isNotEmpty)) {
+          songMatches.add(track);
+        } else if (query.isEmpty) {
+          songMatches.add(track);
+        }
+      } else if (filter == 'Artists') {
+        if (matchesArtist) {
+          artistMatches.add(track);
+        }
+      } else {
+        // 'All': Priority 1 = Songs, Priority 2 = Artists, Priority 3 = Others
+        if (matchesTitle) {
+          songMatches.add(track);
+        } else if (matchesArtist) {
+          artistMatches.add(track);
+        } else {
+          otherMatches.add(track);
+        }
+      }
+    }
+
+    if (filter == 'Songs') {
+      filtered.addAll(songMatches);
+      // Fallback if strict title didn't catch enough
+      if (filtered.isEmpty) {
+        filtered.addAll(rawSearchResults);
+      }
+    } else if (filter == 'Artists') {
+      filtered.addAll(artistMatches);
+      // Fallback if none matched strict artist
+      if (filtered.isEmpty) {
+        filtered.addAll(rawSearchResults.where((t) => t.artistName.isNotEmpty));
+      }
+    } else {
+      // 'All': First Songs, then Artists, then remaining
+      filtered.addAll(songMatches);
+      for (final a in artistMatches) {
+        if (!filtered.any((t) => t.trackId == a.trackId)) {
+          filtered.add(a);
+        }
+      }
+      for (final o in otherMatches) {
+        if (!filtered.any((t) => t.trackId == o.trackId)) {
+          filtered.add(o);
+        }
+      }
+    }
+
+    searchResults.assignAll(filtered);
+  }
 
   void onSearchQueryChanged(String query) {
     searchQuery.value = query;
     _searchDebounceTimer?.cancel();
 
     if (query.trim().isEmpty) {
+      rawSearchResults.clear();
       searchResults.clear();
       isSearching.value = false;
       return;
@@ -313,6 +400,7 @@ class MusicController extends GetxController {
     _searchDebounceTimer?.cancel();
 
     if (cleanQuery.isEmpty) {
+      rawSearchResults.clear();
       searchResults.clear();
       isSearching.value = false;
       return;
@@ -322,7 +410,8 @@ class MusicController extends GetxController {
     try {
       final results = await _repository.searchTracks(cleanQuery);
       if (searchQuery.value == cleanQuery) {
-        searchResults.assignAll(results);
+        rawSearchResults.assignAll(results);
+        _applySearchFilterAndPriority();
       }
     } catch (e) {
       debugPrint('[MusicController] Search error: $e');
@@ -337,7 +426,9 @@ class MusicController extends GetxController {
     _searchDebounceTimer?.cancel();
     searchTextController.clear();
     searchQuery.value = '';
+    rawSearchResults.clear();
     searchResults.clear();
+    searchFilter.value = 'All';
     isSearching.value = false;
   }
 

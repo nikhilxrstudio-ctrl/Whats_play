@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.9] - 2026-11-28 (Build: 1.0.9+10)
+
+### ⚡ What's New
+- Implement search filter chips (All, Songs, Artists) and song-first priority ranking
+
 ## [v1.0.8] - 2026-11-28 (Build: 1.0.8+9)
 
 ### ⚡ What's New
