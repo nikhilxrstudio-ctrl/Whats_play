@@ -34,5 +34,16 @@ service cloud.firestore {
       allow create: if true;
       allow read: if false;
     }
+
+    // ── APK DOWNLOADS COLLECTION ───────────────────────────────────────
+    // Visitor download telemetry & dashboard analytics
+    match /apk_downloads/{downloadId} {
+      allow create, read: if true;
+    }
+
+    // ── EMAIL LOGS COLLECTION ─────────────────────────────────────────
+    match /email_logs/{logId} {
+      allow create, read: if true;
+    }
   }
 }
