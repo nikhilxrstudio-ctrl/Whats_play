@@ -167,6 +167,39 @@
       transform: scale(1.03);
     }
 
+    .hero-actions-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .hero-actions-container .btn-group {
+      margin-bottom: 12px;
+    }
+
+    .action-subtext {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      min-height: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .action-subtext a {
+      transition: color 0.2s ease;
+    }
+
+    .action-subtext a:hover {
+      color: var(--text-primary);
+    }
+
+    .btn-open-app {
+      background: linear-gradient(135deg, #1DB954, #1aa34a);
+      color: #000 !important;
+      box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
+    }
+
     .badges {
       display: flex;
       justify-content: center;
@@ -416,22 +449,26 @@
     <h1>WhatsPlay</h1>
     <p class="tagline">An open-source, Spotify-inspired music streaming application built in Flutter with dual-engine playback, regional Indian music discovery, background audio, and offline caching.</p>
     
-    <div class="btn-group">
-      <a href="downloads/WhatsPlay.apk" class="btn btn-primary" download="WhatsPlay.apk">
-        ⬇️ Download WhatsPlay.apk (28.1 MB)
-      </a>
-      <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play" class="btn btn-secondary">
-        ★ Star on GitHub
-      </a>
-      <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play#readme" class="btn btn-secondary">
-        Documentation
-      </a>
-      <a href="llms.txt" class="btn btn-secondary">
-        llms.txt (AI Spec)
-      </a>
-      <a href="#changelog" class="btn btn-secondary">
-        ⚡ Updates & Changelog
-      </a>
+    <div class="hero-actions-container">
+      <div class="btn-group">
+        <!-- Smart App Launch / Download Button -->
+        <a href="downloads/WhatsPlay.apk" id="main-action-btn" class="btn btn-primary" download="WhatsPlay.apk">
+          ⬇️ Download WhatsPlay.apk (28.1 MB)
+        </a>
+        <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play" class="btn btn-secondary">
+          ★ Star on GitHub
+        </a>
+        <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play#readme" class="btn btn-secondary">
+          Documentation
+        </a>
+        <a href="llms.txt" class="btn btn-secondary">
+          llms.txt (AI Spec)
+        </a>
+        <a href="#changelog" class="btn btn-secondary">
+          ⚡ Updates & Changelog
+        </a>
+      </div>
+      <div id="hero-subtext" class="action-subtext"></div>
     </div>
 
     <div class="badges">
@@ -499,7 +536,7 @@
           <span class="release-date">November 2026</span>
           <span class="arch-badge">Android 7.0+ (arm64-v8a)</span>
         </div>
-        <a href="downloads/WhatsPlay.apk" class="btn btn-sm btn-primary" download="WhatsPlay.apk">
+        <a href="downloads/WhatsPlay.apk" id="changelog-action-btn" class="btn btn-sm btn-primary" download="WhatsPlay.apk">
           ⬇️ Download APK (28.1 MB)
         </a>
       </div>
@@ -621,5 +658,166 @@ flutter run
     <p>&copy; 2026 WhatsPlay • Distributed under the <a href="https://opensource.org/licenses/MIT">MIT License</a> • Maintained by <a href="https://github.com/nikhilxrstudio-ctrl">Nikhil</a></p>
   </footer>
 
+  <script>
+    // =========================================================================
+    // WhatsPlay Smart App Detection & Deep Link Launcher
+    // =========================================================================
+    const LATEST_VERSION = 'v1.0.0';
+    const APK_URL = 'downloads/WhatsPlay.apk';
+    const APK_SIZE = '28.1 MB';
+    const APP_SCHEME = 'whatsplay://open';
+    const ANDROID_INTENT = 'intent://open#Intent;scheme=whatsplay;package=com.nikhil.whats_play;end';
+
+    function isAndroid() {
+      return /Android/i.test(navigator.userAgent);
+    }
+
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    function launchAppWithFallback() {
+      // Mark as installed since user is opening app
+      localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
+      localStorage.setItem('whatsplay_app_installed', 'true');
+
+      const start = Date.now();
+      let appOpened = false;
+
+      // When the native app opens, browser goes to background
+      const onVisibilityChange = () => {
+        if (document.hidden) {
+          appOpened = true;
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange, { once: true });
+
+      // Attempt launch via Android Intent (Chrome/Android) or custom scheme
+      if (isAndroid()) {
+        window.location.href = ANDROID_INTENT;
+      } else {
+        window.location.href = APP_SCHEME;
+      }
+
+      // Check if browser remained visible (app wasn't installed)
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        if (!appOpened && !document.hidden && Date.now() - start < 2200) {
+          if (confirm("WhatsPlay didn't open. Would you like to download the latest APK (" + APK_SIZE + ")?")) {
+            localStorage.removeItem('whatsplay_installed_version');
+            localStorage.removeItem('whatsplay_app_installed');
+            window.location.href = APK_URL;
+            updateAppButtons();
+          }
+        }
+      }, 1500);
+    }
+
+    function updateAppButtons() {
+      const mainBtn = document.getElementById('main-action-btn');
+      const changelogBtn = document.getElementById('changelog-action-btn');
+      const subtext = document.getElementById('hero-subtext');
+
+      const installedVersion = localStorage.getItem('whatsplay_installed_version');
+      const isInstalled = localStorage.getItem('whatsplay_app_installed') === 'true' || installedVersion === LATEST_VERSION;
+
+      if (isInstalled && installedVersion === LATEST_VERSION) {
+        // User has latest version installed -> SHOW "OPEN APP"
+        if (mainBtn) {
+          mainBtn.innerHTML = '▶️ Open WhatsPlay App';
+          mainBtn.className = 'btn btn-primary btn-open-app';
+          mainBtn.removeAttribute('download');
+          mainBtn.href = 'javascript:void(0)';
+          mainBtn.onclick = (e) => {
+            e.preventDefault();
+            launchAppWithFallback();
+          };
+        }
+        if (changelogBtn) {
+          changelogBtn.innerHTML = '▶️ Open App';
+          changelogBtn.className = 'btn btn-sm btn-primary btn-open-app';
+          changelogBtn.removeAttribute('download');
+          changelogBtn.href = 'javascript:void(0)';
+          changelogBtn.onclick = (e) => {
+            e.preventDefault();
+            launchAppWithFallback();
+          };
+        }
+        if (subtext) {
+          subtext.innerHTML = `
+            <span style="color: #1DB954; font-weight: 600;">✓ Latest version (${LATEST_VERSION}) installed</span> • 
+            <a href="${APK_URL}" download="WhatsPlay.apk" onclick="onDownloadClick()" style="color: #B3B3B3; text-decoration: underline;">Re-download APK (${APK_SIZE})</a> • 
+            <a href="javascript:void(0)" onclick="resetInstallState()" style="color: #727272; text-decoration: underline;">Reset</a>
+          `;
+        }
+      } else if (installedVersion && installedVersion !== LATEST_VERSION) {
+        // User has older version installed -> SHOW "UPDATE TO LATEST"
+        if (mainBtn) {
+          mainBtn.innerHTML = `⚡ Update to ${LATEST_VERSION} (${APK_SIZE})`;
+          mainBtn.className = 'btn btn-primary';
+          mainBtn.setAttribute('download', 'WhatsPlay.apk');
+          mainBtn.href = APK_URL;
+          mainBtn.onclick = onDownloadClick;
+        }
+        if (changelogBtn) {
+          changelogBtn.innerHTML = `⚡ Update APK`;
+          changelogBtn.className = 'btn btn-sm btn-primary';
+          changelogBtn.setAttribute('download', 'WhatsPlay.apk');
+          changelogBtn.href = APK_URL;
+          changelogBtn.onclick = onDownloadClick;
+        }
+        if (subtext) {
+          subtext.innerHTML = `
+            <span style="color: #FFB74D; font-weight: 600;">⚠️ New update available!</span> Installed: ${installedVersion} &rarr; Latest: ${LATEST_VERSION} • 
+            <a href="javascript:void(0)" onclick="launchAppWithFallback()" style="color: #1DB954; text-decoration: underline;">Open old version</a>
+          `;
+        }
+      } else {
+        // App not installed / first visit -> SHOW "DOWNLOAD APK"
+        if (mainBtn) {
+          mainBtn.innerHTML = `⬇️ Download WhatsPlay.apk (28.1 MB)`;
+          mainBtn.className = 'btn btn-primary';
+          mainBtn.setAttribute('download', 'WhatsPlay.apk');
+          mainBtn.href = APK_URL;
+          mainBtn.onclick = onDownloadClick;
+        }
+        if (changelogBtn) {
+          changelogBtn.innerHTML = `⬇️ Download APK (28.1 MB)`;
+          changelogBtn.className = 'btn btn-sm btn-primary';
+          changelogBtn.setAttribute('download', 'WhatsPlay.apk');
+          changelogBtn.href = APK_URL;
+          changelogBtn.onclick = onDownloadClick;
+        }
+        if (subtext) {
+          subtext.innerHTML = `
+            <a href="javascript:void(0)" onclick="markAsInstalledAndOpen()" style="color: #1DB954; font-size: 0.9rem; text-decoration: underline;">
+              Already have WhatsPlay installed? Tap here to Open App
+            </a>
+          `;
+        }
+      }
+    }
+
+    function onDownloadClick() {
+      localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
+      localStorage.setItem('whatsplay_app_installed', 'true');
+      setTimeout(updateAppButtons, 1200);
+    }
+
+    function markAsInstalledAndOpen() {
+      localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
+      localStorage.setItem('whatsplay_app_installed', 'true');
+      updateAppButtons();
+      launchAppWithFallback();
+    }
+
+    function resetInstallState() {
+      localStorage.removeItem('whatsplay_installed_version');
+      localStorage.removeItem('whatsplay_app_installed');
+      updateAppButtons();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateAppButtons);
+  </script>
 </body>
 </html>

@@ -174,6 +174,9 @@ try:
     html = re.sub(r'<span class=\"version-badge\">[^<]+</span>', f'<span class=\"version-badge\">{tag} • Latest Release</span>', html)
     # Update release date
     html = re.sub(r'<span class=\"release-date\">[^<]+</span>', f'<span class=\"release-date\">{month_year}</span>', html)
+    # Update JavaScript constants for smart detection
+    html = re.sub(r'const LATEST_VERSION = \'[^\']+\';', f'const LATEST_VERSION = \'{tag}\';', html)
+    html = re.sub(r'const APK_SIZE = \'[^\']+\';', f'const APK_SIZE = \'{size_mb}\';', html)
     with open('docs/index.html', 'w') as f:
         f.write(html)
     print("✓ Updated docs/index.html (Version badge, Release date, APK size)")
