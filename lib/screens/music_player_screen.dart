@@ -713,8 +713,11 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
         ),
         // Repeat
         IconButton(
+          tooltip: controller.isRepeat.value ? 'Repeat: On' : 'Repeat: Off',
           icon: Icon(
-            Icons.repeat_rounded,
+            controller.isRepeat.value
+                ? Icons.repeat_one_rounded
+                : Icons.repeat_rounded,
             size: 22.sp,
             color: controller.isRepeat.value
                 ? AppColors.primary

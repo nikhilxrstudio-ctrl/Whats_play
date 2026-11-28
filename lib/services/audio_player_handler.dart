@@ -36,12 +36,14 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       },
     );
 
-    // Auto advance or stop on completion
+    // Auto advance or stop on completion when not in single track repeat mode
     _player.playerStateStream.listen(
       (state) {
         if (state.processingState == ProcessingState.completed) {
-          pause();
-          seek(Duration.zero);
+          if (_player.loopMode != LoopMode.one) {
+            pause();
+            seek(Duration.zero);
+          }
         }
       },
       onError: (Object e, StackTrace st) {
@@ -210,6 +212,22 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       await _player.stop();
     } catch (_) {}
     return super.stop();
+  }
+
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
+    playbackState.add(playbackState.value.copyWith(repeatMode: repeatMode));
+    try {
+      if (repeatMode == AudioServiceRepeatMode.one) {
+        await _player.setLoopMode(LoopMode.one);
+      } else if (repeatMode == AudioServiceRepeatMode.all) {
+        await _player.setLoopMode(LoopMode.all);
+      } else {
+        await _player.setLoopMode(LoopMode.off);
+      }
+    } catch (e) {
+      debugPrint('[AudioPlayerHandler] setRepeatMode error: $e');
+    }
   }
 
   Future<void> dispose() async {

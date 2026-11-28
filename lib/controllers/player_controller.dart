@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' as io;
+import 'package:audio_service/audio_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -286,8 +287,17 @@ class PlayerController extends GetxController {
             _recordListeningHistory(currentTrack.value!);
           }
           if (isRepeat.value) {
-            seek(Duration.zero);
-            play();
+            // Repeat mode active: immediately restart current track from beginning
+            Future.microtask(() async {
+              try {
+                await seek(Duration.zero);
+                await play();
+              } catch (_) {
+                if (currentTrack.value != null) {
+                  await playTrack(currentTrack.value!);
+                }
+              }
+            });
           } else {
             playNext();
           }
@@ -398,6 +408,9 @@ class PlayerController extends GetxController {
 
       // Pre-buffer next track in advance so next skip is instantaneous
       if (token == _playSequenceToken) {
+        if (isRepeat.value) {
+          _audioHandler.setRepeatMode(AudioServiceRepeatMode.one);
+        }
         _triggerNextTrackPrebuffering();
       }
     } catch (e) {
@@ -539,6 +552,13 @@ class PlayerController extends GetxController {
 
   void toggleRepeat() {
     isRepeat.toggle();
+    try {
+      _audioHandler.setRepeatMode(
+        isRepeat.value ? AudioServiceRepeatMode.one : AudioServiceRepeatMode.none,
+      );
+    } catch (e) {
+      debugPrint('[PlayerController] Error updating repeat mode: $e');
+    }
   }
 
   String formatDuration(Duration d) {
