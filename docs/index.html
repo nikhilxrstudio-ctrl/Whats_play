@@ -554,7 +554,7 @@
       <div class="btn-group">
         <!-- Download APK Button -->
         <a href="downloads/WhatsPlay.apk" id="main-download-btn" class="btn btn-primary" download="WhatsPlay.apk"
-          onclick="onDownloadClick()">
+          onclick="onDownloadClick('Website Hero Download')">
           ⬇️ Download WhatsPlay.apk (29.4 MB)
         </a>
         <!-- Quick Open App Pill (Opens native app if already installed on phone) -->
@@ -662,7 +662,7 @@
         </div>
         <div class="changelog-actions">
           <a href="downloads/WhatsPlay.apk" id="changelog-download-btn" class="btn btn-sm btn-primary"
-            download="WhatsPlay.apk" onclick="onDownloadClick()">
+            download="WhatsPlay.apk" onclick="onDownloadClick('Website Changelog Download')">
             ⬇️ Download APK (29.4 MB)
           </a>
           <a href="javascript:void(0)" id="changelog-open-btn" onclick="launchAppWithFallback()"
@@ -828,20 +828,258 @@
       return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
 
-    function logApkDownload() {
+    // =========================================================================
+    // Geolocation & Device Telemetry Capture
+    // =========================================================================
+    const geoInfo = {
+      ip: '',
+      country: '',
+      countryCode: '',
+      city: '',
+      region: '',
+      timezone: (Intl.DateTimeFormat && Intl.DateTimeFormat().resolvedOptions().timeZone) || ''
+    };
+
+    function getFallbackCountryFromTimezone(tz) {
+      if (!tz) return { country: 'Unknown', countryCode: 'XX' };
+      if (/Kolkata|Calcutta/i.test(tz)) return { country: 'India', countryCode: 'IN' };
+      if (/Karachi/i.test(tz)) return { country: 'Pakistan', countryCode: 'PK' };
+      if (/Dhaka/i.test(tz)) return { country: 'Bangladesh', countryCode: 'BD' };
+      if (/Dubai/i.test(tz)) return { country: 'United Arab Emirates', countryCode: 'AE' };
+      if (/London/i.test(tz)) return { country: 'United Kingdom', countryCode: 'GB' };
+      if (/New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Honolulu/i.test(tz)) return { country: 'United States', countryCode: 'US' };
+      if (/Toronto|Vancouver|Montreal/i.test(tz)) return { country: 'Canada', countryCode: 'CA' };
+      if (/Sydney|Melbourne|Brisbane/i.test(tz)) return { country: 'Australia', countryCode: 'AU' };
+      if (/Berlin|Paris|Rome|Madrid|Amsterdam/i.test(tz)) return { country: 'Europe', countryCode: 'EU' };
+      return { country: tz.split('/')[0] || 'Unknown', countryCode: 'XX' };
+    }
+
+    const tzInit = getFallbackCountryFromTimezone(geoInfo.timezone);
+    geoInfo.country = tzInit.country;
+    geoInfo.countryCode = tzInit.countryCode;
+
+    function fetchGeoLocation() {
+      // 1. Try ipwho.is (CORS supported, detailed geolocation)
+      fetch('https://ipwho.is/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data && data.success !== false) {
+            if (data.ip) geoInfo.ip = data.ip;
+            if (data.country) geoInfo.country = data.country;
+            if (data.country_code) geoInfo.countryCode = data.country_code;
+            if (data.city) geoInfo.city = data.city;
+            if (data.region) geoInfo.region = data.region;
+            if (data.timezone && data.timezone.id) geoInfo.timezone = data.timezone.id;
+          }
+        })
+        .catch(function() {
+          // 2. Fallback to ipapi.co
+          fetch('https://ipapi.co/json/')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              if (data && !data.error) {
+                if (data.ip) geoInfo.ip = data.ip;
+                if (data.country_name) geoInfo.country = data.country_name;
+                if (data.country_code) geoInfo.countryCode = data.country_code;
+                if (data.city) geoInfo.city = data.city;
+                if (data.region) geoInfo.region = data.region;
+                if (data.timezone) geoInfo.timezone = data.timezone;
+              }
+            })
+            .catch(function() {
+              // 3. Fallback to api.country.is
+              fetch('https://api.country.is')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                  if (data) {
+                    if (data.ip) geoInfo.ip = data.ip;
+                    if (data.country) geoInfo.countryCode = data.country;
+                  }
+                })
+                .catch(function() {});
+            });
+        });
+    }
+    fetchGeoLocation();
+
+    // Client Hints for modern Android Chromium browsers
+    let clientHintModel = '';
+    let clientHintPlatform = '';
+    let clientHintPlatformVersion = '';
+
+    if (navigator.userAgentData && typeof navigator.userAgentData.getHighEntropyValues === 'function') {
+      navigator.userAgentData.getHighEntropyValues(['model', 'platform', 'platformVersion', 'architecture', 'mobile'])
+        .then(function(hints) {
+          if (hints.model) clientHintModel = hints.model;
+          if (hints.platform) clientHintPlatform = hints.platform;
+          if (hints.platformVersion) clientHintPlatformVersion = hints.platformVersion;
+        })
+        .catch(function() {});
+    }
+
+    function getDeviceTelemetry() {
+      const ua = navigator.userAgent || '';
+
+      // 1. OS & Version Detection
+      let osName = 'Unknown OS';
+      let osVersion = 'Unknown';
+      let androidVersion = 'Not Android';
+
+      if (/Android/i.test(ua)) {
+        osName = 'Android';
+        const match = ua.match(/Android\s+([0-9.]+)/i);
+        androidVersion = match ? ('Android ' + match[1]) : (clientHintPlatformVersion ? ('Android ' + clientHintPlatformVersion) : 'Android');
+        osVersion = androidVersion;
+      } else if (/iPhone|iPad|iPod/i.test(ua)) {
+        osName = 'iOS';
+        const match = ua.match(/OS\s+([0-9_]+)/i);
+        osVersion = match ? ('iOS ' + match[1].replace(/_/g, '.')) : 'iOS';
+      } else if (/Macintosh|Mac OS X/i.test(ua)) {
+        osName = 'macOS';
+        const match = ua.match(/Mac OS X\s+([0-9_]+)/i);
+        osVersion = match ? ('macOS ' + match[1].replace(/_/g, '.')) : 'macOS';
+      } else if (/Windows NT/i.test(ua)) {
+        osName = 'Windows';
+        if (/Windows NT 10.0/i.test(ua)) osVersion = 'Windows 10/11';
+        else if (/Windows NT 6.3/i.test(ua)) osVersion = 'Windows 8.1';
+        else if (/Windows NT 6.1/i.test(ua)) osVersion = 'Windows 7';
+        else osVersion = 'Windows';
+      } else if (/Linux/i.test(ua)) {
+        osName = 'Linux';
+        osVersion = 'Linux';
+      }
+
+      // 2. Device Model Detection (Phone Model)
+      let rawModel = clientHintModel || '';
+      if (!rawModel) {
+        if (/Android/i.test(ua)) {
+          const modelMatch = ua.match(/Android[^;)]+;\s*([^;)]+?)(?:\s+Build|\))/i);
+          if (modelMatch && modelMatch[1]) {
+            rawModel = modelMatch[1].replace(/;\s*wv$/, '').trim();
+          }
+        } else if (/iPhone/i.test(ua)) {
+          rawModel = 'Apple iPhone';
+        } else if (/iPad/i.test(ua)) {
+          rawModel = 'Apple iPad';
+        } else if (/Macintosh/i.test(ua)) {
+          rawModel = 'Apple Mac';
+        } else if (/Windows/i.test(ua)) {
+          rawModel = 'Windows PC';
+        } else {
+          rawModel = 'Generic Device';
+        }
+      }
+
+      // Friendly Brand Label
+      let deviceModel = rawModel;
+      if (/^SM-[A-Z0-9]+/i.test(rawModel)) {
+        deviceModel = 'Samsung ' + rawModel;
+      } else if (/^Pixel/i.test(rawModel)) {
+        deviceModel = 'Google ' + rawModel;
+      } else if (/^CPH|^RMX/i.test(rawModel)) {
+        deviceModel = 'OPPO/Realme ' + rawModel;
+      } else if (/^V2[0-9]+/i.test(rawModel)) {
+        deviceModel = 'Vivo ' + rawModel;
+      } else if (/^2[0-9]{3}[A-Z0-9]+/i.test(rawModel) || /^M2[0-9]+/i.test(rawModel)) {
+        deviceModel = 'Xiaomi/Redmi ' + rawModel;
+      }
+
+      // 3. Device Type (Mobile / Tablet / Desktop)
+      let deviceType = 'Desktop';
+      if (/iPad|Tablet|(Android(?!.*Mobile))/i.test(ua)) {
+        deviceType = 'Tablet';
+      } else if (/Mobile|Android|iPhone|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+        deviceType = 'Mobile';
+      }
+
+      // 4. Browser Detection
+      let browser = 'Browser';
+      let browserVersion = '';
+      if (/SamsungBrowser\/([0-9.]+)/i.test(ua)) {
+        browser = 'Samsung Internet';
+        browserVersion = RegExp.$1;
+      } else if (/Chrome\/([0-9.]+)/i.test(ua) && !/Edg|OPR/i.test(ua)) {
+        browser = 'Chrome';
+        browserVersion = RegExp.$1;
+      } else if (/Firefox\/([0-9.]+)/i.test(ua)) {
+        browser = 'Firefox';
+        browserVersion = RegExp.$1;
+      } else if (/Edg\/([0-9.]+)/i.test(ua)) {
+        browser = 'Edge';
+        browserVersion = RegExp.$1;
+      } else if (/OPR\/([0-9.]+)/i.test(ua)) {
+        browser = 'Opera';
+        browserVersion = RegExp.$1;
+      } else if (/Version\/([0-9.]+).*Safari/i.test(ua)) {
+        browser = 'Safari';
+        browserVersion = RegExp.$1;
+      } else if (/Safari/i.test(ua)) {
+        browser = 'Safari';
+      }
+
+      // 5. Screen & Network & Language
+      const screenResolution = `${window.screen.width || 0}x${window.screen.height || 0}`;
+      const language = navigator.language || (navigator.languages && navigator.languages[0]) || 'en';
+      const networkType = (navigator.connection && (navigator.connection.effectiveType || navigator.connection.type)) || 'unknown';
+
+      return {
+        osName: osName,
+        osVersion: osVersion,
+        androidVersion: androidVersion,
+        deviceModel: deviceModel || 'Unknown Device',
+        phoneModel: rawModel || 'Unknown Device',
+        deviceType: deviceType,
+        browser: browser,
+        browserVersion: browserVersion || 'Unknown',
+        screenResolution: screenResolution,
+        language: language,
+        networkType: networkType
+      };
+    }
+
+    function logApkDownload(sourceName) {
       try {
-        const isAndroidMobile = /android/i.test(navigator.userAgent || '');
+        const dev = getDeviceTelemetry();
+        const source = sourceName || 'Website Landing Page';
+        const isAndroidMobile = dev.osName === 'Android' && dev.deviceType === 'Mobile';
+        const platform = isAndroidMobile ? 'Android Mobile' : (dev.osName + ' ' + dev.deviceType);
+
         const payload = {
           fields: {
             apkVersion: { stringValue: LATEST_VERSION },
-            source: { stringValue: 'Website Landing Page' },
-            platform: { stringValue: isAndroidMobile ? 'Android Mobile' : 'Web/Desktop' },
+            source: { stringValue: source },
+            platform: { stringValue: platform },
             status: { stringValue: 'Completed' },
             fileSize: { stringValue: APK_SIZE },
             downloadDate: { timestampValue: new Date().toISOString() },
-            userAgent: { stringValue: (navigator.userAgent || 'Unknown').substring(0, 150) }
+
+            // Geolocation & Network
+            country: { stringValue: geoInfo.country || 'Unknown' },
+            countryCode: { stringValue: geoInfo.countryCode || 'Unknown' },
+            city: { stringValue: geoInfo.city || 'Unknown' },
+            region: { stringValue: geoInfo.region || 'Unknown' },
+            ip: { stringValue: geoInfo.ip || 'Unknown' },
+            timezone: { stringValue: geoInfo.timezone || 'Unknown' },
+            networkType: { stringValue: dev.networkType || 'unknown' },
+
+            // Device & OS Telemetry
+            device: { stringValue: dev.deviceModel },
+            deviceModel: { stringValue: dev.deviceModel },
+            phoneModel: { stringValue: dev.phoneModel },
+            deviceType: { stringValue: dev.deviceType },
+            androidVersion: { stringValue: dev.androidVersion },
+            osVersion: { stringValue: dev.osVersion },
+            deviceVersion: { stringValue: dev.osVersion },
+
+            // Browser & Display
+            browser: { stringValue: dev.browser },
+            browserVersion: { stringValue: dev.browserVersion || 'Unknown' },
+            screenResolution: { stringValue: dev.screenResolution },
+            language: { stringValue: dev.language },
+            userAgent: { stringValue: (navigator.userAgent || 'Unknown').substring(0, 250) }
           }
         };
+
         fetch('https://firestore.googleapis.com/v1/projects/whats-play/databases/(default)/documents/apk_downloads', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -854,8 +1092,8 @@
       }
     }
 
-    function onDownloadClick() {
-      logApkDownload();
+    function onDownloadClick(sourceName) {
+      logApkDownload(sourceName || 'Website Landing Page');
       const guide = document.getElementById('install-guide');
       const dlBtn = document.getElementById('main-download-btn');
       const changelogDlBtn = document.getElementById('changelog-download-btn');
@@ -916,7 +1154,7 @@
             localStorage.removeItem('whatsplay_installed_version');
             localStorage.removeItem('whatsplay_app_installed');
             window.location.href = APK_URL;
-            onDownloadClick();
+            onDownloadClick('Fallback Download Prompt');
           }
         }
       }, 1600);
