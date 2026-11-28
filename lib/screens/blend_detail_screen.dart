@@ -683,17 +683,48 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                                   SizedBox(height: 10.h),
 
                                   // Members and Stats row
-                                  Row(
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      _buildMembersAvatarStack(currentBlend.members),
-                                      SizedBox(width: 10.w),
-                                      Text(
-                                        '${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'} • ${currentBlend.members.length} ${currentBlend.members.length == 1 ? 'friend' : 'friends'}',
-                                        style: TextStyle(
-                                          color: Colors.white.withValues(alpha: 0.85),
-                                          fontSize: 12.sp,
-                                          fontWeight: FontWeight.w600,
+                                      if (currentBlend.creatorName.isNotEmpty)
+                                        Padding(
+                                          padding: EdgeInsets.only(bottom: 6.h),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.verified_user_rounded,
+                                                color: currentBlend.themeColor,
+                                                size: 13.sp,
+                                              ),
+                                              SizedBox(width: 4.w),
+                                              Flexible(
+                                                child: Text(
+                                                  'Created by ${currentBlend.creatorName}${currentBlend.creatorEmail.isNotEmpty ? ' (${currentBlend.creatorEmail})' : ''}',
+                                                  style: TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 11.5.sp,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
+                                      Row(
+                                        children: [
+                                          _buildMembersAvatarStack(currentBlend.members),
+                                          SizedBox(width: 10.w),
+                                          Text(
+                                            '${tracks.length} ${tracks.length == 1 ? 'song' : 'songs'} • ${currentBlend.members.length} ${currentBlend.members.length == 1 ? 'friend' : 'friends'}',
+                                            style: TextStyle(
+                                              color: Colors.white.withValues(alpha: 0.85),
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),

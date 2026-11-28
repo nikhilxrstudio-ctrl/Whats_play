@@ -33,12 +33,14 @@ class BlendMember {
   final String uid;
   final String name;
   final String photoUrl;
+  final String email;
   final DateTime? joinedAt;
 
   BlendMember({
     required this.uid,
     required this.name,
     this.photoUrl = '',
+    this.email = '',
     this.joinedAt,
   });
 
@@ -51,6 +53,7 @@ class BlendMember {
       uid: map['uid'] as String? ?? '',
       name: map['name'] as String? ?? 'Member',
       photoUrl: map['photoUrl'] as String? ?? '',
+      email: map['email'] as String? ?? '',
       joinedAt: joined,
     );
   }
@@ -60,6 +63,7 @@ class BlendMember {
       'uid': uid,
       'name': name,
       'photoUrl': photoUrl,
+      'email': email,
       'joinedAt': joinedAt != null ? Timestamp.fromDate(joinedAt!) : FieldValue.serverTimestamp(),
     };
   }
@@ -71,6 +75,7 @@ class BlendModel {
   final String code; // 6-character unique uppercase code
   final String creatorUid;
   final String creatorName;
+  final String creatorEmail;
   final String creatorPhoto;
   final List<String> memberUids;
   final List<BlendMember> members;
@@ -86,6 +91,7 @@ class BlendModel {
     required this.code,
     required this.creatorUid,
     required this.creatorName,
+    this.creatorEmail = '',
     this.creatorPhoto = '',
     required this.memberUids,
     required this.members,
@@ -145,6 +151,7 @@ class BlendModel {
       code: (data['code'] as String? ?? '').toUpperCase(),
       creatorUid: data['creatorUid'] as String? ?? '',
       creatorName: data['creatorName'] as String? ?? 'Friend',
+      creatorEmail: data['creatorEmail'] as String? ?? '',
       creatorPhoto: data['creatorPhoto'] as String? ?? '',
       memberUids: memberUidsList,
       members: membersList,
@@ -162,6 +169,7 @@ class BlendModel {
       'code': code.toUpperCase(),
       'creatorUid': creatorUid,
       'creatorName': creatorName,
+      'creatorEmail': creatorEmail,
       'creatorPhoto': creatorPhoto,
       'memberUids': memberUids,
       'members': members.map((m) => m.toMap()).toList(),
@@ -179,6 +187,7 @@ class BlendModel {
     String? code,
     String? creatorUid,
     String? creatorName,
+    String? creatorEmail,
     String? creatorPhoto,
     List<String>? memberUids,
     List<BlendMember>? members,
@@ -194,6 +203,7 @@ class BlendModel {
       code: code ?? this.code,
       creatorUid: creatorUid ?? this.creatorUid,
       creatorName: creatorName ?? this.creatorName,
+      creatorEmail: creatorEmail ?? this.creatorEmail,
       creatorPhoto: creatorPhoto ?? this.creatorPhoto,
       memberUids: memberUids ?? this.memberUids,
       members: members ?? this.members,

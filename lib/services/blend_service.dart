@@ -129,6 +129,7 @@ class BlendService extends GetxService {
 
     final effectiveName = auth?.effectiveUserName ?? 'Creator';
     final photo = auth?.currentUser.value?.photoURL ?? auth?.userPhotoUrl.value ?? '';
+    final email = auth?.currentUser.value?.email ?? auth?.userEmail.value ?? '';
 
     isLoading.value = true;
     try {
@@ -139,6 +140,7 @@ class BlendService extends GetxService {
         uid: uid,
         name: effectiveName,
         photoUrl: photo,
+        email: email,
         joinedAt: now,
       );
 
@@ -149,6 +151,7 @@ class BlendService extends GetxService {
         'code': code.toUpperCase(),
         'creatorUid': uid,
         'creatorName': creatorMember.name,
+        'creatorEmail': email,
         'creatorPhoto': creatorMember.photoUrl,
         'memberUids': [uid],
         'members': [creatorMember.toMap()],
@@ -175,6 +178,7 @@ class BlendService extends GetxService {
         code: code,
         creatorUid: uid,
         creatorName: creatorMember.name,
+        creatorEmail: email,
         creatorPhoto: creatorMember.photoUrl,
         memberUids: [uid],
         members: [creatorMember],
@@ -259,11 +263,13 @@ class BlendService extends GetxService {
 
       final effectiveName = auth?.effectiveUserName ?? 'Friend';
       final photo = auth?.currentUser.value?.photoURL ?? auth?.userPhotoUrl.value ?? '';
+      final memberEmail = auth?.currentUser.value?.email ?? auth?.userEmail.value ?? '';
 
       final newMember = BlendMember(
         uid: uid,
         name: effectiveName,
         photoUrl: photo,
+        email: memberEmail,
         joinedAt: DateTime.now(),
       );
 
