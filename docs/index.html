@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WhatsPlay – Free Open-Source Flutter Music Streaming & Discovery App</title>
-  
+
   <!-- Primary Meta Tags -->
   <meta name="title" content="WhatsPlay – Free Open-Source Flutter Music Streaming & Discovery App">
-  <meta name="description" content="WhatsPlay is a free open-source Flutter music streaming player featuring dual-engine audio (JioSaavn & Audius), Bollywood, Punjabi, and Gujarati music, background playback, and offline caching.">
-  <meta name="keywords" content="flutter music player, music streaming app, open source music player, jiosaavn music app, bollywood music streaming, punjabi songs app, gujarati music player, free music app github, spotify alternative, audio player flutter">
+  <meta name="description"
+    content="WhatsPlay is a free open-source Flutter music streaming player featuring dual-engine audio (JioSaavn & Audius), Bollywood, Punjabi, and Gujarati music, background playback, and offline caching.">
+  <meta name="keywords"
+    content="flutter music player, music streaming app, open source music player, jiosaavn music app, bollywood music streaming, punjabi songs app, gujarati music player, free music app github, spotify alternative, audio player flutter">
   <meta name="author" content="Nikhil">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
@@ -24,15 +27,19 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
   <meta property="og:title" content="WhatsPlay – Free Open-Source Flutter Music Streaming App">
-  <meta property="og:description" content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
-  <meta property="og:image" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
+  <meta property="og:description"
+    content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
+  <meta property="og:image"
+    content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://nikhilxrstudio-ctrl.github.io/Whats_play/">
   <meta property="twitter:title" content="WhatsPlay – Free Open-Source Flutter Music Streaming App">
-  <meta property="twitter:description" content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
-  <meta property="twitter:image" content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
+  <meta property="twitter:description"
+    content="Stream Bollywood, Punjabi, Gujarati, and global indie music with background playback, offline caching, and a polished Spotify-inspired UI.">
+  <meta property="twitter:image"
+    content="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/screenshots/github_social_preview.png">
 
   <!-- Schema.org Structured Data for AI & Search Engines -->
   <script type="application/ld+json">
@@ -223,8 +230,15 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .guide-header {
@@ -246,9 +260,20 @@
     }
 
     @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7); }
-      70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(29, 185, 84, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(29, 185, 84, 0); }
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(29, 185, 84, 0.7);
+      }
+
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(29, 185, 84, 0);
+      }
+
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(29, 185, 84, 0);
+      }
     }
 
     .guide-text {
@@ -513,23 +538,28 @@
     }
   </style>
 </head>
+
 <body>
 
   <header>
     <div class="logo-container">
-      <img src="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/icons/app_logo.png" alt="WhatsPlay Music App" class="logo">
+      <img src="https://raw.githubusercontent.com/nikhilxrstudio-ctrl/Whats_play/main/assets/icons/app_logo.png"
+        alt="WhatsPlay Music App" class="logo">
     </div>
     <h1>WhatsPlay</h1>
-    <p class="tagline">An open-source, Spotify-inspired music streaming application built in Flutter with dual-engine playback, regional Indian music discovery, background audio, and offline caching.</p>
-    
+    <p class="tagline">An open-source, Spotify-inspired music streaming application built in Flutter with dual-engine
+      playback, regional Indian music discovery, background audio, and offline caching.</p>
+
     <div class="hero-actions-container">
       <div class="btn-group">
         <!-- Download APK Button -->
-        <a href="downloads/WhatsPlay.apk" id="main-download-btn" class="btn btn-primary" download="WhatsPlay.apk" onclick="onDownloadClick()">
+        <a href="downloads/WhatsPlay.apk" id="main-download-btn" class="btn btn-primary" download="WhatsPlay.apk"
+          onclick="onDownloadClick()">
           ⬇️ Download WhatsPlay.apk (28.1 MB)
         </a>
         <!-- Quick Open App Pill (Opens native app if already installed on phone) -->
-        <a href="javascript:void(0)" id="main-open-btn" onclick="launchAppWithFallback()" class="btn btn-secondary btn-open-pill">
+        <a href="javascript:void(0)" id="main-open-btn" onclick="launchAppWithFallback()"
+          class="btn btn-secondary btn-open-pill">
           📱 Open App
         </a>
         <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play" class="btn btn-secondary">
@@ -565,7 +595,8 @@
     </div>
 
     <div class="badges">
-      <img src="https://img.shields.io/github/stars/nikhilxrstudio-ctrl/Whats_play?style=flat-square&color=1DB954" alt="GitHub Stars">
+      <img src="https://img.shields.io/github/stars/nikhilxrstudio-ctrl/Whats_play?style=flat-square&color=1DB954"
+        alt="GitHub Stars">
       <img src="https://img.shields.io/badge/Flutter-3.41.8-02569B?style=flat-square" alt="Flutter">
       <img src="https://img.shields.io/badge/Dart-3.11+-0175C2?style=flat-square" alt="Dart">
       <img src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" alt="License">
@@ -625,15 +656,17 @@
     <div class="changelog-container">
       <div class="changelog-header">
         <div class="version-meta">
-          <span class="version-badge">v1.0.0 • Latest Release</span>
+          <span class="version-badge">v1.0.1 • Latest Release</span>
           <span class="release-date">November 2026</span>
           <span class="arch-badge">Android 7.0+ (arm64-v8a)</span>
         </div>
         <div class="changelog-actions">
-          <a href="downloads/WhatsPlay.apk" id="changelog-download-btn" class="btn btn-sm btn-primary" download="WhatsPlay.apk" onclick="onDownloadClick()">
+          <a href="downloads/WhatsPlay.apk" id="changelog-download-btn" class="btn btn-sm btn-primary"
+            download="WhatsPlay.apk" onclick="onDownloadClick()">
             ⬇️ Download APK (28.1 MB)
           </a>
-          <a href="javascript:void(0)" id="changelog-open-btn" onclick="launchAppWithFallback()" class="btn btn-sm btn-secondary btn-open-pill">
+          <a href="javascript:void(0)" id="changelog-open-btn" onclick="launchAppWithFallback()"
+            class="btn btn-sm btn-secondary btn-open-pill">
             📱 Open App
           </a>
         </div>
@@ -644,14 +677,19 @@
           <div class="changelog-icon">💌</div>
           <div class="changelog-content">
             <h4>Automated Dark-Themed Email Templates for Blends</h4>
-            <p>Automatic delivery of responsive, modern dark-themed HTML emails via Brevo SMTP relay. Creators receive a dedicated confirmation email with their unique 6-digit Join Code and management link upon creating a Blend, and can directly send tailored invitation cards with custom join codes to friends via email.</p>
+            <p>Automatic delivery of responsive, modern dark-themed HTML emails via Brevo SMTP relay. Creators receive a
+              dedicated confirmation email with their unique 6-digit Join Code and management link upon creating a
+              Blend, and can directly send tailored invitation cards with custom join codes to friends via email.</p>
           </div>
         </div>
         <div class="changelog-item">
           <div class="changelog-icon">✨</div>
           <div class="changelog-content">
             <h4>Real-Time Shared Blend Music with Unique Join Codes</h4>
-            <p>Connect with friends and blend music in real-time powered by Cloud Firestore. Each Blend features a unique 6-character uppercase code. User A can share their code with User B to join. Any song added by User A or User B immediately syncs in real-time across both devices with user attribution ("Added by [Name]"). Also integrates device telemetry and user activity logging into Firestore for future dashboards.</p>
+            <p>Connect with friends and blend music in real-time powered by Cloud Firestore. Each Blend features a
+              unique 6-character uppercase code. User A can share their code with User B to join. Any song added by User
+              A or User B immediately syncs in real-time across both devices with user attribution ("Added by [Name]").
+              Also integrates device telemetry and user activity logging into Firestore for future dashboards.</p>
           </div>
         </div>
 
@@ -659,7 +697,10 @@
           <div class="changelog-icon">⚡</div>
           <div class="changelog-content">
             <h4>Smooth & Direct TabBar Transitions</h4>
-            <p>Upgraded bottom navigation with native Flutter <code>TabController</code> and <code>TabBarView</code> across 3 Spotify-inspired tabs (<strong>Home</strong>, <strong>Search</strong>, <strong>Your Library</strong>). Navigating between tabs transitions directly with zero intermediary page flashing.</p>
+            <p>Upgraded bottom navigation with native Flutter <code>TabController</code> and <code>TabBarView</code>
+              across 3 Spotify-inspired tabs (<strong>Home</strong>, <strong>Search</strong>, <strong>Your
+                Library</strong>). Navigating between tabs transitions directly with zero intermediary page flashing.
+            </p>
           </div>
         </div>
 
@@ -667,7 +708,8 @@
           <div class="changelog-icon">🎤</div>
           <div class="changelog-content">
             <h4>Real-Time Synchronized Lyrics</h4>
-            <p>Added interactive Lyrics support directly in the Player screen powered by JioSaavn and LRCLIB fallback engines, featuring dynamic Ambient Glassmorphism styling.</p>
+            <p>Added interactive Lyrics support directly in the Player screen powered by JioSaavn and LRCLIB fallback
+              engines, featuring dynamic Ambient Glassmorphism styling.</p>
           </div>
         </div>
 
@@ -675,7 +717,8 @@
           <div class="changelog-icon">🚀</div>
           <div class="changelog-content">
             <h4>Zero-Lag 60/120 FPS Performance & Scroll Optimization</h4>
-            <p>Completely eliminated UI micro-stutters by scoping GetX reactive observers (<code>Obx</code>) to discrete playback widgets, ensuring seamless 120 FPS scrolling across infinite track shelves.</p>
+            <p>Completely eliminated UI micro-stutters by scoping GetX reactive observers (<code>Obx</code>) to discrete
+              playback widgets, ensuring seamless 120 FPS scrolling across infinite track shelves.</p>
           </div>
         </div>
 
@@ -683,7 +726,8 @@
           <div class="changelog-icon">🎧</div>
           <div class="changelog-content">
             <h4>Artwork Carousel Sync & Auto-Play</h4>
-            <p>Selecting any song from similar categories or artist shelves immediately launches audio streaming and animates the high-resolution artwork carousel in real-time lockstep.</p>
+            <p>Selecting any song from similar categories or artist shelves immediately launches audio streaming and
+              animates the high-resolution artwork carousel in real-time lockstep.</p>
           </div>
         </div>
 
@@ -691,7 +735,8 @@
           <div class="changelog-icon">📱</div>
           <div class="changelog-content">
             <h4>Crisp Android Media Notification & Lock Screen</h4>
-            <p>Resolved system media player icon scaling with a high-resolution transparent vector icon and updated ProGuard keep-rules for bulletproof background audio resilience.</p>
+            <p>Resolved system media player icon scaling with a high-resolution transparent vector icon and updated
+              ProGuard keep-rules for bulletproof background audio resilience.</p>
           </div>
         </div>
       </div>
@@ -703,64 +748,71 @@
       <div class="card">
         <div class="card-icon">🎧</div>
         <h3>Dual-Engine Music Streaming</h3>
-        <p>Integrates legitimate JioSaavn regional streaming endpoints and decentralized Audius protocol REST streams for full-length, high-bitrate playback.</p>
+        <p>Integrates legitimate JioSaavn regional streaming endpoints and decentralized Audius protocol REST streams
+          for full-length, high-bitrate playback.</p>
       </div>
 
       <div class="card">
         <div class="card-icon">🇮🇳</div>
         <h3>Regional Indian Discovery</h3>
-        <p>Rich catalogs dedicated to Bollywood chartbusters, Punjabi hits, and Gujarati melodies, plus artist spotlights (Diljit, Honey Singh, Arijit, Sidhu, Badshah).</p>
+        <p>Rich catalogs dedicated to Bollywood chartbusters, Punjabi hits, and Gujarati melodies, plus artist
+          spotlights (Diljit, Honey Singh, Arijit, Sidhu, Badshah).</p>
       </div>
 
       <div class="card">
         <div class="card-icon">📊</div>
         <h3>Ranked Top 50 Charts</h3>
-        <p>Real-time India Superhits Top 50 ranked list featuring #1 through #50 ranking badges, Taaza Tunes (New Releases), and curated Romantic and Party shelves.</p>
+        <p>Real-time India Superhits Top 50 ranked list featuring #1 through #50 ranking badges, Taaza Tunes (New
+          Releases), and curated Romantic and Party shelves.</p>
       </div>
 
       <div class="card">
         <div class="card-icon">📱</div>
         <h3>Lock Screen & Background Audio</h3>
-        <p>Uninterrupted playback powered by <code>audio_service</code> and <code>just_audio</code> with native OS notification drawer and lock screen controls.</p>
+        <p>Uninterrupted playback powered by <code>audio_service</code> and <code>just_audio</code> with native OS
+          notification drawer and lock screen controls.</p>
       </div>
 
       <div class="card">
         <div class="card-icon">💾</div>
         <h3>Offline SQLite Library</h3>
-        <p>Client-side SQLite database for Liked Songs, Custom Playlists, 10-second Listening History, and sandboxed offline MP3 downloads without an internet connection.</p>
+        <p>Client-side SQLite database for Liked Songs, Custom Playlists, 10-second Listening History, and sandboxed
+          offline MP3 downloads without an internet connection.</p>
       </div>
 
       <div class="card">
         <div class="card-icon">🎨</div>
         <h3>Ambient Gradient Visuals</h3>
-        <p>Spotify-style dark mode interface featuring dynamic background color extraction from album artwork and live animated sound wave equalizers.</p>
+        <p>Spotify-style dark mode interface featuring dynamic background color extraction from album artwork and live
+          animated sound wave equalizers.</p>
       </div>
     </div>
 
     <h2 class="section-title">Quick Installation</h2>
     <div class="code-block">
-# Clone the repository<br>
-git clone https://github.com/nikhilxrstudio-ctrl/Whats_play.git<br>
-cd Whats_play<br><br>
-# Fetch dependencies<br>
-flutter pub get<br><br>
-# Run static analysis & test suite<br>
-flutter analyze<br>
-flutter test test/controllers/ test/widget_test.dart<br><br>
-# Launch WhatsPlay<br>
-flutter run
+      # Clone the repository<br>
+      git clone https://github.com/nikhilxrstudio-ctrl/Whats_play.git<br>
+      cd Whats_play<br><br>
+      # Fetch dependencies<br>
+      flutter pub get<br><br>
+      # Run static analysis & test suite<br>
+      flutter analyze<br>
+      flutter test test/controllers/ test/widget_test.dart<br><br>
+      # Launch WhatsPlay<br>
+      flutter run
     </div>
   </main>
 
   <footer>
-    <p>&copy; 2026 WhatsPlay • Distributed under the <a href="https://opensource.org/licenses/MIT">MIT License</a> • Maintained by <a href="https://github.com/nikhilxrstudio-ctrl">Nikhil</a></p>
+    <p>&copy; 2026 WhatsPlay • Distributed under the <a href="https://opensource.org/licenses/MIT">MIT License</a> •
+      Maintained by <a href="https://github.com/nikhilxrstudio-ctrl">Nikhil</a></p>
   </footer>
 
   <script>
     // =========================================================================
     // WhatsPlay Smart App Detection & Deep Link Launcher
     // =========================================================================
-    const LATEST_VERSION = 'v1.0.0';
+    const LATEST_VERSION = 'v1.0.1';
     const APK_URL = 'downloads/WhatsPlay.apk';
     const APK_SIZE = '28.1 MB';
     const APP_SCHEME = 'whatsplay://open';
@@ -885,7 +937,7 @@ flutter run
         // First visit or downloading state
         if (dlBtn) {
           dlBtn.className = 'btn btn-primary';
-          dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (' + APK_SIZE + ')';
+          dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (28.1 MB)';
         }
         if (openBtn) {
           openBtn.className = 'btn btn-secondary btn-open-pill';
@@ -893,7 +945,7 @@ flutter run
         }
         if (changelogDlBtn) {
           changelogDlBtn.className = 'btn btn-sm btn-primary';
-          changelogDlBtn.innerHTML = '⬇️ Download APK (' + APK_SIZE + ')';
+          changelogDlBtn.innerHTML = '⬇️ Download APK (28.1 MB)';
         }
         if (changelogOpenBtn) {
           changelogOpenBtn.className = 'btn btn-sm btn-secondary btn-open-pill';
@@ -918,4 +970,5 @@ flutter run
     document.addEventListener('DOMContentLoaded', updateAppButtons);
   </script>
 </body>
+
 </html>

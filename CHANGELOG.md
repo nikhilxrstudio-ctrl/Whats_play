@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.1] - 2026-11-28 (Build: 1.0.1+2)
+
+### ⚡ What's New
+- Add optional Google Login to onboarding, automated Welcome & Welcome Back emails via Brevo, and Firestore email_logs tracking
+
 ## [v1.0.0] - 2026-11-28 (Build: 1.0.0+1)
 
 ### 🎵 Core Audio & Streaming

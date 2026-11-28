@@ -201,7 +201,7 @@ APK_SIZE_MB="$(python3 -c "print(f'{$APK_SIZE_BYTES / (1024 * 1024):.1f} MB')")"
 
 # 5. Commit release artifacts with author Nikhil
 echo "💾 4. Committing release artifacts..."
-git add -A pubspec.yaml CHANGELOG.md scripts/ README.md docs/index.html docs/blend.html downloads/WhatsPlay.apk docs/downloads/WhatsPlay.apk android/
+git add -A pubspec.yaml CHANGELOG.md scripts/ README.md docs/index.html docs/blend.html downloads/WhatsPlay.apk docs/downloads/WhatsPlay.apk android/ lib/
 git commit --author="Nikhil <nikhil@whatsplay.com>" -m "release: $TAG_NAME ($FULL_VERSION) - $SUMMARY" || echo "No changes to commit"
 
 # 6. Create annotated Git tag

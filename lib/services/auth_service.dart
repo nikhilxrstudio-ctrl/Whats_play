@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'email_template_service.dart';
 
 class AuthService extends GetxService {
   static AuthService get to => Get.find<AuthService>();
@@ -160,7 +161,7 @@ class AuthService extends GetxService {
     return 'Nikhil';
   }
 
-  void _syncUserState(User? user) {
+  void _syncUserState(User? user, {String source = 'app'}) {
     currentUser.value = user;
     if (user != null) {
       isLoggedIn.value = true;
@@ -172,7 +173,7 @@ class AuthService extends GetxService {
       userPhotoUrl.value = user.photoURL ?? '';
       _updateEffectiveUid();
       _cacheProfile(userName.value, userEmail.value, userPhotoUrl.value);
-      _syncUserToFirestore(user);
+      _syncUserToFirestore(user, source: source);
     } else {
       isLoggedIn.value = false;
       userName.value = '';
@@ -183,7 +184,7 @@ class AuthService extends GetxService {
     }
   }
 
-  Future<void> _syncUserToFirestore(User user) async {
+  Future<void> _syncUserToFirestore(User user, {String source = 'app'}) async {
     try {
       final devInfo = await _getDeviceInfo();
       final deviceId = devInfo['deviceId'] ?? currentDeviceId.value;
@@ -193,6 +194,18 @@ class AuthService extends GetxService {
         displayName: user.displayName,
         email: user.email,
       );
+
+      // Check if user already exists to differentiate new vs returning login
+      DocumentSnapshot<Map<String, dynamic>>? existingSnap;
+      try {
+        existingSnap = await userDoc.get().timeout(const Duration(seconds: 4));
+      } catch (getErr) {
+        debugPrint('[AuthService] Could not retrieve existing user doc: $getErr');
+      }
+
+      final isNewUser = existingSnap == null ||
+          !existingSnap.exists ||
+          existingSnap.data()?['createdAt'] == null;
 
       final data = <String, dynamic>{
         'uid': user.uid,
@@ -209,7 +222,40 @@ class AuthService extends GetxService {
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
+      if (isNewUser) {
+        data['createdAt'] = FieldValue.serverTimestamp();
+        data['welcomeEmailSent'] = true;
+      } else {
+        data['lastLoginAt'] = FieldValue.serverTimestamp();
+      }
+
       await userDoc.set(data, SetOptions(merge: true));
+
+      // Dispatch automated Welcome or Welcome Back Email via Brevo
+      if (user.email != null && user.email!.contains('@')) {
+        if (isNewUser) {
+          unawaited(EmailTemplateService.sendWelcomeEmail(
+            userId: user.uid,
+            userEmail: user.email!,
+            userName: cleanName,
+            source: source,
+          ));
+        } else {
+          // Send Welcome Back email if returning after at least 30 minutes
+          final lastLoginTs = existingSnap.data()?['lastLoginAt'] as Timestamp?;
+          final shouldSend = lastLoginTs == null ||
+              DateTime.now().difference(lastLoginTs.toDate()).inMinutes >= 30;
+
+          if (shouldSend) {
+            unawaited(EmailTemplateService.sendWelcomeBackEmail(
+              userId: user.uid,
+              userEmail: user.email!,
+              userName: cleanName,
+              source: source,
+            ));
+          }
+        }
+      }
 
       // Also link the guest device record in 'users/device_{deviceId}' for unified dashboard tracking
       if (deviceId.isNotEmpty && deviceId != 'unknown') {
@@ -288,7 +334,7 @@ class AuthService extends GetxService {
     } catch (_) {}
   }
 
-  Future<bool> signInWithGoogle() async {
+  Future<bool> signInWithGoogle({String source = 'app'}) async {
     isLoading.value = true;
     try {
       if (!_googleSignInInitialized || serverClientId.isNotEmpty) {
@@ -312,7 +358,7 @@ class AuthService extends GetxService {
       final user = userCredential.user;
 
       if (user != null) {
-        _syncUserState(user);
+        _syncUserState(user, source: source);
         isLoading.value = false;
         return true;
       }

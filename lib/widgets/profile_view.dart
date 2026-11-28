@@ -330,7 +330,7 @@ class ProfileView extends StatelessWidget {
                   ? null
                   : () async {
                       HapticFeedback.mediumImpact();
-                      final success = await auth.signInWithGoogle();
+                      final success = await auth.signInWithGoogle(source: 'your_library');
                       if (success) {
                         Get.snackbar(
                           'Welcome!',

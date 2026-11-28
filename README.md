@@ -34,7 +34,7 @@ Get the latest optimized release APK directly on your Android device:
 
 | Package | Architecture | Size | Download Link |
 | :--- | :--- | :--- | :--- |
-| **WhatsPlay.apk (Latest v1.0.0)** | `arm64-v8a` (99% Modern Android Phones) | **28.1 MB** | [⬇️ **Download WhatsPlay.apk**](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk) |
+| **WhatsPlay.apk (Latest v1.0.1)** | `arm64-v8a` (99% Modern Android Phones) | **28.1 MB** | [⬇️ **Download WhatsPlay.apk**](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk) |
 | **Official Web Landing Page** | Live Site | N/A | [🌐 **Visit Website**](https://nikhilxrstudio-ctrl.github.io/Whats_play/) |
 | **Changelog & Version History** | All Releases | N/A | [📋 **View CHANGELOG.md**](CHANGELOG.md) |
 

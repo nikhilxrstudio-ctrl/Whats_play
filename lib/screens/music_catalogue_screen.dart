@@ -2779,7 +2779,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
                           onPressed: isLoading
                               ? null
                               : () async {
-                                  final success = await auth.signInWithGoogle();
+                                  final success = await auth.signInWithGoogle(source: 'blend_prompt');
                                   if (success && sheetContext.mounted) {
                                     Navigator.pop(sheetContext);
                                     Get.snackbar(
