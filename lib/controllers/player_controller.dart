@@ -299,7 +299,14 @@ class PlayerController extends GetxController {
               }
             });
           } else {
-            playNext();
+            // Auto-advance to next track in playlist and guarantee continuous playback
+            Future.microtask(() async {
+              try {
+                await playNext();
+              } catch (e) {
+                debugPrint('[PlayerController] Error auto-playing next track: $e');
+              }
+            });
           }
         }
       },
@@ -516,6 +523,9 @@ class PlayerController extends GetxController {
 
       final nextTrack = playlist[currentIndex.value];
       await playTrack(nextTrack);
+      if (!_audioHandler.player.playing) {
+        await _audioHandler.play();
+      }
     } catch (e) {
       final msg = e.toString().toLowerCase();
       if (!msg.contains('interrupted') && !msg.contains('abort')) {

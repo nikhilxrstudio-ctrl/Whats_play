@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.7] - 2026-11-28 (Build: 1.0.7+8)
+
+### ⚡ What's New
+- Ensure seamless track auto-advance and continuous playback on song completion
+
 ## [v1.0.6] - 2026-11-28 (Build: 1.0.6+7)
 
 ### ⚡ What's New

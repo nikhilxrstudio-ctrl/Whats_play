@@ -36,11 +36,11 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       },
     );
 
-    // Auto advance or stop on completion when not in single track repeat mode
+    // When playback completes, only pause/reset if no external queue handler (onSkipToNext) is attached
     _player.playerStateStream.listen(
       (state) {
         if (state.processingState == ProcessingState.completed) {
-          if (_player.loopMode != LoopMode.one) {
+          if (_player.loopMode != LoopMode.one && onSkipToNext == null) {
             pause();
             seek(Duration.zero);
           }
