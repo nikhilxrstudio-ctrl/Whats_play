@@ -636,10 +636,10 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                                         Container(
                                           padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
                                           decoration: BoxDecoration(
-                                            color: currentBlend.themeColor.withValues(alpha: 0.2),
+                                            color: AppColors.primary.withValues(alpha: 0.18),
                                             borderRadius: BorderRadius.circular(12.r),
                                             border: Border.all(
-                                              color: currentBlend.themeColor,
+                                              color: AppColors.primary.withValues(alpha: 0.7),
                                               width: 1,
                                             ),
                                           ),
@@ -648,7 +648,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                                             children: [
                                               Icon(
                                                 Icons.verified_rounded,
-                                                color: currentBlend.themeColor,
+                                                color: AppColors.primary,
                                                 size: 13.sp,
                                               ),
                                               SizedBox(width: 4.w),

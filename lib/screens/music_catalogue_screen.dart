@@ -4686,136 +4686,106 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
           if (blends.isEmpty)
             _buildBlendEmptyStateCard()
           else
-            ...blends.map((blend) => _buildBlendCard(blend)),
+            ...blends.map((blend) => _buildBlendTile(blend)),
         ],
       );
     });
   }
 
-  Widget _buildBlendCard(BlendModel blend) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.07),
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16.r),
-          onTap: () {
-            Get.toNamed(AppRoutes.blendDetail, arguments: blend);
-          },
-          child: Padding(
-            padding: EdgeInsets.all(12.w),
-            child: Row(
-              children: [
-                Container(
-                  width: 52.w,
-                  height: 52.w,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14.r),
-                    gradient: LinearGradient(
-                      colors: blend.gradientColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: blend.themeColor.withValues(alpha: 0.35),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      blend.icon,
-                      style: TextStyle(fontSize: 24.sp),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 14.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              blend.name,
-                              style: TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.w800,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (blend.isOfficialBlend) ...[
-                            SizedBox(width: 6.w),
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
-                              decoration: BoxDecoration(
-                                color: blend.themeColor.withValues(alpha: 0.18),
-                                borderRadius: BorderRadius.circular(10.r),
-                                border: Border.all(
-                                  color: blend.themeColor.withValues(alpha: 0.6),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.verified_rounded,
-                                    size: 11.sp,
-                                    color: blend.themeColor,
-                                  ),
-                                  SizedBox(width: 3.w),
-                                  Text(
-                                    'Official',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 9.5.sp,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        blend.isOfficialBlend
-                            ? '★ What\'s Play Official • ${blend.tracksCount} ${blend.tracksCount == 1 ? 'song' : 'songs'}'
-                            : '${blend.tracksCount} ${blend.tracksCount == 1 ? 'song' : 'songs'} • ${blend.members.length} ${blend.members.length == 1 ? 'member' : 'members'}',
-                        style: TextStyle(
-                          color: blend.isOfficialBlend ? blend.themeColor : AppColors.textSecondary,
-                          fontSize: 12.sp,
-                          fontWeight: blend.isOfficialBlend ? FontWeight.w600 : FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 15.sp,
-                  color: Colors.white38,
-                ),
-              ],
+  Widget _buildBlendTile(BlendModel blend) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        splashColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        focusColor: Colors.transparent,
+        onTap: () {
+          Get.toNamed(AppRoutes.blendDetail, arguments: blend);
+        },
+        leading: Container(
+          width: 52.w,
+          height: 52.w,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: blend.gradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(4.r),
+          ),
+          child: Center(
+            child: Text(
+              blend.icon,
+              style: TextStyle(fontSize: 22.sp),
             ),
           ),
+        ),
+        title: Row(
+          children: [
+            Flexible(
+              child: Text(
+                blend.name,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14.5.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (blend.isOfficialBlend) ...[
+              SizedBox(width: 6.w),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4.r),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.5),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.verified_rounded,
+                      size: 11.sp,
+                      color: AppColors.primary,
+                    ),
+                    SizedBox(width: 3.w),
+                    Text(
+                      'Official',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 9.5.sp,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+        subtitle: Text(
+          blend.isOfficialBlend
+              ? 'Official Blend • ${blend.tracksCount} ${blend.tracksCount == 1 ? 'song' : 'songs'}'
+              : 'Shared Blend • ${blend.tracksCount} ${blend.tracksCount == 1 ? 'song' : 'songs'} • ${blend.members.length} ${blend.members.length == 1 ? 'member' : 'members'}',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 12.sp,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Icon(
+          CupertinoIcons.chevron_right,
+          color: AppColors.textMuted,
+          size: 16.sp,
         ),
       ),
     );
