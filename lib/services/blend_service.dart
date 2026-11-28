@@ -293,6 +293,20 @@ class BlendService extends GetxService {
       final updatedBlend = BlendModel.fromFirestore(updatedDoc);
 
       isLoading.value = false;
+
+      // Automatically dispatch email notification to the Blend Creator (User A)
+      Future.microtask(() async {
+        try {
+          await EmailTemplateService.sendBlendMemberJoinedEmail(
+            blend: updatedBlend,
+            joinerName: effectiveName,
+            joinerEmail: memberEmail.isNotEmpty ? memberEmail : null,
+          );
+        } catch (mailErr) {
+          debugPrint('[BlendService] Creator email notification background error: $mailErr');
+        }
+      });
+
       return {
         'success': true,
         'message': 'Successfully joined "${updatedBlend.name}"!',

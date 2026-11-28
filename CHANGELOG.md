@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.13] - 2026-11-28 (Build: 1.0.13+14)
+
+### ⚡ What's New
+- Send notification email with Brevo to Blend creator when a new user joins, with logging to Firestore email_logs and mail
+
 ## [v1.0.12] - 2026-11-28 (Build: 1.0.12+13)
 
 ### ⚡ What's New

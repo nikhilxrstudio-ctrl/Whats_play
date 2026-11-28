@@ -611,6 +611,159 @@ WhatsPlay Music Team
   }
 
   // =========================================================================
+  // 4B. MEMBER JOINED BLEND NOTIFICATION TEMPLATES (Sent to Creator when User B joins)
+  // =========================================================================
+
+  static String getBlendMemberJoinedSubject({
+    required BlendModel blend,
+    required String joinerName,
+  }) {
+    return '🎉 $joinerName just joined your "${blend.name}" Blend on WhatsPlay!';
+  }
+
+  static String generateBlendMemberJoinedTextTemplate({
+    required BlendModel blend,
+    required String joinerName,
+    String? joinerEmail,
+    required String creatorName,
+  }) {
+    final link = getBlendLink(blend);
+    final joinerInfo = (joinerEmail != null && joinerEmail.isNotEmpty)
+        ? '$joinerName ($joinerEmail)'
+        : joinerName;
+
+    return '''
+======================================================
+         🎉 SOMEONE JOINED YOUR BLEND!
+======================================================
+
+Hi $creatorName! 👋
+
+Great news! $joinerInfo has just entered your invite code and joined your collaborative Blend "${blend.name}" on WhatsPlay!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🎵 BLEND ROOM       :  "${blend.name}" (${blend.icon})
+  🔑 BLEND CODE       :  ${blend.code}
+  👤 NEW MEMBER       :  $joinerInfo
+  👥 TOTAL MEMBERS    :  ${blend.members.length} friends
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎧 WHAT'S NEXT:
+You can both now discover each other's music preferences, add favorite songs together, and enjoy shared continuous playback!
+
+👉 Open your Blend in WhatsPlay:
+$link
+
+Happy Blending! 🎶
+WhatsPlay Music Team • Developed by Nikhil
+======================================================''';
+  }
+
+  static String generateBlendMemberJoinedHtmlTemplate({
+    required BlendModel blend,
+    required String joinerName,
+    String? joinerEmail,
+    required String creatorName,
+  }) {
+    final link = getBlendLink(blend);
+    final themeColorHex = blend.colorHex;
+    final hasEmail = joinerEmail != null && joinerEmail.trim().isNotEmpty;
+
+    return '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Member Joined Your Blend</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #FFFFFF;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #0A0A0A; padding: 40px 10px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 580px; background-color: #161616; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.1); overflow: hidden; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);" cellspacing="0" cellpadding="0">
+
+          <!-- Header Banner -->
+          <tr>
+            <td style="background: linear-gradient(135deg, $themeColorHex 0%, #0d381b 70%, #121212 100%); padding: 40px 30px; text-align: center;">
+              <div style="font-size: 52px; line-height: 1; margin-bottom: 12px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));">
+                ${blend.icon}
+              </div>
+              <span style="display: inline-block; background-color: rgba(0, 0, 0, 0.45); color: #FFFFFF; font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 14px;">
+                NEW MEMBER JOINED
+              </span>
+              <h1 style="font-size: 26px; font-weight: 900; color: #FFFFFF; margin: 0 0 8px 0; letter-spacing: -0.5px;">
+                "${blend.name}"
+              </h1>
+              <p style="font-size: 14px; color: rgba(255, 255, 255, 0.85); margin: 0;">
+                Your music room is growing!
+              </p>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px 30px;">
+              <p style="font-size: 16px; line-height: 1.5; color: #E0E0E0; margin-top: 0;">
+                Hi <strong style="color: #FFFFFF;">$creatorName</strong>! 👋
+              </p>
+              <p style="font-size: 15px; line-height: 1.6; color: #B0B0B0; margin: 0 0 24px 0;">
+                <strong style="color: #FFFFFF;">$joinerName</strong> has just entered your invite code and joined your collaborative Blend!
+              </p>
+
+              <!-- New Member Info Card -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #121212; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: $themeColorHex; margin-bottom: 12px;">
+                      MEMBER DETAILS
+                    </div>
+                    <div style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px;">
+                      👤 $joinerName
+                    </div>
+                    ${hasEmail ? '<div style="font-size: 13.5px; color: #A0A0A0; margin-bottom: 8px;">✉️ $joinerEmail</div>' : ''}
+                    <div style="font-size: 12.5px; color: #777777; margin-top: 6px;">
+                      Room Code: <strong style="color: $themeColorHex; font-family: monospace;">${blend.code}</strong>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA Button -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom: 28px;">
+                <tr>
+                  <td align="center">
+                    <a href="$link" style="display: inline-block; background-color: #1DB954; color: #000000; font-size: 15px; font-weight: 800; text-decoration: none; padding: 14px 36px; border-radius: 30px; letter-spacing: 0.3px; box-shadow: 0 4px 14px rgba(29, 185, 84, 0.4);">
+                      Open Blend & Listen Together
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size: 13px; color: #888888; line-height: 1.5; margin: 0; text-align: center;">
+                🎵 WhatsPlay Blend lets you and your friends blend music together in real-time, share favorite tracks, and enjoy synchronized playback.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 30px; background-color: #141414; border-top: 1px solid rgba(255, 255, 255, 0.06); text-align: center;">
+              <p style="font-size: 12px; color: #666666; margin: 0;">
+                WhatsPlay Music • Developed by Nikhil • Built for Music Lovers
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>''';
+  }
+
+  // =========================================================================
   // 5. CENTRALIZED FIRESTORE AUDIT LOGGING ('email_logs' collection)
   // =========================================================================
 
@@ -895,6 +1048,91 @@ WhatsPlay Music Team
       return true;
     } catch (e) {
       debugPrint('[EmailTemplateService] Error delivering invite email via Brevo: $e');
+      return false;
+    }
+  }
+
+  /// Sends an email notification to the Blend Creator (User A) when a new member (User B) joins
+  static Future<bool> sendBlendMemberJoinedEmail({
+    required BlendModel blend,
+    required String joinerName,
+    String? joinerEmail,
+  }) async {
+    if (!ApiSecrets.isBrevoConfigured) {
+      debugPrint('[EmailTemplateService] Brevo SMTP not configured; skipping email delivery.');
+      return false;
+    }
+
+    String creatorEmail = blend.creatorEmail.trim();
+
+    // If blend document didn't have creatorEmail directly, look up creator's email from users/{creatorUid}
+    if (creatorEmail.isEmpty && blend.creatorUid.isNotEmpty) {
+      try {
+        final creatorDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(blend.creatorUid)
+            .get();
+        if (creatorDoc.exists) {
+          final data = creatorDoc.data();
+          creatorEmail = (data?['email'] as String? ?? '').trim();
+        }
+      } catch (e) {
+        debugPrint('[EmailTemplateService] Error looking up creator email: $e');
+      }
+    }
+
+    if (creatorEmail.isEmpty || !creatorEmail.contains('@')) {
+      debugPrint('[EmailTemplateService] Creator email not found or invalid ($creatorEmail); skipping notification.');
+      return false;
+    }
+
+    try {
+      final subject = getBlendMemberJoinedSubject(
+        blend: blend,
+        joinerName: joinerName,
+      );
+      final textTemplate = generateBlendMemberJoinedTextTemplate(
+        blend: blend,
+        joinerName: joinerName,
+        joinerEmail: joinerEmail,
+        creatorName: blend.creatorName,
+      );
+      final htmlTemplate = generateBlendMemberJoinedHtmlTemplate(
+        blend: blend,
+        joinerName: joinerName,
+        joinerEmail: joinerEmail,
+        creatorName: blend.creatorName,
+      );
+
+      final message = Message()
+        ..from = Address(ApiSecrets.brevoSenderEmail, ApiSecrets.brevoSenderName)
+        ..recipients.add(creatorEmail)
+        ..subject = subject
+        ..text = textTemplate
+        ..html = htmlTemplate;
+
+      final sendReport = await send(message, _smtpServer);
+      debugPrint('[EmailTemplateService] Member joined email delivered to creator $creatorEmail: $sendReport');
+
+      await _logToFirestore(
+        userId: blend.creatorUid,
+        userEmail: creatorEmail,
+        userName: blend.creatorName,
+        category: 'BLEND_JOINED',
+        subject: subject,
+        htmlContent: htmlTemplate,
+        textContent: textTemplate,
+        extra: {
+          'blendId': blend.id,
+          'blendCode': blend.code,
+          'joinerName': joinerName,
+          if (joinerEmail != null && joinerEmail.isNotEmpty) 'joinerEmail': joinerEmail,
+        },
+      );
+
+      return true;
+    } catch (e) {
+      debugPrint('[EmailTemplateService] Error delivering member joined email via Brevo: $e');
       return false;
     }
   }
