@@ -764,7 +764,9 @@ flutter run
     const APK_URL = 'downloads/WhatsPlay.apk';
     const APK_SIZE = '28.1 MB';
     const APP_SCHEME = 'whatsplay://open';
-    const ANDROID_INTENT = 'intent://open#Intent;scheme=whatsplay;package=com.nikhil.whats_play;end';
+    const APP_SCHEME_ALT = 'whatsplay://blend';
+    const ANDROID_PACKAGE = 'com.whatsplay.music.app';
+    const ANDROID_INTENT = 'intent://open#Intent;scheme=whatsplay;package=com.whatsplay.music.app;S.browser_fallback_url=' + encodeURIComponent(window.location.href) + ';end';
 
     function isAndroid() {
       return /Android/i.test(navigator.userAgent);
@@ -789,8 +791,6 @@ flutter run
         guide.style.display = 'block';
         guide.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
-      // Note: We deliberately do NOT mark app as installed yet,
-      // because the APK is downloading in the browser and not yet installed!
     }
 
     function markAsInstalledAndOpen() {
@@ -808,7 +808,6 @@ flutter run
       const onVisibilityChange = () => {
         if (document.hidden) {
           appOpened = true;
-          // Successfully opened native app!
           localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
           localStorage.setItem('whatsplay_app_installed', 'true');
           updateAppButtons();
@@ -816,25 +815,32 @@ flutter run
       };
       document.addEventListener('visibilitychange', onVisibilityChange, { once: true });
 
-      // Attempt launch via Android Intent (Chrome/Android) or custom scheme
-      if (isAndroid()) {
-        window.location.href = ANDROID_INTENT;
-      } else {
-        window.location.href = APP_SCHEME;
-      }
+      // First try custom scheme directly to avoid Play Store redirection
+      window.location.href = APP_SCHEME;
 
-      // Check if browser remained visible (app wasn't installed)
+      // If that didn't immediately launch after 400ms, try alternate scheme or Intent
+      setTimeout(() => {
+        if (!document.hidden && !appOpened) {
+          if (isAndroid()) {
+            window.location.href = ANDROID_INTENT;
+          } else {
+            window.location.href = APP_SCHEME_ALT;
+          }
+        }
+      }, 400);
+
+      // Check if browser remained visible (app is not installed)
       setTimeout(() => {
         document.removeEventListener('visibilitychange', onVisibilityChange);
-        if (!appOpened && !document.hidden && Date.now() - start < 2200) {
-          if (confirm("WhatsPlay didn't open. Would you like to download the latest APK (" + APK_SIZE + ")?")) {
+        if (!appOpened && !document.hidden && Date.now() - start < 2600) {
+          if (confirm("WhatsPlay is not installed on this device yet. Would you like to download the latest APK (" + APK_SIZE + ")?")) {
             localStorage.removeItem('whatsplay_installed_version');
             localStorage.removeItem('whatsplay_app_installed');
             window.location.href = APK_URL;
             onDownloadClick();
           }
         }
-      }, 1500);
+      }, 1600);
     }
 
     function updateAppButtons() {
