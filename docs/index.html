@@ -554,7 +554,7 @@
       <div class="btn-group">
         <!-- Download APK Button -->
         <a href="downloads/WhatsPlay.apk" id="main-download-btn" class="btn btn-primary" download="WhatsPlay.apk"
-          onclick="onDownloadClick('Website Hero Download')">
+          onclick="onDownloadClick('Website Hero Download', event)">
           ⬇️ Download WhatsPlay.apk (29.4 MB)
         </a>
         <!-- Quick Open App Pill (Opens native app if already installed on phone) -->
@@ -580,15 +580,33 @@
       <!-- Installation Guide Card (Appears while downloading) -->
       <div id="install-guide" class="install-guide-card">
         <div class="guide-header">
-          <span class="pulse-dot"></span>
-          <strong>Downloading WhatsPlay.apk in browser...</strong>
+          <span class="pulse-dot" id="download-pulse-dot"></span>
+          <strong id="download-header-title">Downloading WhatsPlay.apk (29.4 MB)...</strong>
         </div>
-        <div class="guide-text">
-          1. Wait for the download to complete in your notification panel.<br>
-          2. Tap the downloaded file and select <strong>Install</strong>.<br>
+
+        <!-- Live Progress Bar & Cancel Button -->
+        <div id="download-progress-container" style="margin: 12px 0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; margin-bottom:6px; color:#1DB954; font-weight:700;">
+            <span id="download-status-label">Downloading APK (29.4 MB)...</span>
+            <span id="download-progress-pct">0%</span>
+          </div>
+          <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+            <div id="download-progress-bar" style="width:0%; height:100%; background:linear-gradient(90deg, #1DB954, #1ed760); transition:width 0.2s ease;"></div>
+          </div>
+          <div id="cancel-row" style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+            <button type="button" id="cancel-dl-btn" onclick="cancelCurrentDownload()" class="btn btn-sm" style="background:rgba(255,59,48,0.12); color:#ff453a; border:1px solid rgba(255,59,48,0.35); border-radius:20px; padding:6px 14px; font-size:0.82rem; font-weight:700; cursor:pointer;">
+              ✕ Cancel Download
+            </button>
+            <span id="cancel-notice" style="font-size:0.8rem; color:rgba(255,255,255,0.6);"></span>
+          </div>
+        </div>
+
+        <div class="guide-text" id="guide-steps-text" style="display:none;">
+          1. Tap the downloaded file in your notification panel or Downloads folder.<br>
+          2. Select <strong>Install</strong> on your Android device.<br>
           3. Once installed, tap below to launch:
         </div>
-        <button type="button" class="btn btn-primary btn-open-installed" onclick="markAsInstalledAndOpen()">
+        <button type="button" id="open-after-install-btn" class="btn btn-primary btn-open-installed" style="display:none;" onclick="markAsInstalledAndOpen()">
           ▶️ I Have Installed the App • Open WhatsPlay
         </button>
       </div>
@@ -662,7 +680,7 @@
         </div>
         <div class="changelog-actions">
           <a href="downloads/WhatsPlay.apk" id="changelog-download-btn" class="btn btn-sm btn-primary"
-            download="WhatsPlay.apk" onclick="onDownloadClick('Website Changelog Download')">
+            download="WhatsPlay.apk" onclick="onDownloadClick('Website Changelog Download', event)">
             ⬇️ Download APK (29.4 MB)
           </a>
           <a href="javascript:void(0)" id="changelog-open-btn" onclick="launchAppWithFallback()"
@@ -1037,7 +1055,15 @@
       };
     }
 
-    function logApkDownload(sourceName) {
+    const FIREBASE_API_KEY = 'AIzaSyAcD-T_MwdgdVd2NAp4dj9wGDM9AcKolhY';
+    let activeDownloadXhr = null;
+    let currentDownloadDocName = null;
+    let currentProgressPercent = 0;
+
+    function startApkDownload(sourceName) {
+      currentProgressPercent = 0;
+      updateDownloadProgressUI(0, 'Starting download...');
+
       try {
         const dev = getDeviceTelemetry();
         const source = sourceName || 'Website Landing Page';
@@ -1049,7 +1075,8 @@
             apkVersion: { stringValue: LATEST_VERSION },
             source: { stringValue: source },
             platform: { stringValue: platform },
-            status: { stringValue: 'Completed' },
+            status: { stringValue: 'Started' },
+            progress: { stringValue: '0%' },
             fileSize: { stringValue: APK_SIZE },
             downloadDate: { timestampValue: new Date().toISOString() },
 
@@ -1080,30 +1107,219 @@
           }
         };
 
-        fetch('https://firestore.googleapis.com/v1/projects/whats-play/databases/(default)/documents/apk_downloads?key=AIzaSyAcD-T_MwdgdVd2NAp4dj9wGDM9AcKolhY', {
+        fetch('https://firestore.googleapis.com/v1/projects/whats-play/databases/(default)/documents/apk_downloads?key=' + FIREBASE_API_KEY, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
+        }).then(function(res) {
+          return res.json();
+        }).then(function(data) {
+          if (data && data.name) {
+            currentDownloadDocName = data.name;
+          }
         }).catch(function(err) {
-          console.debug('[WhatsPlay] APK download log notice:', err);
+          console.debug('[WhatsPlay] Failed to create download record:', err);
         });
       } catch (e) {
-        console.debug('[WhatsPlay] Failed to log APK download:', e);
+        console.debug('[WhatsPlay] Telemetry error:', e);
+      }
+
+      // Start streaming file with progress tracking
+      if (activeDownloadXhr) {
+        try { activeDownloadXhr.abort(); } catch(e) {}
+      }
+
+      const xhr = new XMLHttpRequest();
+      activeDownloadXhr = xhr;
+      xhr.open('GET', APK_URL, true);
+      xhr.responseType = 'blob';
+
+      xhr.onprogress = function(event) {
+        if (event.lengthComputable && event.total > 0) {
+          const pct = Math.min(99, Math.round((event.loaded / event.total) * 100));
+          currentProgressPercent = pct;
+          updateDownloadProgressUI(pct, 'Downloading WhatsPlay.apk (' + pct + '%)...');
+        }
+      };
+
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          currentProgressPercent = 100;
+          updateDownloadProgressUI(100, 'Download complete (100%)!');
+
+          // Trigger save of APK Blob
+          try {
+            const blob = xhr.response;
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = 'WhatsPlay.apk';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() {
+              window.URL.revokeObjectURL(blobUrl);
+              a.remove();
+            }, 1000);
+          } catch(e) {
+            window.location.href = APK_URL;
+          }
+
+          updateDownloadStatus('Success', '100%');
+          onDownloadSuccessUI();
+        } else {
+          updateDownloadStatus('Failed', currentProgressPercent + '%', 'HTTP ' + xhr.status);
+          onDownloadFailedUI();
+        }
+        activeDownloadXhr = null;
+      };
+
+      xhr.onerror = function() {
+        updateDownloadStatus('Failed', currentProgressPercent + '%', 'Network Error');
+        onDownloadFailedUI();
+        window.location.href = APK_URL;
+        activeDownloadXhr = null;
+      };
+
+      xhr.onabort = function() {
+        updateDownloadStatus('Cancelled', currentProgressPercent + '%', 'User Cancelled');
+        onDownloadCancelledUI();
+        activeDownloadXhr = null;
+      };
+
+      xhr.send();
+    }
+
+    function cancelCurrentDownload() {
+      if (activeDownloadXhr) {
+        activeDownloadXhr.abort();
+      } else if (currentDownloadDocName) {
+        updateDownloadStatus('Cancelled', currentProgressPercent + '%', 'User Cancelled');
+        onDownloadCancelledUI();
       }
     }
 
-    function onDownloadClick(sourceName) {
-      logApkDownload(sourceName || 'Website Landing Page');
+    function updateDownloadStatus(status, progress, errorMsg) {
+      if (!currentDownloadDocName) return;
+      try {
+        let patchUrl = 'https://firestore.googleapis.com/v1/' + currentDownloadDocName +
+          '?updateMask.fieldPaths=status&updateMask.fieldPaths=progress';
+        if (status === 'Success' || status === 'Installed') patchUrl += '&updateMask.fieldPaths=completedDate';
+        if (errorMsg) patchUrl += '&updateMask.fieldPaths=errorMessage';
+        patchUrl += '&key=' + FIREBASE_API_KEY;
+
+        const fields = {
+          status: { stringValue: status },
+          progress: { stringValue: progress || '100%' }
+        };
+        if (status === 'Success' || status === 'Installed') {
+          fields.completedDate = { timestampValue: new Date().toISOString() };
+        }
+        if (errorMsg) {
+          fields.errorMessage = { stringValue: errorMsg };
+        }
+
+        fetch(patchUrl, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: fields })
+        }).catch(function(e) {});
+      } catch (e) {}
+    }
+
+    // Tab close / navigation while downloading -> record Cancelled
+    window.addEventListener('beforeunload', function() {
+      if (activeDownloadXhr && currentDownloadDocName && currentProgressPercent < 100) {
+        const payload = JSON.stringify({
+          fields: {
+            status: { stringValue: 'Cancelled' },
+            progress: { stringValue: currentProgressPercent + '% (Tab Closed)' }
+          }
+        });
+        const patchUrl = 'https://firestore.googleapis.com/v1/' + currentDownloadDocName +
+          '?updateMask.fieldPaths=status&updateMask.fieldPaths=progress&key=' + FIREBASE_API_KEY;
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(patchUrl, new Blob([payload], { type: 'application/json' }));
+        }
+      }
+    });
+
+    function updateDownloadProgressUI(pct, label) {
       const guide = document.getElementById('install-guide');
+      const progressContainer = document.getElementById('download-progress-container');
+      const progressBar = document.getElementById('download-progress-bar');
+      const pctLabel = document.getElementById('download-progress-pct');
+      const statusLabel = document.getElementById('download-status-label');
       const dlBtn = document.getElementById('main-download-btn');
       const changelogDlBtn = document.getElementById('changelog-download-btn');
+      const pulseDot = document.getElementById('download-pulse-dot');
+      const cancelRow = document.getElementById('cancel-row');
+      const cancelNotice = document.getElementById('cancel-notice');
 
-      if (dlBtn) {
-        dlBtn.innerHTML = '⏳ Downloading APK (' + APK_SIZE + ')...';
+      if (guide) guide.style.display = 'block';
+      if (progressContainer) progressContainer.style.display = 'block';
+      if (cancelRow) cancelRow.style.display = 'flex';
+      if (cancelNotice) cancelNotice.textContent = '';
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (pctLabel) pctLabel.textContent = pct + '%';
+      if (statusLabel && label) statusLabel.textContent = label;
+
+      if (dlBtn) dlBtn.innerHTML = '⏳ Downloading (' + pct + '%)...';
+      if (changelogDlBtn) changelogDlBtn.innerHTML = '⏳ Downloading (' + pct + '%)...';
+      if (pulseDot) pulseDot.style.background = '#1DB954';
+    }
+
+    function onDownloadSuccessUI() {
+      const dlBtn = document.getElementById('main-download-btn');
+      const changelogDlBtn = document.getElementById('changelog-download-btn');
+      const title = document.getElementById('download-header-title');
+      const stepsText = document.getElementById('guide-steps-text');
+      const openBtn = document.getElementById('open-after-install-btn');
+      const cancelRow = document.getElementById('cancel-row');
+      const pulseDot = document.getElementById('download-pulse-dot');
+      const statusLabel = document.getElementById('download-status-label');
+
+      if (statusLabel) statusLabel.textContent = '✅ Download Complete (29.4 MB)';
+      if (title) title.innerHTML = '✅ WhatsPlay.apk Downloaded Successfully!';
+      if (cancelRow) cancelRow.style.display = 'none';
+      if (stepsText) stepsText.style.display = 'block';
+      if (openBtn) openBtn.style.display = 'inline-flex';
+      if (dlBtn) dlBtn.innerHTML = '✅ Downloaded • Re-download (' + APK_SIZE + ')';
+      if (changelogDlBtn) changelogDlBtn.innerHTML = '✅ Downloaded (' + APK_SIZE + ')';
+      if (pulseDot) pulseDot.style.background = '#1ed760';
+    }
+
+    function onDownloadCancelledUI() {
+      const dlBtn = document.getElementById('main-download-btn');
+      const changelogDlBtn = document.getElementById('changelog-download-btn');
+      const statusLabel = document.getElementById('download-status-label');
+      const title = document.getElementById('download-header-title');
+      const cancelNotice = document.getElementById('cancel-notice');
+      const pulseDot = document.getElementById('download-pulse-dot');
+
+      if (statusLabel) statusLabel.textContent = '❌ Download Cancelled';
+      if (title) title.textContent = 'Download Cancelled';
+      if (cancelNotice) cancelNotice.textContent = 'Cancelled by user. Tap Download to retry anytime.';
+      if (dlBtn) dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (' + APK_SIZE + ')';
+      if (changelogDlBtn) changelogDlBtn.innerHTML = '⬇️ Download APK (' + APK_SIZE + ')';
+      if (pulseDot) pulseDot.style.background = '#ff453a';
+    }
+
+    function onDownloadFailedUI() {
+      const dlBtn = document.getElementById('main-download-btn');
+      const statusLabel = document.getElementById('download-status-label');
+      const cancelNotice = document.getElementById('cancel-notice');
+      if (statusLabel) statusLabel.textContent = '⚠️ Download Interrupted';
+      if (cancelNotice) cancelNotice.textContent = 'Starting direct browser download...';
+      if (dlBtn) dlBtn.innerHTML = '⬇️ Retry Download (' + APK_SIZE + ')';
+    }
+
+    function onDownloadClick(sourceName, event) {
+      if (event) {
+        try { event.preventDefault(); } catch(e) {}
       }
-      if (changelogDlBtn) {
-        changelogDlBtn.innerHTML = '⏳ Downloading APK...';
-      }
+      startApkDownload(sourceName || 'Website Landing Page');
+      const guide = document.getElementById('install-guide');
       if (guide) {
         guide.style.display = 'block';
         guide.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1111,6 +1327,7 @@
     }
 
     function markAsInstalledAndOpen() {
+      updateDownloadStatus('Installed', '100%');
       localStorage.setItem('whatsplay_installed_version', LATEST_VERSION);
       localStorage.setItem('whatsplay_app_installed', 'true');
       updateAppButtons();
