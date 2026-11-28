@@ -85,6 +85,9 @@ echo "📌 Summary      : $SUMMARY"
 echo "🛠️ Flutter      : $FLUTTER_BIN"
 echo "=================================================="
 
+# Ensure local secrets vault is protected and never committed to public git
+git update-index --skip-worktree lib/config/secrets/api_secrets_vault.dart 2>/dev/null || true
+
 # 1. Build optimized Release APK
 echo "📦 1. Building release APK with split-per-abi..."
 "$FLUTTER_BIN" build apk --release --split-per-abi
