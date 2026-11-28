@@ -18,7 +18,7 @@
 
 <p align="center">
   <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Release-v1.0.0_(1.0.0+1)-blue.svg?style=for-the-badge&logo=git" alt="Release Version" /></a>
-  <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk"><img src="https://img.shields.io/badge/Download_APK-WhatsPlay.apk_(29.2_MB)-1DB954?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
+  <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk"><img src="https://img.shields.io/badge/Download_APK-WhatsPlay.apk_(29.3_MB)-1DB954?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
   <a href="https://nikhilxrstudio-ctrl.github.io/Whats_play/"><img src="https://img.shields.io/badge/Official_Website-Live-00E5FF?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Website" /></a>
 </p>
 
@@ -34,7 +34,7 @@ Get the latest optimized release APK directly on your Android device:
 
 | Package | Architecture | Size | Download Link |
 | :--- | :--- | :--- | :--- |
-| **WhatsPlay.apk (Latest v1.0.2)** | `arm64-v8a` (99% Modern Android Phones) | **29.2 MB** | [⬇️ **Download WhatsPlay.apk**](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk) |
+| **WhatsPlay.apk (Latest v1.0.3)** | `arm64-v8a` (99% Modern Android Phones) | **29.3 MB** | [⬇️ **Download WhatsPlay.apk**](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk) |
 | **Official Web Landing Page** | Live Site | N/A | [🌐 **Visit Website**](https://nikhilxrstudio-ctrl.github.io/Whats_play/) |
 | **Changelog & Version History** | All Releases | N/A | [📋 **View CHANGELOG.md**](CHANGELOG.md) |
 

@@ -8,6 +8,8 @@ import '../constants/app_constants.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/player_controller.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
+import 'notification_permission_sheet.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -653,6 +655,33 @@ class ProfileView extends StatelessWidget {
                 title: 'Dual-Engine Audio',
                 subtitle: 'Official JioSaavn & decentralized Audius streams',
               ),
+              Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+              Obx(() {
+                final notifService = Get.isRegistered<NotificationService>()
+                    ? NotificationService.to
+                    : null;
+                final isEnabled = notifService?.hasPermission.value ?? false;
+
+                return _buildSettingTile(
+                  icon: isEnabled
+                      ? Icons.notifications_active_rounded
+                      : Icons.notifications_off_rounded,
+                  title: 'Push Notifications',
+                  subtitle: isEnabled
+                      ? 'Active • New releases & friend Blends'
+                      : 'Disabled • Tap to enable notifications',
+                  trailing: Switch.adaptive(
+                    value: isEnabled,
+                    activeTrackColor: AppColors.primary,
+                    onChanged: (val) {
+                      NotificationPermissionSheet.show(context, isFromSettings: true);
+                    },
+                  ),
+                  onTap: () {
+                    NotificationPermissionSheet.show(context, isFromSettings: true);
+                  },
+                );
+              }),
             ],
           ),
         ),
@@ -664,8 +693,10 @@ class ProfileView extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
   }) {
-    return Padding(
+    final content = Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 13.h),
       child: Row(
         children: [
@@ -701,9 +732,22 @@ class ProfileView extends StatelessWidget {
               ],
             ),
           ),
+          if (trailing != null) ...[
+            SizedBox(width: 8.w),
+            trailing,
+          ],
         ],
       ),
     );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16.r),
+        child: content,
+      );
+    }
+    return content;
   }
 
   Widget _buildSignOutButton(BuildContext context, AuthService auth) {

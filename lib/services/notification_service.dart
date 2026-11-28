@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/notification_permission_sheet.dart';
 import 'auth_service.dart';
 
 /// Top-level background message handler for FCM
@@ -35,6 +36,8 @@ class NotificationService extends GetxService {
 
   static const String _kSubscribedTopicsKey = 'fcm_subscribed_topics';
   static const String _kFcmTokenKey = 'fcm_device_token';
+  static const String _kHasPromptedDashboardKey = 'has_prompted_dashboard_notifications';
+  static const String _kDeniedCountKey = 'notification_denied_count';
   static const String channelKey = 'whatsplay_alerts';
   static const String channelGroupKey = 'whatsplay_channel_group';
 
@@ -47,14 +50,14 @@ class NotificationService extends GetxService {
     init();
   }
 
-  /// Initialize FCM & AwesomeNotifications, request permissions, fetch token, and setup listeners
+  /// Initialize FCM & AwesomeNotifications silently (NO popup on app open)
   Future<void> init() async {
     try {
       // 1. Initialize AwesomeNotifications for native device notifications
       await _initAwesomeNotifications();
 
-      // 2. Request user permission
-      await _requestPermission();
+      // 2. Check permission status silently without prompting
+      await checkPermissionStatus();
 
       // 3. Load cached topics & token
       await _loadCachedData();
@@ -100,17 +103,97 @@ class NotificationService extends GetxService {
         debug: false,
       );
 
-      final isAllowed = await AwesomeNotifications().isNotificationAllowed();
-      if (!isAllowed) {
-        await AwesomeNotifications().requestPermissionToSendNotifications();
-      }
-
       // Listen to notification clicks on device
       await AwesomeNotifications().setListeners(
         onActionReceivedMethod: onActionReceivedMethod,
       );
     } catch (e) {
       debugPrint('[NotificationService] AwesomeNotifications init notice: $e');
+    }
+  }
+
+  /// Check current notification permission without prompting
+  Future<bool> checkPermissionStatus() async {
+    try {
+      final allowed = await AwesomeNotifications().isNotificationAllowed();
+      hasPermission.value = allowed;
+      return allowed;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Check if user has permanently denied permission or should go to Settings
+  Future<bool> checkPermanentlyDenied() async {
+    try {
+      final allowed = await AwesomeNotifications().isNotificationAllowed();
+      if (allowed) return false;
+
+      final prefs = await SharedPreferences.getInstance();
+      final deniedCount = prefs.getInt(_kDeniedCountKey) ?? 0;
+
+      // If user has denied at least twice, treat as permanently denied
+      if (deniedCount >= 2) return true;
+
+      // Also check AwesomeNotifications rationale
+      final rationale = await AwesomeNotifications().shouldShowRationaleToRequest();
+      if (rationale.isEmpty && deniedCount > 0) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Request permission explicitly from user
+  Future<bool> requestPermission() async {
+    try {
+      final granted = await AwesomeNotifications().requestPermissionToSendNotifications();
+      hasPermission.value = granted;
+
+      final prefs = await SharedPreferences.getInstance();
+      if (granted) {
+        await prefs.setInt(_kDeniedCountKey, 0);
+        await _initToken();
+        await syncTokenToFirestore();
+      } else {
+        final currentCount = prefs.getInt(_kDeniedCountKey) ?? 0;
+        await prefs.setInt(_kDeniedCountKey, currentCount + 1);
+      }
+      return granted;
+    } catch (e) {
+      debugPrint('[NotificationService] Request permission error: $e');
+      return false;
+    }
+  }
+
+  /// Open Android system settings for app notifications
+  Future<void> openNotificationSettings() async {
+    try {
+      await AwesomeNotifications().showNotificationConfigPage();
+    } catch (e) {
+      debugPrint('[NotificationService] Open settings error: $e');
+    }
+  }
+
+  /// Automatically prompt with Bottom Sheet when user arrives in Dashboard
+  Future<void> checkAndPromptInDashboard(BuildContext context) async {
+    try {
+      final allowed = await checkPermissionStatus();
+      if (allowed) return;
+
+      final prefs = await SharedPreferences.getInstance();
+      final hasPrompted = prefs.getBool(_kHasPromptedDashboardKey) ?? false;
+      if (hasPrompted) return;
+
+      // Mark prompted so it doesn't pop up on every dashboard visit
+      await prefs.setBool(_kHasPromptedDashboardKey, true);
+
+      if (!context.mounted) return;
+      await NotificationPermissionSheet.show(context, isFromSettings: false);
+    } catch (e) {
+      debugPrint('[NotificationService] Dashboard prompt error: $e');
     }
   }
 
@@ -152,28 +235,6 @@ class NotificationService extends GetxService {
       );
     } catch (e) {
       debugPrint('[AwesomeNotifications] Show notification error: $e');
-    }
-  }
-
-  Future<void> _requestPermission() async {
-    try {
-      final settings = await _messaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-
-      hasPermission.value =
-          settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional;
-
-      debugPrint('[NotificationService] FCM notification permission: ${settings.authorizationStatus}');
-    } catch (e) {
-      debugPrint('[NotificationService] Error requesting notification permission: $e');
     }
   }
 

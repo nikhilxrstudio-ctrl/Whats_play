@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.3] - 2026-11-28 (Build: 1.0.3+4)
+
+### ⚡ What's New
+- Add deferred notification permission bottom sheet on dashboard arrival with settings toggle in Your Library
+
 ## [v1.0.2] - 2026-11-28 (Build: 1.0.2+3)
 
 ### ⚡ What's New

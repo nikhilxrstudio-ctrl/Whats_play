@@ -555,7 +555,7 @@
         <!-- Download APK Button -->
         <a href="downloads/WhatsPlay.apk" id="main-download-btn" class="btn btn-primary" download="WhatsPlay.apk"
           onclick="onDownloadClick()">
-          ⬇️ Download WhatsPlay.apk (29.2 MB)
+          ⬇️ Download WhatsPlay.apk (29.3 MB)
         </a>
         <!-- Quick Open App Pill (Opens native app if already installed on phone) -->
         <a href="javascript:void(0)" id="main-open-btn" onclick="launchAppWithFallback()"
@@ -656,14 +656,14 @@
     <div class="changelog-container">
       <div class="changelog-header">
         <div class="version-meta">
-          <span class="version-badge">v1.0.2 • Latest Release</span>
+          <span class="version-badge">v1.0.3 • Latest Release</span>
           <span class="release-date">November 2026</span>
           <span class="arch-badge">Android 7.0+ (arm64-v8a)</span>
         </div>
         <div class="changelog-actions">
           <a href="downloads/WhatsPlay.apk" id="changelog-download-btn" class="btn btn-sm btn-primary"
             download="WhatsPlay.apk" onclick="onDownloadClick()">
-            ⬇️ Download APK (29.2 MB)
+            ⬇️ Download APK (29.3 MB)
           </a>
           <a href="javascript:void(0)" id="changelog-open-btn" onclick="launchAppWithFallback()"
             class="btn btn-sm btn-secondary btn-open-pill">
@@ -812,9 +812,9 @@
     // =========================================================================
     // WhatsPlay Smart App Detection & Deep Link Launcher
     // =========================================================================
-    const LATEST_VERSION = 'v1.0.2';
+    const LATEST_VERSION = 'v1.0.3';
     const APK_URL = 'downloads/WhatsPlay.apk';
-    const APK_SIZE = '29.2 MB';
+    const APK_SIZE = '29.3 MB';
     const APP_SCHEME = 'whatsplay://open';
     const APP_SCHEME_ALT = 'whatsplay://blend';
     const ANDROID_PACKAGE = 'com.whatsplay.music.app';
@@ -937,7 +937,7 @@
         // First visit or downloading state
         if (dlBtn) {
           dlBtn.className = 'btn btn-primary';
-          dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (29.2 MB)';
+          dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (29.3 MB)';
         }
         if (openBtn) {
           openBtn.className = 'btn btn-secondary btn-open-pill';
@@ -945,7 +945,7 @@
         }
         if (changelogDlBtn) {
           changelogDlBtn.className = 'btn btn-sm btn-primary';
-          changelogDlBtn.innerHTML = '⬇️ Download APK (29.2 MB)';
+          changelogDlBtn.innerHTML = '⬇️ Download APK (29.3 MB)';
         }
         if (changelogOpenBtn) {
           changelogOpenBtn.className = 'btn btn-sm btn-secondary btn-open-pill';

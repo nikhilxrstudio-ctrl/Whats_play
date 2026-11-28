@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +16,7 @@ import '../models/playlist_model.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_service.dart';
 import '../services/blend_service.dart';
+import '../services/notification_service.dart';
 import '../widgets/category_selector_bar.dart';
 import '../widgets/empty_view.dart';
 import '../widgets/error_view.dart';
@@ -38,6 +41,7 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
   late final TabController _tabController;
   late final MusicController controller;
   Worker? _tabWorker;
+  Timer? _notifPromptTimer;
 
   @override
   void initState() {
@@ -63,10 +67,22 @@ class _MusicCatalogueScreenState extends State<MusicCatalogueScreen>
         _tabController.animateTo(newIndex);
       }
     });
+
+    // Check and show notification permission bottom sheet when landing in Dashboard
+    if (!Platform.environment.containsKey('FLUTTER_TEST')) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _notifPromptTimer = Timer(const Duration(milliseconds: 1400), () {
+          if (mounted && Get.isRegistered<NotificationService>()) {
+            NotificationService.to.checkAndPromptInDashboard(context);
+          }
+        });
+      });
+    }
   }
 
   @override
   void dispose() {
+    _notifPromptTimer?.cancel();
     _tabWorker?.dispose();
     if (controller.tabController == _tabController) {
       controller.tabController = null;
