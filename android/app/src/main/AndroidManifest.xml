@@ -43,6 +43,15 @@
                 <data android:scheme="whatsplay" android:host="blend" />
             </intent-filter>
 
+            <!-- General App Launch Intent: whatsplay://open or whatsplay:// -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="whatsplay" android:host="open" />
+                <data android:scheme="whatsplay" />
+            </intent-filter>
+
             <!-- App Links: https://nikhilxrstudio-ctrl.github.io/Whats_play/blend -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
