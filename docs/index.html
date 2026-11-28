@@ -674,7 +674,7 @@
     <div class="changelog-container">
       <div class="changelog-header">
         <div class="version-meta">
-          <span class="version-badge">v1.0.14 • Latest Release</span>
+          <span class="version-badge">v1.0.15 • Latest Release</span>
           <span class="release-date">November 2026</span>
           <span class="arch-badge">Android 7.0+ (arm64-v8a)</span>
         </div>
@@ -830,7 +830,7 @@
     // =========================================================================
     // WhatsPlay Smart App Detection & Deep Link Launcher
     // =========================================================================
-    const LATEST_VERSION = 'v1.0.14';
+    const LATEST_VERSION = 'v1.0.15';
     const APK_URL = 'downloads/WhatsPlay.apk';
     const APK_SIZE = '29.4 MB';
     const APP_SCHEME = 'whatsplay://open';
@@ -1300,8 +1300,8 @@
       if (statusLabel) statusLabel.textContent = '❌ Download Cancelled';
       if (title) title.textContent = 'Download Cancelled';
       if (cancelNotice) cancelNotice.textContent = 'Cancelled by user. Tap Download to retry anytime.';
-      if (dlBtn) dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (' + APK_SIZE + ')';
-      if (changelogDlBtn) changelogDlBtn.innerHTML = '⬇️ Download APK (' + APK_SIZE + ')';
+      if (dlBtn) dlBtn.innerHTML = '⬇️ Download WhatsPlay.apk (29.4 MB)';
+      if (changelogDlBtn) changelogDlBtn.innerHTML = '⬇️ Download APK (29.4 MB)';
       if (pulseDot) pulseDot.style.background = '#ff453a';
     }
 
@@ -1314,16 +1314,30 @@
       if (dlBtn) dlBtn.innerHTML = '⬇️ Retry Download (' + APK_SIZE + ')';
     }
 
+    // Extract query parameters (e.g. ?source=GitHub+README&download=1)
+    const pageParams = new URLSearchParams(window.location.search);
+    const querySource = pageParams.get('source') || pageParams.get('ref');
+    const autoDownload = pageParams.get('download') === '1' || pageParams.get('dl') === '1';
+
     function onDownloadClick(sourceName, event) {
       if (event) {
         try { event.preventDefault(); } catch(e) {}
       }
-      startApkDownload(sourceName || 'Website Landing Page');
+      const effectiveSource = querySource || sourceName || 'Website Landing Page';
+      startApkDownload(effectiveSource);
       const guide = document.getElementById('install-guide');
       if (guide) {
         guide.style.display = 'block';
         guide.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
+    }
+
+    if (autoDownload) {
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          onDownloadClick(querySource || 'Direct Link Auto Download');
+        }, 600);
+      });
     }
 
     function markAsInstalledAndOpen() {

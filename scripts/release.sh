@@ -133,12 +133,16 @@ try:
         f'https://img.shields.io/badge/Release-{tag}_({full_ver})-blue.svg?style=for-the-badge&logo=git',
         readme
     )
-    # Update APK size badge
-    readme = re.sub(r'Download_APK-WhatsPlay\.apk_\([^)]+\)-1DB954', f'Download_APK-WhatsPlay.apk_({badge_size})-1DB954', readme)
+    # Update APK download badge to link through trackable source URL
+    readme = re.sub(
+        r'<a href="[^"]*"><img src="https://img\.shields\.io/badge/Download_APK-[^"]+"',
+        f'<a href="https://nikhilxrstudio-ctrl.github.io/Whats_play/?source=GitHub+README&download=1"><img src="https://img.shields.io/badge/Download_APK-WhatsPlay.apk_({badge_size})-1DB954?style=for-the-badge&logo=android&logoColor=white"',
+        readme
+    )
     # Update table row
     readme = re.sub(
         r'\|\s*\*\*WhatsPlay\.apk[^\n]*',
-        f'| **WhatsPlay.apk (Latest {tag})** | `arm64-v8a` (99% Modern Android Phones) | **{size_mb}** | [⬇️ **Download WhatsPlay.apk**](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk) |',
+        f'| **WhatsPlay.apk (Latest {tag})** | `arm64-v8a` (99% Modern Android Phones) | **{size_mb}** | [⬇️ **Download WhatsPlay.apk**](https://nikhilxrstudio-ctrl.github.io/Whats_play/?source=GitHub+README&download=1) <br><sub>[Direct Link](https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk)</sub> |',
         readme
     )
     with open('README.md', 'w') as f:
@@ -200,11 +204,15 @@ except Exception as e:
 print(f"Artifact sync complete for {tag} ({size_mb})")
 EOF
 
+# Sync docs HTML to root HTML for GitHub Pages compatibility
+cp docs/index.html index.html
+cp docs/blend.html blend.html
+
 APK_SIZE_MB="$(python3 -c "print(f'{$APK_SIZE_BYTES / (1024 * 1024):.1f} MB')")"
 
 # 5. Commit release artifacts with author Nikhil
 echo "💾 4. Committing release artifacts..."
-git add -A pubspec.yaml CHANGELOG.md scripts/ README.md docs/index.html docs/blend.html downloads/WhatsPlay.apk docs/downloads/WhatsPlay.apk android/ lib/
+git add -A pubspec.yaml CHANGELOG.md scripts/ README.md index.html blend.html docs/index.html docs/blend.html downloads/WhatsPlay.apk docs/downloads/WhatsPlay.apk android/ lib/
 git commit --author="Nikhil <nikhil@whatsplay.com>" -m "release: $TAG_NAME ($FULL_VERSION) - $SUMMARY" || echo "No changes to commit"
 
 # 6. Create annotated Git tag

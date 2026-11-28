@@ -800,7 +800,7 @@
 
       if (statusLabel) statusLabel.textContent = '❌ Download Cancelled';
       if (cancelNotice) cancelNotice.textContent = 'Download cancelled. You can tap Download to try again.';
-      if (btn) btn.innerHTML = '⬇️ Download WhatsPlay APK (' + APK_SIZE + ')';
+      if (btn) btn.innerHTML = '⬇️ Download WhatsPlay APK (29.4 MB)';
     }
 
     function onDownloadFailedUI() {
@@ -814,7 +814,8 @@
       if (event) {
         try { event.preventDefault(); } catch(e) {}
       }
-      startApkDownload(sourceName || 'Blend Invite Page');
+      const blendSource = querySource || (rawCode ? ('Blend Invite (Code: ' + rawCode + ')') : (sourceName || 'Blend Invite Page'));
+      startApkDownload(blendSource);
     }
     // Extract query parameters from URL (e.g. ?code=RB4X4T&name=Weekend+Vibes)
     const urlParams = new URLSearchParams(window.location.search);

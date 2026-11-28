@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.15] - 2026-11-28 (Build: 1.0.15+16)
+
+### ⚡ What's New
+- Official Blend verified badge and subtitle fixes, dynamic download source tracking with progress, cancel, and success telemetry
+
 ## [v1.0.14] - 2026-11-28 (Build: 1.0.14+15)
 
 ### ⚡ What's New
