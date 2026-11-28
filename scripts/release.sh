@@ -195,6 +195,8 @@ try:
     with open('docs/blend.html', 'r') as f:
         b_html = f.read()
     b_html = re.sub(r'⬇️ Download WhatsPlay APK \([^)]+\)', f'⬇️ Download WhatsPlay APK ({size_mb})', b_html)
+    b_html = re.sub(r'const LATEST_VERSION = \'[^\']+\';', f'const LATEST_VERSION = \'{tag}\';', b_html)
+    b_html = re.sub(r'const APK_SIZE = \'[^\']+\';', f'const APK_SIZE = \'{size_mb}\';', b_html)
     with open('docs/blend.html', 'w') as f:
         f.write(b_html)
     print("✓ Updated docs/blend.html (APK size)")
