@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'email_template_service.dart';
+import 'notification_service.dart';
 
 class AuthService extends GetxService {
   static AuthService get to => Get.find<AuthService>();
@@ -127,6 +128,11 @@ class AuthService extends GetxService {
       };
 
       await userDoc.set(data, SetOptions(merge: true));
+
+      // Sync FCM token for guest
+      if (Get.isRegistered<NotificationService>()) {
+        unawaited(NotificationService.to.syncTokenToFirestore());
+      }
     } catch (e) {
       debugPrint('[AuthService] Error syncing guest device to Firestore: $e');
     }
@@ -273,6 +279,10 @@ class AuthService extends GetxService {
             'updatedAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
         } catch (_) {}
+      }
+      // Also sync current FCM token and topics to this authenticated user doc
+      if (Get.isRegistered<NotificationService>()) {
+        unawaited(NotificationService.to.syncTokenToFirestore());
       }
     } catch (e) {
       debugPrint('[AuthService] Error syncing user to Firestore: $e');

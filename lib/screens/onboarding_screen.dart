@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -5,6 +6,7 @@ import 'package:get/get.dart';
 import '../constants/app_colors.dart';
 import '../routes/app_routes.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 import '../services/onboarding_service.dart';
 
 /// Genre option data shown in Step 2
@@ -108,6 +110,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
     // Persist to OnboardingService
     await OnboardingService().completeOnboarding(name: name, genres: genres);
+
+    // Sync favorite genres to FCM topic subscriptions
+    if (Get.isRegistered<NotificationService>()) {
+      unawaited(NotificationService.to.syncGenreTopicSubscriptions(genres));
+    }
 
     // Also update AuthService guest name if not logged in
     final auth = Get.isRegistered<AuthService>() ? AuthService.to : null;

@@ -14,11 +14,13 @@ import 'constants/app_constants.dart';
 import 'controllers/player_controller.dart';
 import 'routes/app_pages.dart';
 import 'routes/app_routes.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'services/audio_player_handler.dart';
 import 'services/auth_service.dart';
 import 'services/blend_service.dart';
 import 'services/deep_link_service.dart';
 import 'services/local_database_service.dart';
+import 'services/notification_service.dart';
 import 'services/onboarding_service.dart';
 
 late AudioPlayerHandler audioHandler;
@@ -29,6 +31,13 @@ Future<void> main() async {
   // Initialize Firebase (safely wrapped so offline / test environments don't throw)
   try {
     await Firebase.initializeApp();
+
+    // Register background message handler for FCM
+    try {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    } catch (fcmErr) {
+      debugPrint('[Firebase] FCM background handler registration notice: $fcmErr');
+    }
 
     // Enable offline persistence so Firestore caches all data and doesn't crash or disconnect when offline/idle
     try {
@@ -140,6 +149,7 @@ Future<void> main() async {
   Get.put<ILocalDatabaseService>(databaseService, permanent: true);
   Get.put<AudioPlayerHandler>(audioHandler, permanent: true);
   Get.put<AuthService>(AuthService(), permanent: true);
+  Get.put<NotificationService>(NotificationService(), permanent: true);
   Get.put<BlendService>(BlendService(), permanent: true);
   Get.put<DeepLinkService>(DeepLinkService(), permanent: true);
   Get.put<PlayerController>(
