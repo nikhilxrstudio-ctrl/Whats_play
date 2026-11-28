@@ -699,7 +699,7 @@ class _BlendDetailScreenState extends State<BlendDetailScreen> {
                                               SizedBox(width: 4.w),
                                               Flexible(
                                                 child: Text(
-                                                  'Created by ${currentBlend.creatorName}${currentBlend.creatorEmail.isNotEmpty ? ' (${currentBlend.creatorEmail})' : ''}',
+                                                  'Created by ${currentBlend.creatorName}',
                                                   style: TextStyle(
                                                     color: Colors.white70,
                                                     fontSize: 11.5.sp,
