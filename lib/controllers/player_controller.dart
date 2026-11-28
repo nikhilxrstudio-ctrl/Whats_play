@@ -266,6 +266,7 @@ class PlayerController extends GetxController {
 
   int _playSequenceToken = 0;
   bool _hasRecordedCurrentTrackForHistory = false;
+  bool _isAutoAdvancing = false;
 
   void _listenToPlayerStreams() {
     _audioHandler.onSkipToNext = playNext;
@@ -299,14 +300,22 @@ class PlayerController extends GetxController {
               }
             });
           } else {
-            // Auto-advance to next track in playlist and guarantee continuous playback
-            Future.microtask(() async {
-              try {
-                await playNext();
-              } catch (e) {
-                debugPrint('[PlayerController] Error auto-playing next track: $e');
-              }
-            });
+            // Auto-advance to next track in playlist exactly once
+            if (!_isAutoAdvancing) {
+              _isAutoAdvancing = true;
+              Future.microtask(() async {
+                try {
+                  await playNext();
+                } catch (e) {
+                  debugPrint('[PlayerController] Error auto-playing next track: $e');
+                } finally {
+                  // Allow next track completion to trigger after a debounce
+                  Future.delayed(const Duration(milliseconds: 1500), () {
+                    _isAutoAdvancing = false;
+                  });
+                }
+              });
+            }
           }
         }
       },
@@ -523,9 +532,6 @@ class PlayerController extends GetxController {
 
       final nextTrack = playlist[currentIndex.value];
       await playTrack(nextTrack);
-      if (!_audioHandler.player.playing) {
-        await _audioHandler.play();
-      }
     } catch (e) {
       final msg = e.toString().toLowerCase();
       if (!msg.contains('interrupted') && !msg.contains('abort')) {

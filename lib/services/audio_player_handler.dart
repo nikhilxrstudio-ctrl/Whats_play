@@ -36,11 +36,13 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
       },
     );
 
-    // When playback completes, only pause/reset if no external queue handler (onSkipToNext) is attached
+    // Auto-advance or stop on completion:
+    // When playback completes, pause and reset to start of song.
+    // If a playlist controller is listening (onSkipToNext), it will transition to the next track.
     _player.playerStateStream.listen(
       (state) {
         if (state.processingState == ProcessingState.completed) {
-          if (_player.loopMode != LoopMode.one && onSkipToNext == null) {
+          if (_player.loopMode != LoopMode.one) {
             pause();
             seek(Duration.zero);
           }

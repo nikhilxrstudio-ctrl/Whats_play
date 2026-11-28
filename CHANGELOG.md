@@ -6,6 +6,11 @@ Version series follows: `1.0.0+1`, `1.0.1+2`, `1.0.2+3`, ... where the semantic 
 
 ---
 
+## [v1.0.8] - 2026-11-28 (Build: 1.0.8+9)
+
+### ⚡ What's New
+- Fix song change loop on track completion to cleanly advance exactly once
+
 ## [v1.0.7] - 2026-11-28 (Build: 1.0.7+8)
 
 ### ⚡ What's New
