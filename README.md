@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Release-v1.0.0_(1.0.0+1)-blue.svg?style=for-the-badge&logo=git" alt="Release Version" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/Release-v1.0.5_(1.0.5+6)-blue.svg?style=for-the-badge&logo=git" alt="Release Version" /></a>
   <a href="https://github.com/nikhilxrstudio-ctrl/Whats_play/raw/main/downloads/WhatsPlay.apk"><img src="https://img.shields.io/badge/Download_APK-WhatsPlay.apk_(29.4_MB)-1DB954?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" /></a>
   <a href="https://nikhilxrstudio-ctrl.github.io/Whats_play/"><img src="https://img.shields.io/badge/Official_Website-Live-00E5FF?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Live Website" /></a>
 </p>

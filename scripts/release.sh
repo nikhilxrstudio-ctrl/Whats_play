@@ -129,8 +129,8 @@ try:
         readme = f.read()
     # Update release version badge
     readme = re.sub(
-        r'Release-[^)]+-blue\.svg\?style=for-the-badge&logo=git',
-        f'Release-{tag}_({full_ver})-blue.svg?style=for-the-badge&logo=git',
+        r'https://img\.shields\.io/badge/Release-[^"]+',
+        f'https://img.shields.io/badge/Release-{tag}_({full_ver})-blue.svg?style=for-the-badge&logo=git',
         readme
     )
     # Update APK size badge
