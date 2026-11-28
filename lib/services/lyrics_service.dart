@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../config/secrets/api_secrets.dart';
 import '../models/track_model.dart';
 
 abstract class ILyricsService {
@@ -60,9 +61,8 @@ class LyricsService implements ILyricsService {
   }
 
   Future<String?> _fetchJioSaavnLyrics(String trackId) async {
-    final uri = Uri.parse(
-      'https://www.jiosaavn.com/api.php?__call=lyrics.getLyrics&lyrics_id=$trackId&_format=json&_marker=0&api_version=4&ctx=web6dot0',
-    );
+    if (!ApiSecrets.isMusicApiConfigured) return null;
+    final uri = ApiSecrets.buildSaavnLyricsUri(trackId);
     final res = await _client.get(
       uri,
       headers: {

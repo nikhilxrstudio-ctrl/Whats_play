@@ -5,29 +5,19 @@ import 'package:flutter/services.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:share_plus/share_plus.dart';
+import '../config/secrets/api_secrets.dart';
 import '../models/blend_model.dart';
 import 'auth_service.dart';
 
 class EmailTemplateService {
   static const String appUrl = 'https://nikhilxrstudio-ctrl.github.io/Whats_play';
 
-  // Brevo SMTP Relay configuration
-  static const String _brevoSmtpHost = 'smtp-relay.brevo.com';
-  static const int _brevoSmtpPort = 587;
-  static const String _brevoUsername = 'c570e4001@smtp-brevo.com';
-  static String get _brevoPassword => utf8.decode(
-        base64.decode(
-          'eHNtdHBzaWItZjA5NjYzODNkMmUyNmE3YWZmNDQxMGExZTZkNjQxZjkxZmRkZTIxNGI0MTNiNzUxMTEzOWM2MmNiMzg2MjRmYi1FNDRjSGFkRjJYUWNhRjE2',
-        ),
-      );
-  static const String _brevoSenderEmail = 'whatsplay.official@gmail.com';
-  static const String _brevoSenderName = 'WhatsPlay';
-
+  // Brevo SMTP Relay configuration (resolved via ApiSecrets)
   static SmtpServer get _smtpServer => SmtpServer(
-        _brevoSmtpHost,
-        port: _brevoSmtpPort,
-        username: _brevoUsername,
-        password: _brevoPassword,
+        ApiSecrets.brevoSmtpHost,
+        port: ApiSecrets.brevoSmtpPort,
+        username: ApiSecrets.brevoUsername,
+        password: ApiSecrets.brevoPassword,
         allowInsecure: true,
         ignoreBadCertificate: true,
       );
@@ -695,6 +685,10 @@ WhatsPlay Music Team
     required String userName,
     String source = 'onboarding',
   }) async {
+    if (!ApiSecrets.isBrevoConfigured) {
+      debugPrint('[EmailTemplateService] Brevo SMTP not configured; skipping email delivery.');
+      return false;
+    }
     if (userEmail.isEmpty || !userEmail.contains('@')) {
       debugPrint('[EmailTemplateService] Invalid welcome email recipient: $userEmail');
       return false;
@@ -709,7 +703,7 @@ WhatsPlay Music Team
       );
 
       final message = Message()
-        ..from = const Address(_brevoSenderEmail, _brevoSenderName)
+        ..from = Address(ApiSecrets.brevoSenderEmail, ApiSecrets.brevoSenderName)
         ..recipients.add(userEmail)
         ..subject = subject
         ..text = textTemplate
@@ -743,6 +737,10 @@ WhatsPlay Music Team
     required String userName,
     String source = 'onboarding',
   }) async {
+    if (!ApiSecrets.isBrevoConfigured) {
+      debugPrint('[EmailTemplateService] Brevo SMTP not configured; skipping email delivery.');
+      return false;
+    }
     if (userEmail.isEmpty || !userEmail.contains('@')) {
       debugPrint('[EmailTemplateService] Invalid welcome back email recipient: $userEmail');
       return false;
@@ -757,7 +755,7 @@ WhatsPlay Music Team
       );
 
       final message = Message()
-        ..from = const Address(_brevoSenderEmail, _brevoSenderName)
+        ..from = Address(ApiSecrets.brevoSenderEmail, ApiSecrets.brevoSenderName)
         ..recipients.add(userEmail)
         ..subject = subject
         ..text = textTemplate
@@ -789,6 +787,10 @@ WhatsPlay Music Team
     BlendModel blend, {
     String? recipientEmail,
   }) async {
+    if (!ApiSecrets.isBrevoConfigured) {
+      debugPrint('[EmailTemplateService] Brevo SMTP not configured; skipping email delivery.');
+      return false;
+    }
     final auth = AuthService.to;
     final targetEmail = recipientEmail ?? auth.userEmail.value;
 
@@ -809,7 +811,7 @@ WhatsPlay Music Team
       );
 
       final message = Message()
-        ..from = const Address(_brevoSenderEmail, _brevoSenderName)
+        ..from = Address(ApiSecrets.brevoSenderEmail, ApiSecrets.brevoSenderName)
         ..recipients.add(targetEmail)
         ..subject = subject
         ..text = textTemplate
@@ -844,6 +846,10 @@ WhatsPlay Music Team
     BlendModel blend, {
     required String recipientEmail,
   }) async {
+    if (!ApiSecrets.isBrevoConfigured) {
+      debugPrint('[EmailTemplateService] Brevo SMTP not configured; skipping email delivery.');
+      return false;
+    }
     final auth = AuthService.to;
     final targetEmail = recipientEmail.trim();
 
@@ -864,7 +870,7 @@ WhatsPlay Music Team
       );
 
       final message = Message()
-        ..from = const Address(_brevoSenderEmail, _brevoSenderName)
+        ..from = Address(ApiSecrets.brevoSenderEmail, ApiSecrets.brevoSenderName)
         ..recipients.add(targetEmail)
         ..subject = subject
         ..text = textTemplate

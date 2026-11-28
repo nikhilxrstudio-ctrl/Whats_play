@@ -1,6 +1,10 @@
+import '../config/secrets/api_secrets.dart';
+
 class ApiConstants {
   /// Base host for Audius open discovery API
-  static const String audiusBaseUrl = 'https://api.audius.co';
+  static String get audiusBaseUrl => ApiSecrets.audiusBaseUrl.isNotEmpty
+      ? ApiSecrets.audiusBaseUrl
+      : 'https://api.audius.co';
 
   /// Default application identifier registered with Audius API guidelines
   static const String defaultAppName = 'WHATS_PLAY';
@@ -19,6 +23,7 @@ class ApiConstants {
 
   /// Helper to build direct stream URL
   static String buildStreamUrl(String trackId) {
+    if (audiusBaseUrl.isEmpty) return '';
     return '$audiusBaseUrl/v1/tracks/$trackId/stream?app_name=$appName';
   }
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../config/secrets/api_secrets.dart';
 import '../models/audio_verification_model.dart';
 import '../models/track_model.dart';
 import 'api_service.dart';
@@ -37,11 +38,12 @@ class SaavnService implements IApiService {
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     };
 
-    // 1. Try official "Trending Today" playlist (listid: 110858205)
+    // 1. Try official "Trending Today" playlist
     try {
-      final trendingUri = Uri.parse(
-        'https://www.jiosaavn.com/api.php?__call=playlist.getDetails&listid=110858205&_format=json&_marker=0&api_version=4&ctx=web6dot0',
-      );
+      final listId = ApiSecrets.saavnTrendingTodayListId.isNotEmpty
+          ? ApiSecrets.saavnTrendingTodayListId
+          : '110858205';
+      final trendingUri = ApiSecrets.buildSaavnPlaylistUri(listId);
       final res = await _client.get(trendingUri, headers: headers).timeout(const Duration(seconds: 12));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -66,11 +68,12 @@ class SaavnService implements IApiService {
       debugPrint('[SaavnService] Error fetching "Trending Today" chart: $e');
     }
 
-    // 2. Try official "India Superhits Top 50" chart (listid: 1134548194)
+    // 2. Try official "India Superhits Top 50" chart
     try {
-      final superhitsUri = Uri.parse(
-        'https://www.jiosaavn.com/api.php?__call=playlist.getDetails&listid=1134548194&_format=json&_marker=0&api_version=4&ctx=web6dot0',
-      );
+      final listId = ApiSecrets.saavnSuperhitsListId.isNotEmpty
+          ? ApiSecrets.saavnSuperhitsListId
+          : '1134548194';
+      final superhitsUri = ApiSecrets.buildSaavnPlaylistUri(listId);
       final res = await _client.get(superhitsUri, headers: headers).timeout(const Duration(seconds: 12));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -97,9 +100,7 @@ class SaavnService implements IApiService {
 
     // 3. Fallback: query content.getTrending
     try {
-      final feedUri = Uri.parse(
-        'https://www.jiosaavn.com/api.php?__call=content.getTrending&_format=json&_marker=0&api_version=4&ctx=web6dot0',
-      );
+      final feedUri = ApiSecrets.buildSaavnTrendingFeedUri();
       final res = await _client.get(feedUri, headers: headers).timeout(const Duration(seconds: 12));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -136,11 +137,12 @@ class SaavnService implements IApiService {
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     };
 
-    // 1. Try official "Taaza Tunes" playlist (listid: 6689255)
+    // 1. Try official "Taaza Tunes" playlist
     try {
-      final taazaUri = Uri.parse(
-        'https://www.jiosaavn.com/api.php?__call=playlist.getDetails&listid=6689255&_format=json&_marker=0&api_version=4&ctx=web6dot0',
-      );
+      final listId = ApiSecrets.saavnTaazaTunesListId.isNotEmpty
+          ? ApiSecrets.saavnTaazaTunesListId
+          : '6689255';
+      final taazaUri = ApiSecrets.buildSaavnPlaylistUri(listId);
       final res = await _client.get(taazaUri, headers: headers).timeout(const Duration(seconds: 12));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -165,11 +167,12 @@ class SaavnService implements IApiService {
       debugPrint('[SaavnService] Error fetching "Taaza Tunes" New Releases: $e');
     }
 
-    // 2. Try "New Hits Hindi" playlist (listid: 1300709425)
+    // 2. Try "New Hits Hindi" playlist
     try {
-      final newHitsUri = Uri.parse(
-        'https://www.jiosaavn.com/api.php?__call=playlist.getDetails&listid=1300709425&_format=json&_marker=0&api_version=4&ctx=web6dot0',
-      );
+      final listId = ApiSecrets.saavnNewHitsHindiListId.isNotEmpty
+          ? ApiSecrets.saavnNewHitsHindiListId
+          : '1300709425';
+      final newHitsUri = ApiSecrets.buildSaavnPlaylistUri(listId);
       final res = await _client.get(newHitsUri, headers: headers).timeout(const Duration(seconds: 12));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -210,9 +213,7 @@ class SaavnService implements IApiService {
           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     };
     try {
-      final uri = Uri.parse(
-        'https://www.jiosaavn.com/api.php?__call=playlist.getDetails&listid=$listId&_format=json&_marker=0&api_version=4&ctx=web6dot0',
-      );
+      final uri = ApiSecrets.buildSaavnPlaylistUri(listId);
       final res = await _client.get(uri, headers: headers).timeout(const Duration(seconds: 12));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -252,12 +253,8 @@ class SaavnService implements IApiService {
 
     final cleanQueryLower = cleanQuery.toLowerCase();
 
-    final songUri = Uri.parse(
-      'https://www.jiosaavn.com/api.php?__call=search.getResults&q=${Uri.encodeComponent(cleanQuery)}&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=$limit',
-    );
-    final artistUri = Uri.parse(
-      'https://www.jiosaavn.com/api.php?__call=search.getArtistResults&q=${Uri.encodeComponent(cleanQuery)}&_format=json&_marker=0&api_version=4&ctx=web6dot0&n=5',
-    );
+    final songUri = ApiSecrets.buildSaavnSearchUri(cleanQuery, limit: limit);
+    final artistUri = ApiSecrets.buildSaavnArtistSearchUri(cleanQuery, limit: 5);
 
     debugPrint('[SaavnService] Searching tracks and artists for: "$cleanQuery"');
 
@@ -329,9 +326,7 @@ class SaavnService implements IApiService {
                 (queryTokens.length > 1 && queryTokens.every((w) => artistName.contains(w)));
 
             if (artistId != null && (isStrongArtistMatch || songTracks.isEmpty)) {
-              final artistPageUri = Uri.parse(
-                'https://www.jiosaavn.com/api.php?__call=artist.getArtistPageDetails&artistId=$artistId&_format=json&_marker=0&api_version=4&ctx=web6dot0&n_song=$limit',
-              );
+              final artistPageUri = ApiSecrets.buildSaavnArtistPageUri(artistId, limit: limit);
               final pageRes = await _client.get(artistPageUri, headers: headers).timeout(const Duration(seconds: 12));
               if (pageRes.statusCode == 200) {
                 final pageBody = jsonDecode(pageRes.body);

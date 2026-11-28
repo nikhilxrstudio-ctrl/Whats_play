@@ -68,5 +68,11 @@ ios/.symlinks/
 ios/Flutter/Generated.xcconfig
 ios/Flutter/flutter_export_environment.sh
 
+# Private Secret Configuration Overrides
+*.local.env
+.secrets.env
+secrets.json
+lib/config/secrets/*.local.dart
+
 # FVM Version Cache (pin file .fvmrc is committed)
 .fvm/
